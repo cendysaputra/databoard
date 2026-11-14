@@ -27,6 +27,9 @@ export const formatWeekdayLong = formatter({ weekday: 'long' });
 /** "14 Nov" */
 export const formatDayMonth = formatter({ day: 'numeric', month: 'short' });
 
+/** A stored `YYYY-MM-DD` day as a local date (plain parsing would read it as UTC). */
+export const fromIsoDay = (day: string) => new Date(`${day}T00:00`);
+
 /** "Sab" */
 export const formatWeekday = formatter({ weekday: 'short' });
 
