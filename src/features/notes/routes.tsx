@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { Pin, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { lazy, useState } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Note, Tag } from '@/shared/types';
 import { Button, buttonClass } from '@/shared/ui/Button';
@@ -14,16 +14,12 @@ import { formatDayMonth, fromIsoDay } from '@/shared/utils/date';
 import { useLabels, useNote, useNotes, useRemoveNote, useSaveNote } from './api';
 import { LabelChip } from './components/LabelChip';
 import { LabelManager } from './components/LabelManager';
-import { NoteForm } from './components/NoteForm';
 
-/** First line of the note without markdown markers, as a short preview. */
-function excerpt(body: string): string {
-  const line = body.split('\n').find((text) => text.trim() && !text.startsWith('#')) ?? '';
-  return line
-    .replace(/^[-*\s[\]x>]+/i, '')
-    .replace(/[*_`~]/g, '')
-    .trim();
-}
+// The editor is heavy (rich text engine), so it loads only when a note is opened,
+// not with the list.
+const NoteForm = lazy(() =>
+  import('./components/NoteForm').then((module) => ({ default: module.NoteForm })),
+);
 
 function NoteList({ labels }: { labels: Tag[] }) {
   const [labelId, setLabelId] = useState<string | null>(null);
@@ -94,7 +90,7 @@ function NoteList({ labels }: { labels: Tag[] }) {
                       </span>
                     ))}
                   </div>
-                  <p className="truncate text-sm text-muted">{excerpt(note.body_md)}</p>
+                  <p className="truncate text-sm text-muted">{note.excerpt}</p>
                 </Row>
               ))}
             </Rows>

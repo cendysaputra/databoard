@@ -111,6 +111,16 @@ const pickAccents = ({ accent_color, accent_color_secondary }: Settings) => ({
   accent_color_secondary,
 });
 
+/** First line of a note without headings or markdown markers, like the Rust side builds it. */
+function excerpt(body: string): string {
+  const line = body.split('\n').find((text) => text.trim() && !text.trim().startsWith('#')) ?? '';
+  return line
+    .trim()
+    .replace(/^[-*\s[\]x>]+/i, '')
+    .replace(/[*_`~]/g, '')
+    .slice(0, 160);
+}
+
 /** Creates a label or renames the one with `id`; names are unique without case. */
 async function saveTag(input: TagInput, id?: string): Promise<Tag> {
   requireText('name', input.name);
@@ -218,7 +228,8 @@ export const browserSource: DataSource = {
             b.note_date.localeCompare(a.note_date) ||
             b.updated_at.localeCompare(a.updated_at),
         )
-        .slice(offset, offset + limit);
+        .slice(offset, offset + limit)
+        .map(({ body_md, ...note }) => ({ ...note, excerpt: excerpt(body_md) }));
     },
     get: (id) => find('notes', id),
     async create(input) {

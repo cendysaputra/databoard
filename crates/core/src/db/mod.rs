@@ -13,6 +13,8 @@ use crate::DB_FILE;
 
 pub use backup::backup_to;
 
+const WAL_SIZE_LIMIT_BYTES: i64 = 4 * 1024 * 1024;
+
 /// One connection behind a mutex. That is enough for a single-user app and keeps memory low;
 /// the MCP server opens its own connection to the same file (WAL + busy_timeout handle that).
 pub struct Db {
@@ -76,5 +78,9 @@ fn configure(conn: &Connection) -> Result<()> {
     conn.pragma_update(None, "journal_mode", "WAL")?;
     conn.pragma_update(None, "foreign_keys", "ON")?;
     conn.pragma_update(None, "busy_timeout", 5000)?;
+    // Safe with WAL and avoids a disk sync on every write.
+    conn.pragma_update(None, "synchronous", "NORMAL")?;
+    // Keeps the write-ahead log file from staying large after a burst of writes.
+    conn.pragma_update(None, "journal_size_limit", WAL_SIZE_LIMIT_BYTES)?;
     Ok(())
 }

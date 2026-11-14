@@ -5,8 +5,11 @@ use rusqlite_migration::{Migrations, M};
 use time::macros::format_description;
 use time::OffsetDateTime;
 
-use super::backup::backup_to;
+use super::backup::{backup_to, prune};
 use crate::error::Result;
+
+/// How many pre-migration backups are kept; older ones are deleted.
+const BACKUPS_KEPT: usize = 5;
 
 /// Numbered migrations, in order. Released files are never edited; append a new one instead.
 const MIGRATIONS: &[&str] = &[
@@ -32,6 +35,8 @@ fn run_all(
     if let Some(dir) = backup_dir {
         if current > 0 && current < migrations.len() {
             backup_to(conn, &dir.join(backup_name(app_version)))?;
+            // Old backups would otherwise pile up with every update.
+            prune(dir, BACKUPS_KEPT)?;
         }
     }
     let steps = migrations.iter().map(|sql| M::up(sql)).collect();
@@ -87,5 +92,12 @@ mod tests {
             1,
             "up to date: no new backup"
         );
+
+        // Only the newest backups are kept.
+        for i in 0..7 {
+            std::fs::write(backups.join(format!("old-{i}.db")), b"x").unwrap();
+        }
+        prune(&backups, BACKUPS_KEPT).unwrap();
+        assert_eq!(std::fs::read_dir(&backups).unwrap().count(), BACKUPS_KEPT);
     }
 }

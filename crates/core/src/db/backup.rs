@@ -14,3 +14,22 @@ pub fn backup_to(conn: &Connection, target: &Path) -> Result<()> {
     conn.backup(MAIN_DB, target, None::<fn(Progress)>)?;
     Ok(())
 }
+
+/// Deletes the oldest `.db` files in `dir` so that at most `keep` remain.
+pub fn prune(dir: &Path, keep: usize) -> Result<()> {
+    let mut backups: Vec<_> = std::fs::read_dir(dir)?
+        .flatten()
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().is_some_and(|ext| ext == "db"))
+        .collect();
+    backups.sort_by_key(|path| {
+        std::fs::metadata(path)
+            .and_then(|meta| meta.modified())
+            .ok()
+    });
+    let excess = backups.len().saturating_sub(keep);
+    for path in backups.into_iter().take(excess) {
+        std::fs::remove_file(path)?;
+    }
+    Ok(())
+}

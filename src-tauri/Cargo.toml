@@ -23,8 +23,13 @@ tauri-plugin-opener = "2"
 # Google Drive upload: OAuth in the system browser, token in the OS credential store.
 base64 = "0.22"
 keyring = "4"
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+# native-tls uses the TLS that ships with Windows, so no TLS library or root
+# certificates are compiled into the app.
+reqwest = { version = "0.12", default-features = false, features = ["native-tls", "json"] }
 serde_json.workspace = true
 sha2 = "0.10"
-tokio = { version = "1", features = ["fs", "io-util", "macros", "net", "rt", "time"] }
+tokio = { version = "1", features = ["fs", "io-util", "net", "time"] }
 uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }

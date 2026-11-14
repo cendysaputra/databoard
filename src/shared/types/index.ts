@@ -13,6 +13,7 @@ export type { FieldType } from './FieldType';
 export type { Note } from './Note';
 export type { NoteInput } from './NoteInput';
 export type { NoteStatus } from './NoteStatus';
+export type { NoteSummary } from './NoteSummary';
 export type { Overview } from './Overview';
 export type { OverviewQuery } from './OverviewQuery';
 export type { Page } from './Page';

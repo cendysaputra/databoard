@@ -1,4 +1,4 @@
-use dashboard_core::domain::notes::{self, Note, NoteInput};
+use dashboard_core::domain::notes::{self, Note, NoteInput, NoteSummary};
 use dashboard_core::domain::Page;
 use dashboard_core::Db;
 use tauri::State;
@@ -10,7 +10,7 @@ pub fn notes_list(
     db: State<'_, Db>,
     page: Page,
     label_id: Option<String>,
-) -> CommandResult<Vec<Note>> {
+) -> CommandResult<Vec<NoteSummary>> {
     db.with(|conn| notes::list(conn, page, label_id.as_deref()))
 }
 

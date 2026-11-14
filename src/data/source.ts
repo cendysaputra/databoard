@@ -9,6 +9,7 @@ import type {
   EventRange,
   Note,
   NoteInput,
+  NoteSummary,
   Overview,
   OverviewQuery,
   Page,
@@ -59,7 +60,7 @@ export interface DataSource {
   };
   notes: {
     /** With `labelId`, only notes carrying that label. */
-    list(page: Page, labelId?: string | null): Promise<Note[]>;
+    list(page: Page, labelId?: string | null): Promise<NoteSummary[]>;
     get(id: string): Promise<Note>;
     create(input: NoteInput): Promise<Note>;
     update(id: string, input: NoteInput): Promise<Note>;

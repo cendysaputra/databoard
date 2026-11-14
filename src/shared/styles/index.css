@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/ibm-plex-sans';
+@import './fonts.css';
 @import './tokens.css';
 
 /* `dark:` follows the manual theme when set, otherwise the system. */

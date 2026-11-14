@@ -58,6 +58,60 @@ pub struct Note {
     pub updated_at: String,
 }
 
+/// A note as shown in lists: everything but the body, which is replaced by a short excerpt.
+/// Lists stay small this way, however long the notes are.
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export)]
+pub struct NoteSummary {
+    pub id: String,
+    pub title: String,
+    /// The first line of text from the body, without markdown markers.
+    pub excerpt: String,
+    pub pinned: bool,
+    pub note_date: String,
+    pub status: NoteStatus,
+    pub label_ids: Vec<String>,
+    pub updated_at: String,
+}
+
+/// How much of the body is read to build an excerpt, and how long the excerpt may be.
+const EXCERPT_SOURCE_CHARS: u32 = 600;
+const EXCERPT_CHARS: usize = 160;
+
+/// The first line that is not a heading, with list, quote and emphasis markers removed.
+fn excerpt(body_start: &str) -> String {
+    let line = body_start
+        .lines()
+        .map(str::trim)
+        .find(|line| !line.is_empty() && !line.starts_with('#'))
+        .unwrap_or_default();
+    let line = line.trim_start_matches(|c: char| {
+        matches!(c, '-' | '*' | '>' | '[' | ']' | ' ') || c.eq_ignore_ascii_case(&'x')
+    });
+    line.chars()
+        .filter(|c| !matches!(c, '*' | '_' | '`' | '~'))
+        .take(EXCERPT_CHARS)
+        .collect()
+}
+
+fn summary_from_row(row: &Row<'_>) -> rusqlite::Result<NoteSummary> {
+    let body_start: String = row.get(2)?;
+    let note_date: Option<String> = row.get(4)?;
+    let status: String = row.get(5)?;
+    let label_ids: String = row.get(6)?;
+    let created_at: String = row.get(7)?;
+    Ok(NoteSummary {
+        id: row.get(0)?,
+        title: row.get(1)?,
+        excerpt: excerpt(&body_start),
+        pinned: row.get(3)?,
+        note_date: note_date.unwrap_or_else(|| created_at.chars().take(10).collect()),
+        status: NoteStatus::parse(&status),
+        label_ids: serde_json::from_str(&label_ids).unwrap_or_default(),
+        updated_at: row.get(8)?,
+    })
+}
+
 #[derive(Debug, Clone, Deserialize, TS)]
 #[ts(export)]
 pub struct NoteInput {
@@ -93,17 +147,25 @@ fn from_row(row: &Row<'_>) -> rusqlite::Result<Note> {
 }
 
 /// Pinned notes first, then newest date. With `label_id`, only notes carrying that label.
-pub fn list(conn: &Connection, page: Page, label_id: Option<&str>) -> Result<Vec<Note>> {
-    let sql = format!(
-        "SELECT {COLUMNS} FROM {TABLE}
+/// Returns summaries: only the start of each body is read from the database.
+pub fn list(conn: &Connection, page: Page, label_id: Option<&str>) -> Result<Vec<NoteSummary>> {
+    let mut stmt = conn.prepare_cached(
+        "SELECT id, title, substr(body_md, 1, ?4), pinned, note_date, status,
+            (SELECT json_group_array(t.tag_id) FROM taggables t
+               JOIN tags g ON g.id = t.tag_id AND g.deleted_at IS NULL
+              WHERE t.entity_type = 'note' AND t.entity_id = notes.id AND t.deleted_at IS NULL),
+            created_at, updated_at
+         FROM notes
          WHERE deleted_at IS NULL
            AND (?3 IS NULL OR id IN (SELECT entity_id FROM taggables
                                      WHERE tag_id = ?3 AND entity_type = 'note'
                                        AND deleted_at IS NULL))
-         ORDER BY pinned DESC, note_date DESC, updated_at DESC LIMIT ?1 OFFSET ?2"
-    );
-    let mut stmt = conn.prepare_cached(&sql)?;
-    let rows = stmt.query_map(params![page.limit(), page.offset, label_id], from_row)?;
+         ORDER BY pinned DESC, note_date DESC, updated_at DESC LIMIT ?1 OFFSET ?2",
+    )?;
+    let rows = stmt.query_map(
+        params![page.limit(), page.offset, label_id, EXCERPT_SOURCE_CHARS],
+        summary_from_row,
+    )?;
     Ok(rows.collect::<rusqlite::Result<_>>()?)
 }
 
@@ -205,12 +267,19 @@ mod tests {
     fn crud_keeps_search_index_in_sync() {
         let db = Db::open_in_memory().unwrap();
         db.with(|c| {
-            let note = create(c, &input("Kickoff", "bahas anggaran", false))?;
+            let note = create(
+                c,
+                &input("Kickoff", "## Agenda\n\n- [ ] **bahas** anggaran", false),
+            )?;
             create(c, &input("Pinned", "", true))?;
             assert_eq!(fts_hits(c, "anggaran"), 1);
 
             let all = list(c, ALL, None)?;
             assert_eq!(all[0].title, "Pinned");
+            assert_eq!(
+                all[1].excerpt, "bahas anggaran",
+                "heading and markers are dropped"
+            );
             assert_eq!(
                 list(
                     c,
