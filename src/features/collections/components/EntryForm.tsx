@@ -2,10 +2,10 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Collection, Entry, EntryInput, EntryStatus } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
+import { FormError } from '@/shared/ui/FormError';
 import { FormField } from '@/shared/ui/FormField';
 import { Select } from '@/shared/ui/Select';
 import { FieldInput, type FieldValue } from './FieldInput';
-import { FormError } from './FormError';
 
 const text = t.collections.entries;
 const statuses = Object.keys(text.statuses) as EntryStatus[];

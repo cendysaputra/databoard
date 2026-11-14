@@ -10,6 +10,11 @@ pub fn events_list(db: State<'_, Db>, range: EventRange) -> CommandResult<Vec<Ca
 }
 
 #[tauri::command]
+pub fn events_get(db: State<'_, Db>, id: String) -> CommandResult<CalendarEvent> {
+    db.with(|conn| events::get(conn, &id))
+}
+
+#[tauri::command]
 pub fn events_create(db: State<'_, Db>, input: EventInput) -> CommandResult<CalendarEvent> {
     db.with(|conn| events::create(conn, &input))
 }

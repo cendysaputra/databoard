@@ -3,11 +3,11 @@ import { useState, type FormEvent } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Collection, CollectionInput, FieldDef, FieldType } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
+import { FormError } from '@/shared/ui/FormError';
 import { FormField } from '@/shared/ui/FormField';
 import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
 import { slugify } from '@/shared/utils/slug';
-import { FormError } from './FormError';
 
 const fieldTypes = Object.keys(t.collections.fieldTypes) as FieldType[];
 const text = t.collections.blueprint;

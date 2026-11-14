@@ -6,6 +6,7 @@ export const tauriSource: DataSource = {
   kind: 'tauri',
   events: {
     list: (range) => invoke('events_list', { range }),
+    get: (id) => invoke('events_get', { id }),
     create: (input) => invoke('events_create', { input }),
     update: (id, input) => invoke('events_update', { id, input }),
     remove: (id) => invoke('events_remove', { id }),

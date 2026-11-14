@@ -34,6 +34,7 @@ export interface DataSource {
   readonly kind: 'tauri' | 'browser';
   events: {
     list(range: EventRange): Promise<CalendarEvent[]>;
+    get(id: string): Promise<CalendarEvent>;
     create(input: EventInput): Promise<CalendarEvent>;
     update(id: string, input: EventInput): Promise<CalendarEvent>;
     remove(id: string): Promise<void>;

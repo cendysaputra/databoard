@@ -129,6 +129,7 @@ export const browserSource: DataSource = {
         .filter((e) => new Date(e.start_at) < end && new Date(e.end_at) >= start)
         .sort((a, b) => a.start_at.localeCompare(b.start_at));
     },
+    get: (id) => find('events', id),
     async create(input) {
       requireText('title', input.title);
       return insert('events', input);
@@ -137,7 +138,14 @@ export const browserSource: DataSource = {
       requireText('title', input.title);
       return patch('events', id, input);
     },
-    remove: (id) => remove('events', id),
+    async remove(id) {
+      await remove('events', id);
+      const reminders = await load('reminders');
+      await set(
+        key('reminders'),
+        reminders.filter((r) => r.event_id !== id),
+      );
+    },
   },
   reminders: {
     async list(upcomingOnly) {

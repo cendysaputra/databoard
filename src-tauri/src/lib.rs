@@ -28,6 +28,7 @@ pub fn run() {
             commands::entries::entries_update,
             commands::entries::entries_remove,
             commands::events::events_list,
+            commands::events::events_get,
             commands::events::events_create,
             commands::events::events_update,
             commands::events::events_remove,

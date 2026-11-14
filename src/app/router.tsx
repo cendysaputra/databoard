@@ -77,6 +77,18 @@ const settingsRoute = createRoute({
   component: lazyRouteComponent(() => import('@/features/settings/routes'), 'SettingsPage'),
 });
 
+const calendarNewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/calendar/new',
+  component: lazyRouteComponent(() => import('@/features/calendar/routes'), 'EventNewPage'),
+});
+
+const calendarEditRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/calendar/$eventId',
+  component: lazyRouteComponent(() => import('@/features/calendar/routes'), 'EventEditPage'),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   collectionsRoute,
@@ -88,6 +100,8 @@ const routeTree = rootRoute.addChildren([
   calendarRoute,
   notesRoute,
   portfolioRoute,
+  calendarNewRoute,
+  calendarEditRoute,
   settingsRoute,
 ]);
 
