@@ -11,7 +11,7 @@ import { useUi } from './ui-store';
 
 const itemClass = cn(
   'nav-item group relative flex h-11 items-center gap-3 rounded-sm px-3 text-muted transition-colors',
-  'hover:text-text aria-[current=page]:font-medium aria-[current=page]:text-accent-contrast',
+  'hover:text-text aria-[current=page]:font-medium aria-[current=page]:text-text',
 );
 
 const subItemClass = cn(
@@ -51,8 +51,11 @@ export function Sidebar() {
         {navItems.map(({ to, label, icon: Icon }) => (
           <Fragment key={to}>
             <Link to={to} aria-label={label} title={label} className={itemClass}>
-              <Icon className="size-5 shrink-0" />
-              {!collapsed && <span className="truncate">{label}</span>}
+              <span className="nav-icon relative flex size-5 shrink-0">
+                <Icon className="size-5" />
+                <span aria-hidden className="nav-active-dot" />
+              </span>
+              {!collapsed && <span className="nav-label truncate">{label}</span>}
             </Link>
 
             {/* The user's collections sit right under their heading. */}

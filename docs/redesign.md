@@ -7,8 +7,9 @@ secondary accents and IBM Plex Sans. Character artwork and illustrated page
 banners have been removed; further illustration work is deferred.
 
 The CMS logo and favicon use a minimal split D monogram. Sidebar icons share a
-1.5px outline style, with no active-state dot. The active background and accessible
-current-page state remain available.
+1.5px outline style without menu backgrounds. The current page is indicated by a
+small dot at the top-right of its icon, alongside the accessible current-page state.
+The same marker follows its icon in expanded, collapsed and mobile layouts.
 
 The original routes, forms, queries, persistence, exports and theme controls are
 retained. Existing installations using the previous default purple/orange pair
@@ -28,7 +29,7 @@ receive a one-time upgrade to the neutral pair. Custom palettes remain available
 ## Integration review after profile and recording features
 
 The merge at `9b537cf` retained the approved palette, split D logo, thin outline
-navigation, dot-free active state, and compact calendar panel. Its production
+navigation, active-page state, and compact calendar panel. Its production
 entry JavaScript and stylesheet filenames matched a local build of that commit.
 The new profile, onboarding, recorder and Drive integrations were retained.
 

@@ -232,12 +232,25 @@
   .app-sidebar {
     background: color-mix(in oklab, var(--surface-hover) 55%, var(--bg));
   }
-  .nav-item[aria-current='page'] {
-    background: var(--accent);
-    color: var(--accent-contrast);
+  .nav-item {
+    background: transparent;
   }
-  .nav-item:hover:not([aria-current='page']) {
-    background: var(--surface-hover);
+  .nav-item[aria-current='page'] {
+    color: var(--text);
+  }
+  .nav-active-dot {
+    position: absolute;
+    top: -2px;
+    right: -4px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .nav-item[aria-current='page'] .nav-active-dot {
+    opacity: 1;
   }
   .palette-trigger kbd {
     border: 1px solid var(--border);
@@ -277,7 +290,7 @@
     padding-inline: 16px;
   }
   .sidebar-brand > span,
-  .sidebar-nav .nav-item > span,
+  .sidebar-nav .nav-label,
   .sidebar-nav > div {
     display: none;
   }
