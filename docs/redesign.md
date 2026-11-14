@@ -24,3 +24,19 @@ receive a one-time upgrade to the neutral pair. Custom palettes remain available
 - One-time palette upgrade and preservation of custom choices checked with a targeted runtime assertion.
 - Native app icon files regenerated from the monochrome SVG.
 - Native Tauri build and native notification/backup integrations were not run.
+
+## Integration review after profile and recording features
+
+The merge at `9b537cf` retained the approved palette, split D logo, thin outline
+navigation, dot-free active state, and compact calendar panel. Its production
+entry JavaScript and stylesheet filenames matched a local build of that commit.
+The new profile, onboarding, recorder and Drive integrations were retained.
+
+The remaining inconsistency was the native application icon, which still used
+the old bar mark. Native SVG, PNG, ICO and ICNS files now derive from the CMS
+favicon. The recording navigation icon uses the same 1.5px outline family,
+without an extra dot in its glyph. Recording status indicators remain unchanged.
+
+Source changes appear in the website after a deployment and page reload.
+An installed desktop application needs a new native build to receive them;
+pulling the repository does not replace an existing installed executable.
