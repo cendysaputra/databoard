@@ -22,6 +22,18 @@ pub struct RecordingFile {
     pub modified_at: f64,
 }
 
+/// Whether recordings can be sent to Google Drive from this app, and to whose account.
+#[derive(Debug, Clone, Default, Serialize, TS)]
+#[ts(export)]
+pub struct DriveStatus {
+    /// False when the app was built without Google credentials (or outside the desktop app).
+    pub configured: bool,
+    /// True once the user has signed in and the app holds a token.
+    pub connected: bool,
+    /// Email of the connected Google account, when it could be read.
+    pub account: Option<String>,
+}
+
 /// Builds a file name that is safe on Windows from what the user typed.
 /// Only letters, digits, spaces, `-` and `_` are kept (so it also fits in an ASCII header).
 pub fn file_name(name: &str, extension: &str) -> Result<String> {

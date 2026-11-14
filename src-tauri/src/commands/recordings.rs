@@ -17,7 +17,7 @@ const FOLDER: &str = "DataBoard";
 const FILE_HEADER: &str = "x-file-name";
 
 /// `Videos\DataBoard`, or a folder in the app data directory when there is no Videos folder.
-fn recordings_dir(app: &AppHandle) -> CommandResult<PathBuf> {
+pub(crate) fn recordings_dir(app: &AppHandle) -> CommandResult<PathBuf> {
     let base = app
         .path()
         .video_dir()

@@ -2,6 +2,7 @@
 export type { CalendarEvent } from './CalendarEvent';
 export type { Collection } from './Collection';
 export type { CollectionInput } from './CollectionInput';
+export type { DriveStatus } from './DriveStatus';
 export type { Entry } from './Entry';
 export type { EntryInput } from './EntryInput';
 export type { EntryStatus } from './EntryStatus';

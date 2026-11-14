@@ -271,7 +271,23 @@ export const t = {
       saveLocal: 'Simpan ke komputer',
       discard: 'Buang',
       savedTo: (where: string) => `Tersimpan: ${where}`,
+      saveDrive: 'Simpan ke Google Drive',
+      uploading: 'Mengunggah ke Google Drive…',
+      uploaded: 'Terunggah ke Google Drive:',
+      openInDrive: 'Buka di Drive',
       size: (mb: string) => `${mb} MB`,
+    },
+    drive: {
+      title: 'Google Drive',
+      desktopOnly: 'Unggah ke Google Drive hanya tersedia di app desktop.',
+      notConfigured: 'Google Drive belum diatur di versi app ini.',
+      disconnected: 'Belum tersambung. Masuk sekali dengan akun Google untuk mengunggah rekaman.',
+      connected: (account: string | null) =>
+        account ? `Tersambung sebagai ${account}` : 'Tersambung',
+      connect: 'Sambungkan Google Drive',
+      connecting: 'Menunggu login di browser…',
+      disconnect: 'Putuskan',
+      upload: 'Unggah ke Drive',
     },
     saved: {
       title: 'Rekaman tersimpan',

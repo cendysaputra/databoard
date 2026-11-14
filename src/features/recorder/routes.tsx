@@ -1,6 +1,7 @@
 import { Circle, Square } from 'lucide-react';
 import { useState } from 'react';
 import { t } from '@/shared/i18n/id';
+import type { RecordingFile } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
 import { FormError } from '@/shared/ui/FormError';
 import { FormField } from '@/shared/ui/FormField';
@@ -10,7 +11,15 @@ import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { Row, Rows } from '@/shared/ui/Rows';
 import { formatDayMonth, formatTime } from '@/shared/utils/date';
 import { toDateTimeInput } from '@/shared/utils/datetime-input';
-import { canListRecordings, useRecordings, useSaveRecording } from './api';
+import {
+  isDesktop,
+  openInBrowser,
+  useDriveStatus,
+  useRecordings,
+  useSaveRecording,
+  useUploadToDrive,
+} from './api';
+import { DrivePanel } from './DrivePanel';
 import { isRecordingSupported, useScreenRecorder, type Recording } from './use-screen-recorder';
 
 const text = t.recorder;
@@ -28,11 +37,46 @@ function clock(totalSeconds: number): string {
   return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
 }
 
+/** The outcome of an upload: progress, the link, or the error. */
+function UploadState({ upload }: { upload: ReturnType<typeof useUploadToDrive> }) {
+  if (upload.isPending) return <p className="text-sm text-muted">{text.result.uploading}</p>;
+  if (upload.isError) return <FormError error={upload.error} />;
+  if (!upload.data) return null;
+  return (
+    <p role="status" className="text-sm">
+      {text.result.uploaded}{' '}
+      <button
+        type="button"
+        className="underline"
+        onClick={() => upload.data && void openInBrowser(upload.data)}
+      >
+        {text.result.openInDrive}
+      </button>
+    </p>
+  );
+}
+
 function Result({ recording, onDiscard }: { recording: Recording; onDiscard(): void }) {
   const save = useSaveRecording();
+  const upload = useUploadToDrive();
+  const driveReady = useDriveStatus().data?.connected ?? false;
   const [name, setName] = useState(() =>
     text.result.defaultName(toDateTimeInput(new Date()).replace('T', ' ').replace(':', '.')),
   );
+  const busy = save.isPending || upload.isPending;
+
+  const saveLocal = () =>
+    save.mutateAsync({ name, extension: recording.extension, blob: recording.blob });
+
+  /** Drive takes a file from disk, so the recording is saved first if it was not yet. */
+  const saveToDrive = async () => {
+    try {
+      const saved = save.data ?? (await saveLocal());
+      upload.mutate(saved.fileName);
+    } catch {
+      // The save error is already shown below.
+    }
+  };
 
   return (
     <section className="flex flex-col gap-5">
@@ -51,28 +95,43 @@ function Result({ recording, onDiscard }: { recording: Recording; onDiscard(): v
 
       <FormField label={text.result.name} required>
         {(id) => (
-          <Input id={id} required value={name} onChange={(event) => setName(event.target.value)} />
+          <Input
+            id={id}
+            required
+            // Once saved, the file keeps its name.
+            disabled={Boolean(save.data)}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
         )}
       </FormField>
 
       <FormError error={save.error} />
       {save.data && (
         <p role="status" className="text-sm">
-          {text.result.savedTo(save.data)}
+          {text.result.savedTo(save.data.location)}
         </p>
       )}
+      <UploadState upload={upload} />
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button
           variant="primary"
-          disabled={save.isPending || !name.trim()}
-          onClick={() =>
-            save.mutate({ name, extension: recording.extension, blob: recording.blob })
-          }
+          disabled={busy || !name.trim() || Boolean(save.data)}
+          onClick={() => void saveLocal().catch(() => {})}
         >
           {text.result.saveLocal}
         </Button>
-        <Button disabled={save.isPending} onClick={onDiscard}>
+        {isDesktop && (
+          <Button
+            disabled={busy || !name.trim() || !driveReady}
+            title={driveReady ? undefined : text.drive.disconnected}
+            onClick={() => void saveToDrive()}
+          >
+            {text.result.saveDrive}
+          </Button>
+        )}
+        <Button disabled={busy} onClick={onDiscard}>
           {text.result.discard}
         </Button>
       </div>
@@ -80,32 +139,51 @@ function Result({ recording, onDiscard }: { recording: Recording; onDiscard(): v
   );
 }
 
+/** One saved recording, with a button to send it to Drive. */
+function SavedRow({ file, driveReady }: { file: RecordingFile; driveReady: boolean }) {
+  const upload = useUploadToDrive();
+  const modified = new Date(file.modified_at * 1000);
+
+  return (
+    <Row
+      lead={`${formatDayMonth(modified)} ${formatTime(modified)}`}
+      trail={
+        <span className="flex items-center gap-3">
+          {text.result.size(megabytes(file.size_bytes))}
+          <Button
+            disabled={!driveReady || upload.isPending}
+            title={driveReady ? undefined : text.drive.disconnected}
+            onClick={() => upload.mutate(file.file_name)}
+          >
+            {text.drive.upload}
+          </Button>
+        </span>
+      }
+    >
+      <p className="truncate font-medium">{file.file_name}</p>
+      <p className="truncate text-sm text-muted">{file.path}</p>
+      <UploadState upload={upload} />
+    </Row>
+  );
+}
+
 function SavedRecordings() {
   const recordings = useRecordings();
+  const driveReady = useDriveStatus().data?.connected ?? false;
 
   return (
     <section>
       <h2 className="mb-5 text-xl font-semibold">{text.saved.title}</h2>
-      {canListRecordings ? (
+      {isDesktop ? (
         <QueryBoundary query={recordings}>
           {(files) =>
             files.length === 0 ? (
               <p className="text-sm text-muted">{text.saved.empty}</p>
             ) : (
               <Rows>
-                {files.map((file) => {
-                  const modified = new Date(file.modified_at * 1000);
-                  return (
-                    <Row
-                      key={file.file_name}
-                      lead={`${formatDayMonth(modified)} ${formatTime(modified)}`}
-                      trail={text.result.size(megabytes(file.size_bytes))}
-                    >
-                      <p className="truncate font-medium">{file.file_name}</p>
-                      <p className="truncate text-sm text-muted">{file.path}</p>
-                    </Row>
-                  );
-                })}
+                {files.map((file) => (
+                  <SavedRow key={file.file_name} file={file} driveReady={driveReady} />
+                ))}
               </Rows>
             )
           }
@@ -183,6 +261,8 @@ export function RecorderPage() {
           {recorder.status === 'done' && recorder.recording && (
             <Result recording={recorder.recording} onDiscard={recorder.discard} />
           )}
+
+          <DrivePanel />
 
           <SavedRecordings />
         </div>

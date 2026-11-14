@@ -6,4 +6,4 @@ import { tauriSource } from './tauri-source';
 /** The active data source: Rust + SQLite inside the app, IndexedDB in a plain browser. */
 export const data: DataSource = isTauri() ? tauriSource : browserSource;
 
-export type { DataError, DataSource } from './source';
+export type { DataError, DataSource, SavedRecording } from './source';

@@ -62,9 +62,15 @@ export const tauriSource: DataSource = {
         const chunk = await blob.slice(start, start + CHUNK_BYTES).arrayBuffer();
         await invoke('recordings_append', chunk, { headers: { 'x-file-name': file.file_name } });
       }
-      return file.path;
+      return { fileName: file.file_name, location: file.path };
     },
     list: () => invoke('recordings_list'),
+  },
+  drive: {
+    status: () => invoke('drive_status'),
+    connect: () => invoke('drive_connect'),
+    disconnect: () => invoke('drive_disconnect'),
+    upload: (fileName) => invoke('drive_upload', { fileName }),
   },
   overview: {
     get: (query) => invoke('overview_get', { query }),
@@ -73,6 +79,7 @@ export const tauriSource: DataSource = {
     get: () => invoke('settings_get'),
     update: (input) => invoke('settings_update', { input }),
   },
+  openUrl: (url) => invoke('plugin:opener|open_url', { url }),
   async notify(title, body) {
     const { isPermissionGranted, requestPermission, sendNotification } =
       await import('@tauri-apps/plugin-notification');
