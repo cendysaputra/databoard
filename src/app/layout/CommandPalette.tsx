@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { Moon, PanelLeft, Search } from 'lucide-react';
+import { Moon, PanelLeft, Plus, Search } from 'lucide-react';
 import { useEffect, useMemo, useState, type ComponentType } from 'react';
 import { useSettings, useUpdateSettings } from '@/shared/hooks/use-settings';
 import { t } from '@/shared/i18n/id';
@@ -31,6 +31,14 @@ function useCommands(): Command[] {
         icon,
         run: () => void navigate({ to }),
       })),
+      ...(
+        [
+          ['/calendar/new', t.calendar.new],
+          ['/notes/new', t.notes.new],
+          ['/portfolio/new', t.portfolio.new],
+          ['/collections/new', t.collections.new],
+        ] as const
+      ).map(([to, label]) => ({ id: to, label, icon: Plus, run: () => void navigate({ to }) })),
       {
         id: 'theme',
         label: t.palette.toggleTheme,

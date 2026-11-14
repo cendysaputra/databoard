@@ -1,6 +1,7 @@
 /*
  * Design tokens: the single place to change how the app looks.
- * The look is clean and modern: white surfaces, black as the only accent, IBM Plex Sans.
+ * The look: a white rounded frame floating on a soft tinted canvas, black as the accent,
+ * IBM Plex Sans, and a small set of playful colors for category cards and event cards.
  * Colors use light-dark(light, dark); the active side follows the system,
  * or the manual choice set as data-theme on <html>.
  * A custom accent color from Settings overrides --accent and --accent-contrast at runtime.
@@ -8,22 +9,37 @@
 :root {
   color-scheme: light dark;
 
-  /* Colors */
-  --bg: light-dark(#ffffff, #0e0e0e);
-  --surface: light-dark(#ffffff, #171717); /* dialogs, toasts, menus */
-  --surface-hover: light-dark(#f4f4f4, #232323);
-  --border: light-dark(#e7e7e7, #2c2c2c);
-  --text: light-dark(#111111, #f3f3f3);
-  --text-muted: light-dark(#6e6e6e, #a1a1a1);
-  /* The accent is black on white, and flips to white in dark mode. */
-  --accent: light-dark(#111111, #f3f3f3);
-  --accent-contrast: light-dark(#ffffff, #111111);
+  /* Base colors */
+  --canvas: light-dark(#e6e3f5, #09090c); /* behind the frame */
+  --bg: light-dark(#ffffff, #141417); /* the frame */
+  --surface: light-dark(#ffffff, #1c1c21); /* dialogs, toasts, menus */
+  --surface-hover: light-dark(#f4f3f8, #25252b);
+  --border: light-dark(#ebeaf1, #2c2c33);
+  --text: light-dark(#17152b, #f3f3f6);
+  --text-muted: light-dark(#8a8898, #9d9cab);
+  /* The accent is near-black on white, and flips to white in dark mode. */
+  --accent: light-dark(#17152b, #f3f3f6);
+  --accent-contrast: light-dark(#ffffff, #17152b);
   /* Accent adjusted so it stays readable as text on the background. */
   --accent-text: color-mix(in oklab, var(--accent), var(--text) 25%);
   /* Soft accent wash for chart backdrops. */
   --accent-soft: color-mix(in oklab, var(--accent) 10%, transparent);
-  --danger: light-dark(#c62828, #ff8a80);
-  --overlay: rgb(0 0 0 / 0.4);
+  --danger: light-dark(#d32f4a, #ff8a9b);
+  --overlay: rgb(23 21 43 / 0.4);
+
+  /* Playful colors: the art on category cards (same in both themes) */
+  --art-yellow: #ffcf47;
+  --art-orange: #ff8a4c;
+  --art-pink: #ef2f8e;
+  --art-purple: #6a3d9a;
+  --art-sky: #a5dbf3;
+  --art-navy: #1d1a3d;
+
+  /* Soft tints: backgrounds of event cards */
+  --tint-sky: light-dark(#e2f3fd, #14303f);
+  --tint-pink: light-dark(#ffdbee, #401a2f);
+  --tint-yellow: light-dark(#fff2cc, #3a3012);
+  --tint-mint: light-dark(#dbf5e6, #153125);
 
   /* Typography */
   --font-sans: 'IBM Plex Sans Variable', 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
@@ -34,18 +50,19 @@
   --font-size-lg: 1rem;
   --font-size-xl: 1.125rem;
   --font-size-2xl: 1.75rem;
-  --font-size-3xl: 2.5rem;
+  --font-size-3xl: 2.125rem;
 
   /* Shape and spacing (spacing utilities are multiples of the unit) */
   --space-unit: 0.25rem;
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
 
   /* Layout */
   --sidebar-width: 14rem;
-  --sidebar-width-collapsed: 4.25rem;
+  --sidebar-width-collapsed: 5rem;
   --content-max-width: 60rem;
+  --content-max-width-wide: 74rem;
 
   /* Motion: hover, focus, panels and the route fade only */
   --duration: 160ms;

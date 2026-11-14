@@ -42,17 +42,24 @@ export const t = {
   },
   home: {
     greeting: {
-      morning: 'Selamat pagi.',
-      midday: 'Selamat siang.',
-      afternoon: 'Selamat sore.',
-      night: 'Selamat malam.',
+      morning: 'Selamat pagi',
+      midday: 'Selamat siang',
+      afternoon: 'Selamat sore',
+      night: 'Selamat malam',
     },
-    stats: {
-      events: 'Event 14 hari',
-      reminders: 'Pengingat aktif',
-      notes: 'Catatan',
-      projects: 'Project',
+    add: 'Tambah',
+    browse: 'Jelajahi',
+    counts: {
+      events: (n: number) => `${n} event`,
+      notes: (n: number) => `${n} catatan`,
+      projects: (n: number) => `${n} project`,
     },
+    recent: {
+      title: 'Catatan terbaru',
+      empty: 'Belum ada catatan.',
+      all: 'Lihat semua',
+    },
+    summary: 'Ringkasan',
     schedule: {
       title: 'Jadwal 14 hari ke depan',
       caption: 'Jumlah event per hari',
@@ -69,9 +76,14 @@ export const t = {
       title: 'Project menurut status',
       count: (n: number) => `${n} project`,
     },
-    next: {
-      title: 'Berikutnya',
-      empty: 'Tidak ada event mendatang.',
+    calendar: {
+      title: 'Kalender',
+      previous: 'Bulan sebelumnya',
+      next: 'Bulan berikutnya',
+      weekdays: ['Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb', 'Mg'],
+      upcoming: 'Berikutnya',
+      emptyDay: 'Tidak ada event di hari ini.',
+      emptyUpcoming: 'Tidak ada event mendatang.',
     },
   },
   collections: {

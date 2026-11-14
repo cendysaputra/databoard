@@ -17,6 +17,7 @@
 /* Map the tokens to Tailwind. Only token values exist as utilities. */
 @theme inline {
   --color-*: initial;
+  --color-canvas: var(--canvas);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);
@@ -29,6 +30,16 @@
   --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);
   --color-overlay: var(--overlay);
+  --color-art-yellow: var(--art-yellow);
+  --color-art-orange: var(--art-orange);
+  --color-art-pink: var(--art-pink);
+  --color-art-purple: var(--art-purple);
+  --color-art-sky: var(--art-sky);
+  --color-art-navy: var(--art-navy);
+  --color-tint-sky: var(--tint-sky);
+  --color-tint-pink: var(--tint-pink);
+  --color-tint-yellow: var(--tint-yellow);
+  --color-tint-mint: var(--tint-mint);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
@@ -63,7 +74,7 @@
   }
 
   body {
-    background: var(--bg);
+    background: var(--canvas);
     color: var(--text);
     font-size: var(--font-size-base);
     line-height: 1.5;

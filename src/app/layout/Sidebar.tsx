@@ -10,9 +10,8 @@ import { navItems } from './nav';
 import { useUi } from './ui-store';
 
 const itemClass = cn(
-  'flex h-9 items-center gap-3 rounded-sm px-2.5 text-muted transition-colors',
-  'hover:bg-surface-hover hover:text-text',
-  'aria-[current=page]:bg-surface-hover aria-[current=page]:font-medium aria-[current=page]:text-text',
+  'group relative flex h-10 items-center gap-3 rounded-sm px-2.5 text-muted transition-colors',
+  'hover:text-text aria-[current=page]:font-medium aria-[current=page]:text-text',
 );
 
 const subItemClass = cn(
@@ -20,7 +19,7 @@ const subItemClass = cn(
   'aria-[current=page]:font-medium aria-[current=page]:text-text',
 );
 
-/** Left navigation: logo, modules and the user's collections. */
+/** Left rail: logo and module icons. Expanded, it also shows labels and the collections. */
 export function Sidebar() {
   const collapsed = useUi((state) => state.sidebarCollapsed);
   const toggle = useUi((state) => state.toggleSidebar);
@@ -32,28 +31,35 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'flex shrink-0 flex-col overflow-hidden border-r border-border transition-[width]',
+        'relative flex shrink-0 flex-col overflow-hidden transition-[width]',
         collapsed ? 'w-(--sidebar-width-collapsed)' : 'w-(--sidebar-width)',
       )}
     >
-      <div className="flex h-14 shrink-0 items-center gap-2.5 px-5">
-        <LogoMark className="size-7 shrink-0" />
+      <div className="flex h-20 shrink-0 items-center gap-2.5 px-6">
+        <LogoMark className="size-8 shrink-0" />
         {!collapsed && (
           <span className="truncate text-lg font-semibold tracking-tight">{appName}</span>
         )}
       </div>
 
-      <nav className="mt-3 flex flex-1 flex-col gap-0.5 overflow-y-auto px-3">
+      <nav
+        className={cn(
+          'flex flex-1 flex-col gap-1 overflow-y-auto px-5',
+          collapsed && 'justify-center',
+        )}
+      >
         {navItems.map(({ to, label, icon: Icon }) => (
           <Fragment key={to}>
             <Link to={to} title={collapsed ? label : undefined} className={itemClass}>
               <Icon className="size-5 shrink-0" />
               {!collapsed && <span className="truncate">{label}</span>}
+              {/* Active marker: a small dot beside the icon. */}
+              <span className="absolute top-1/2 -right-1 size-1 -translate-y-1/2 rounded-full bg-text opacity-0 group-aria-[current=page]:opacity-100" />
             </Link>
 
             {/* The user's collections sit right under their heading. */}
             {to === '/collections' && !collapsed && (
-              <div className="mt-0.5 mb-2 ml-5 flex flex-col border-l border-border pl-2">
+              <div className="mb-2 ml-5 flex flex-col border-l border-border pl-2">
                 {collections.map((collection) => (
                   <Link
                     key={collection.id}
@@ -77,7 +83,7 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="p-3">
+      <div className="px-5 py-5">
         <button
           type="button"
           onClick={toggle}
@@ -85,7 +91,7 @@ export function Sidebar() {
           title={toggleLabel}
           className={cn(itemClass, 'w-full')}
         >
-          <ToggleIcon aria-hidden className="size-4 shrink-0" />
+          <ToggleIcon aria-hidden className="size-5 shrink-0" />
         </button>
       </div>
     </aside>

@@ -8,17 +8,17 @@ interface UiState {
   setPaletteOpen(open: boolean): void;
 }
 
-/** UI-only state. Just the sidebar preference is remembered between sessions. */
+/** UI-only state. Just the sidebar preference is remembered; it starts as an icon rail. */
 export const useUi = create<UiState>()(
   persist(
     (set) => ({
-      sidebarCollapsed: false,
+      sidebarCollapsed: true,
       paletteOpen: false,
       toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
       setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
     }),
     {
-      name: 'dashboard.ui',
+      name: 'databoard.ui.v2',
       partialize: (state) => ({ sidebarCollapsed: state.sidebarCollapsed }),
     },
   ),

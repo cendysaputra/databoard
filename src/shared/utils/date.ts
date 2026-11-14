@@ -15,6 +15,9 @@ export const formatLongDate = formatter({
   year: 'numeric',
 });
 
+/** "November 2026" */
+export const formatMonthYear = formatter({ month: 'long', year: 'numeric' });
+
 /** "14 Nov" */
 export const formatDayMonth = formatter({ day: 'numeric', month: 'short' });
 
