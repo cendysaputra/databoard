@@ -15,7 +15,7 @@ export function CategoryCard({ art, name, stat, caption, link }: CategoryCardPro
     <Link {...link} className={`category-card category-card-${art % 3}`}>
       <span aria-hidden className="category-art" />
       <span className="category-name">{name}</span>
-      <ArrowUpRight aria-hidden className="category-arrow size-4" />
+      <ArrowUpRight aria-hidden className="category-arrow" />
       <span className="category-count">
         <span className="block text-3xl leading-none font-semibold tabular-nums">{stat}</span>
         <span className="mt-1.5 block text-xs">{caption}</span>

@@ -18,6 +18,7 @@ export function PortfolioPage() {
   return (
     <>
       <PageHeader
+        art={2}
         title={t.portfolio.title}
         subtitle={t.portfolio.subtitle}
         actions={
@@ -36,17 +37,17 @@ export function PortfolioPage() {
               body={t.portfolio.emptyBody}
             />
           ) : (
-            <ol className="grid grid-cols-2 gap-x-12">
+            <ol className="project-grid grid grid-cols-2 gap-5">
               {items.map((project, index) => (
                 <li
                   key={project.id}
-                  className="relative flex gap-5 border-b border-border py-6 transition-colors hover:bg-surface-hover/50"
+                  className="project-card relative flex gap-5 rounded-md border border-border p-6 transition-colors hover:bg-surface-hover/50"
                 >
-                  <span className="w-8 shrink-0 pt-0.5 text-sm text-muted tabular-nums">
+                  <span className="project-number flex size-9 shrink-0 items-center justify-center rounded-sm bg-accent-soft text-sm text-accent-text tabular-nums">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <div className="min-w-0">
-                    <h2 className="text-xl leading-none font-semibold">
+                    <h2 className="text-xl leading-snug font-semibold">
                       <Link
                         to="/portfolio/$projectId"
                         params={{ projectId: project.id }}

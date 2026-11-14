@@ -77,7 +77,13 @@ export function NotesChart({ weeks, counts }: NotesChartProps) {
                   </span>
                 )}
                 <ChartTip
-                  className={i === last ? 'top-0 left-auto right-0 translate-x-0' : 'top-0'}
+                  className={
+                    i >= last - 1
+                      ? 'top-0 left-auto right-0 translate-x-0'
+                      : i < 2
+                        ? 'top-0 left-0 translate-x-0'
+                        : 'top-0'
+                  }
                 >
                   {summary}
                 </ChartTip>

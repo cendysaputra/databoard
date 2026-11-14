@@ -45,7 +45,7 @@ export function EntryForm({
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-7">
+    <form onSubmit={submit} className="editor-panel flex flex-col gap-7">
       <input
         aria-label={text.title}
         placeholder={text.title}

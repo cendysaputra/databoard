@@ -100,8 +100,8 @@ export function BlueprintForm({
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-10">
-      <div className="grid grid-cols-2 gap-6">
+    <form onSubmit={submit} className="blueprint-editor editor-panel flex flex-col gap-10">
+      <div className="form-grid grid grid-cols-2 gap-6">
         <FormField label={text.name} required>
           {(id) => (
             <Input
@@ -144,7 +144,7 @@ export function BlueprintForm({
       </div>
 
       <section>
-        <div className="mb-1 flex items-baseline justify-between border-b border-border pb-3">
+        <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-3">
           <h2 className="text-xl leading-none font-semibold">{text.fields}</h2>
           <p className="text-sm text-muted">{text.fieldsHint}</p>
         </div>
@@ -154,7 +154,7 @@ export function BlueprintForm({
         <ol>
           {fields.map((field, index) => (
             <li key={field.uid} className="border-b border-border py-4">
-              <div className="grid grid-cols-[1.5rem_1fr_10rem_9rem_auto_auto] items-center gap-3">
+              <div className="blueprint-field-grid grid grid-cols-[1.5rem_1fr_10rem_9rem_auto_auto] items-center gap-3">
                 <span className="label">{index + 1}</span>
                 <Input
                   aria-label={text.label}

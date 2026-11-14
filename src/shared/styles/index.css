@@ -530,3 +530,170 @@
     font-size: 18px;
   }
 }
+
+@layer components {
+  .page-header {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding-block: 8px 28px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-header-illustrated {
+    min-height: 180px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 32px;
+    background: color-mix(in oklab, var(--surface-hover) 55%, var(--bg));
+    isolation: isolate;
+  }
+  .page-header-art {
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 0 40%;
+    opacity: 0.3;
+    background-image: url('/illustrations/workspace-scenes.webp');
+    background-repeat: no-repeat;
+    background-size: auto 300%;
+    background-position: right top;
+    mask-image: linear-gradient(90deg, transparent, black);
+  }
+  .page-header-art.category-card-1 {
+    background-position: right center;
+  }
+  .page-header-art.category-card-2 {
+    background-position: right bottom;
+  }
+  .page-actions {
+    margin-left: auto;
+  }
+  .data-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .data-row {
+    border-radius: 14px;
+    align-items: center;
+  }
+  .row-lead {
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .row-trail {
+    border-radius: 7px;
+    background: var(--surface-hover);
+    padding: 5px 9px;
+    font-size: 11px;
+  }
+  .project-card {
+    min-height: 160px;
+  }
+  .project-card:hover {
+    border-color: color-mix(in oklab, var(--accent) 30%, var(--border));
+  }
+  .project-card:nth-child(3n + 2) .project-number {
+    color: var(--text);
+    background: color-mix(in oklab, var(--accent-2) 18%, transparent);
+  }
+  .settings-panel,
+  .editor-panel,
+  .note-editor-panel {
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 28px;
+  }
+  .settings-field:last-child {
+    border-bottom: 0;
+  }
+  .note-editor-panel {
+    min-height: 580px;
+  }
+  .form-columns > * {
+    min-width: 0;
+    flex: 1 1 200px;
+  }
+}
+
+@media (max-width: 700px) {
+  .project-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .page-header-illustrated {
+    padding: 24px;
+  }
+  .page-actions {
+    margin-left: 0;
+  }
+  .page-actions > div {
+    flex-wrap: wrap;
+  }
+  .data-row {
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    padding: 16px;
+  }
+  .row-lead {
+    width: 100%;
+  }
+  .row-trail {
+    max-width: 100%;
+    white-space: normal;
+  }
+  .settings-panel,
+  .editor-panel,
+  .note-editor-panel {
+    padding: 20px;
+  }
+  .settings-field {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .settings-field > div {
+    width: 100%;
+  }
+  .project-card {
+    gap: 14px;
+    padding: 20px;
+  }
+}
+@media (max-width: 420px) {
+  .app-content {
+    padding-inline: 12px;
+  }
+  .page-header-illustrated {
+    padding: 20px;
+  }
+  .page-header h1 {
+    font-size: 26px;
+  }
+  .editor-panel,
+  .note-editor-panel,
+  .settings-panel {
+    padding: 16px;
+  }
+  .note-editor-panel > div:first-child {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 700px) {
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .form-grid > .col-span-2 {
+    grid-column: auto;
+  }
+  .blueprint-field-grid {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+  .blueprint-field-grid > :nth-child(n + 3) {
+    grid-column: 2;
+  }
+}

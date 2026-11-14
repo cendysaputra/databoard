@@ -40,6 +40,7 @@ export function CollectionsPage() {
   return (
     <>
       <PageHeader
+        art={0}
         title={text.title}
         subtitle={text.subtitle}
         actions={

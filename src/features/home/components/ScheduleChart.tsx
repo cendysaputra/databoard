@@ -17,49 +17,64 @@ export function ScheduleChart({ days, counts }: ScheduleChartProps) {
   const peak = counts.indexOf(Math.max(...counts));
 
   return (
-    <ul className="flex h-44 items-stretch gap-1.5" aria-label={t.home.schedule.caption}>
-      {counts.map((count, i) => {
-        const day = days[i];
-        if (!day) return null;
-        const isToday = i === 0;
-        // Only today and the busiest day carry a number; the rest are on hover.
-        const showValue = count > 0 && (isToday || i === peak);
-        const summary = `${formatWeekday(day)}, ${formatDayMonth(day)} · ${t.home.schedule.count(count)}`;
+    <div className="overflow-x-auto pb-2">
+      <ul
+        className="flex h-44 min-w-120 items-stretch gap-1.5"
+        aria-label={t.home.schedule.caption}
+      >
+        {counts.map((count, i) => {
+          const day = days[i];
+          if (!day) return null;
+          const isToday = i === 0;
+          // Only today and the busiest day carry a number; the rest are on hover.
+          const showValue = count > 0 && (isToday || i === peak);
+          const summary = `${formatWeekday(day)}, ${formatDayMonth(day)} · ${t.home.schedule.count(count)}`;
 
-        return (
-          <li
-            key={day.toISOString()}
-            tabIndex={0}
-            aria-label={summary}
-            className="group relative flex min-w-0 flex-1 flex-col rounded-sm outline-offset-4"
-          >
-            <ChartTip className="top-0">{summary}</ChartTip>
-
-            <div className="flex flex-1 flex-col justify-end border-b border-border transition-colors group-hover:bg-surface-hover/60">
-              {showValue && <span className="mb-1 text-center text-xs font-semibold">{count}</span>}
-              <div
-                style={{ height: `${(count / max) * 78}%` }}
-                className={cn(
-                  'mx-auto w-full max-w-5 rounded-t-[4px]',
-                  isToday ? 'bg-accent-2' : 'bg-accent/30',
-                  count === 0 && 'hidden',
-                )}
-              />
-            </div>
-
-            <div
-              className={cn(
-                'pt-2 text-center text-xs leading-tight',
-                isToday ? 'font-semibold text-text' : 'text-muted',
-                !isToday && isWeekend(day) && 'opacity-60',
-              )}
+          return (
+            <li
+              key={day.toISOString()}
+              tabIndex={0}
+              aria-label={summary}
+              className="group relative flex min-w-0 flex-1 flex-col rounded-sm outline-offset-4"
             >
-              <div>{formatWeekday(day)}</div>
-              <div className="tabular-nums">{day.getDate()}</div>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+              <ChartTip
+                className={cn(
+                  'top-0',
+                  i < 3 && 'left-0 translate-x-0',
+                  i >= counts.length - 3 && 'left-auto right-0 translate-x-0',
+                )}
+              >
+                {summary}
+              </ChartTip>
+
+              <div className="flex flex-1 flex-col justify-end border-b border-border transition-colors group-hover:bg-surface-hover/60">
+                {showValue && (
+                  <span className="mb-1 text-center text-xs font-semibold">{count}</span>
+                )}
+                <div
+                  style={{ height: `${(count / max) * 78}%` }}
+                  className={cn(
+                    'mx-auto w-full max-w-5 rounded-t-[4px]',
+                    isToday ? 'bg-accent-2' : 'bg-accent/30',
+                    count === 0 && 'hidden',
+                  )}
+                />
+              </div>
+
+              <div
+                className={cn(
+                  'pt-2 text-center text-xs leading-tight',
+                  isToday ? 'font-semibold text-text' : 'text-muted',
+                  !isToday && isWeekend(day) && 'opacity-60',
+                )}
+              >
+                <div>{formatWeekday(day)}</div>
+                <div className="tabular-nums">{day.getDate()}</div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

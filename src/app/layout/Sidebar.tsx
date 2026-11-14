@@ -11,7 +11,7 @@ import { useUi } from './ui-store';
 
 const itemClass = cn(
   'nav-item group relative flex h-11 items-center gap-3 rounded-sm px-3 text-muted transition-colors',
-  'hover:text-text aria-[current=page]:font-medium aria-[current=page]:text-accent-text',
+  'hover:text-text aria-[current=page]:font-medium aria-[current=page]:text-accent-contrast',
 );
 
 const subItemClass = cn(
@@ -50,7 +50,7 @@ export function Sidebar() {
       >
         {navItems.map(({ to, label, icon: Icon }) => (
           <Fragment key={to}>
-            <Link to={to} title={collapsed ? label : undefined} className={itemClass}>
+            <Link to={to} aria-label={label} title={label} className={itemClass}>
               <Icon className="size-5 shrink-0" />
               {!collapsed && <span className="truncate">{label}</span>}
               {/* Active marker: a small dot beside the icon. */}

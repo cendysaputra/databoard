@@ -91,7 +91,7 @@ export function NoteForm({ note, labels, saving, error, onSubmit, extra }: NoteF
           event.currentTarget.requestSubmit();
         }
       }}
-      className="flex flex-col gap-6"
+      className="note-editor-panel flex flex-col gap-6"
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-surface-hover px-3 py-1 text-xs font-medium text-muted">

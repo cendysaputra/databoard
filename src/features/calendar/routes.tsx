@@ -22,6 +22,7 @@ export function CalendarPage() {
   return (
     <>
       <PageHeader
+        art={0}
         title={t.calendar.title}
         subtitle={t.calendar.subtitle}
         actions={
