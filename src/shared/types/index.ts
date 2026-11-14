@@ -2,6 +2,7 @@
 export type { CalendarEvent } from './CalendarEvent';
 export type { Collection } from './Collection';
 export type { CollectionInput } from './CollectionInput';
+export type { DriveStatus } from './DriveStatus';
 export type { Entry } from './Entry';
 export type { EntryInput } from './EntryInput';
 export type { EntryStatus } from './EntryStatus';
@@ -18,6 +19,7 @@ export type { Page } from './Page';
 export type { Project } from './Project';
 export type { ProjectInput } from './ProjectInput';
 export type { ProjectStatus } from './ProjectStatus';
+export type { RecordingFile } from './RecordingFile';
 export type { Reminder } from './Reminder';
 export type { ReminderInput } from './ReminderInput';
 export type { Settings } from './Settings';

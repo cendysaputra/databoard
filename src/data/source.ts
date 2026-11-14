@@ -2,6 +2,7 @@ import type {
   CalendarEvent,
   Collection,
   CollectionInput,
+  DriveStatus,
   Entry,
   EntryInput,
   EventInput,
@@ -12,6 +13,7 @@ import type {
   OverviewQuery,
   Page,
   Project,
+  RecordingFile,
   ProjectInput,
   ProjectStatus,
   Reminder,
@@ -20,6 +22,14 @@ import type {
   Tag,
   TagInput,
 } from '@/shared/types';
+
+/** Where a saved recording went. */
+export interface SavedRecording {
+  /** File name on disk; on desktop this is what Drive upload takes. */
+  fileName: string;
+  /** Full path on desktop, the downloaded file's name in the browser. */
+  location: string;
+}
 
 /** Shape of every error thrown by a data source (mirrors the Rust `AppError`). */
 export interface DataError {
@@ -85,6 +95,24 @@ export interface DataSource {
     update(id: string, input: EntryInput): Promise<Entry>;
     remove(id: string): Promise<void>;
   };
+  recordings: {
+    /**
+     * Saves a recording to the computer and says where it went. On desktop that is the
+     * `Videos\\DataBoard` folder; in the browser the file is downloaded.
+     */
+    save(name: string, extension: 'webm' | 'mp4', blob: Blob): Promise<SavedRecording>;
+    /** Recordings saved on this computer, newest first. Empty in the browser. */
+    list(): Promise<RecordingFile[]>;
+  };
+  /** Google Drive as a place to send recordings. Desktop only. */
+  drive: {
+    status(): Promise<DriveStatus>;
+    /** Opens Google sign-in in the system browser and waits for it to finish. */
+    connect(): Promise<DriveStatus>;
+    disconnect(): Promise<void>;
+    /** Uploads a recording saved on this computer; resolves to a link to the file in Drive. */
+    upload(fileName: string): Promise<string>;
+  };
   overview: {
     get(query: OverviewQuery): Promise<Overview>;
   };
@@ -92,6 +120,8 @@ export interface DataSource {
     get(): Promise<Settings>;
     update(input: Settings): Promise<Settings>;
   };
+  /** Opens a web address in the system browser (desktop: only Google Drive links are allowed). */
+  openUrl(url: string): Promise<void>;
   /** Shows a notification: native on desktop, Web Notification or toast in the browser. */
   notify(title: string, body: string): Promise<void>;
 }

@@ -5,12 +5,13 @@ import {
   HomeIcon,
   NotesIcon,
   PortfolioIcon,
+  RecordIcon,
   SettingsIcon,
   type Icon,
 } from '@/shared/ui/icons';
 
 export interface NavItem {
-  to: '/' | '/collections' | '/calendar' | '/notes' | '/portfolio' | '/settings';
+  to: '/' | '/collections' | '/calendar' | '/notes' | '/portfolio' | '/recorder' | '/settings';
   label: string;
   icon: Icon;
 }
@@ -22,5 +23,6 @@ export const navItems: NavItem[] = [
   { to: '/calendar', label: t.nav.calendar, icon: CalendarIcon },
   { to: '/notes', label: t.nav.notes, icon: NotesIcon },
   { to: '/portfolio', label: t.nav.portfolio, icon: PortfolioIcon },
+  { to: '/recorder', label: t.nav.recorder, icon: RecordIcon },
   { to: '/settings', label: t.nav.settings, icon: SettingsIcon },
 ];

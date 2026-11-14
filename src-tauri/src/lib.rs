@@ -1,6 +1,7 @@
 //! Tauri shell. It only wires things together; business logic lives in `dashboard-core`.
 
 mod commands;
+mod drive;
 mod error;
 
 use dashboard_core::Db;
@@ -9,6 +10,7 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             // %APPDATA%\<identifier>\ on Windows: survives updates and reinstalls.
             let data_dir = app.path().app_data_dir()?;
@@ -47,6 +49,13 @@ pub fn run() {
             commands::projects::projects_update,
             commands::projects::projects_remove,
             commands::overview::overview_get,
+            commands::recordings::recordings_begin,
+            commands::recordings::recordings_append,
+            commands::recordings::recordings_list,
+            drive::drive_status,
+            drive::drive_connect,
+            drive::drive_disconnect,
+            drive::drive_upload,
             commands::tags::tags_list,
             commands::tags::tags_create,
             commands::tags::tags_update,

@@ -31,6 +31,21 @@ portfolio, dan MCP server. Rencana kerja lengkap ada di [PLAN.md](PLAN.md).
   `crates/core/src/db/migrations.rs`. Migration yang sudah rilis tidak boleh diedit.
 - Tipe data: ubah struct Rust di `crates/core/src/domain/`, lalu `npm run gen:types`.
 
+## Google Drive (unggah rekaman)
+
+Unggah rekaman ke Google Drive hanya ada di app desktop dan butuh OAuth client milik
+pembuat build (tipe **Desktop app**, scope `drive.file`). Kredensialnya dibaca dari
+environment, saat build atau saat dijalankan:
+
+```
+DATABOARD_GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
+DATABOARD_GOOGLE_CLIENT_SECRET=...
+```
+
+Tanpa keduanya, app tetap jalan dan halaman Rekam layar menampilkan "Google Drive belum
+diatur". Jangan commit nilainya; untuk rilis, simpan sebagai GitHub Secrets. Token login
+pengguna disimpan di Windows Credential Manager, bukan di database.
+
 ## Lisensi
 
 [MIT](LICENSE)

@@ -71,6 +71,12 @@ const portfolioRoute = createRoute({
   component: lazyRouteComponent(() => import('@/features/portfolio/routes'), 'PortfolioPage'),
 });
 
+const recorderRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/recorder',
+  component: lazyRouteComponent(() => import('@/features/recorder/routes'), 'RecorderPage'),
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings',
@@ -130,6 +136,7 @@ const routeTree = rootRoute.addChildren([
   notesEditRoute,
   portfolioNewRoute,
   portfolioEditRoute,
+  recorderRoute,
   settingsRoute,
 ]);
 

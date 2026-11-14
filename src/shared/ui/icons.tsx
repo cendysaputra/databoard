@@ -1,4 +1,12 @@
-import { Calendar, FileText, Folder, House, Layers2, SlidersHorizontal } from 'lucide-react';
+import {
+  Calendar,
+  FileText,
+  Folder,
+  House,
+  Layers2,
+  MonitorDot,
+  SlidersHorizontal,
+} from 'lucide-react';
 import type { SVGProps } from 'react';
 
 export type IconProps = SVGProps<SVGSVGElement>;
@@ -36,6 +44,10 @@ export function NotesIcon(props: IconProps) {
 
 export function PortfolioIcon(props: IconProps) {
   return <Folder aria-hidden strokeWidth={1.5} {...props} />;
+}
+
+export function RecordIcon(props: IconProps) {
+  return <MonitorDot aria-hidden strokeWidth={1.5} {...props} />;
 }
 
 export function SettingsIcon(props: IconProps) {

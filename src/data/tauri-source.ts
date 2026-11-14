@@ -1,5 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
+import type { RecordingFile } from '@/shared/types';
 import type { DataSource } from './source';
+
+/** Recordings are sent to Rust in pieces of this size, so memory use stays flat. */
+const CHUNK_BYTES = 4 * 1024 * 1024;
 
 /** Desktop implementation: every call is a thin Tauri command backed by SQLite. */
 export const tauriSource: DataSource = {
@@ -51,6 +55,23 @@ export const tauriSource: DataSource = {
     update: (id, input) => invoke('entries_update', { id, input }),
     remove: (id) => invoke('entries_remove', { id }),
   },
+  recordings: {
+    async save(name, extension, blob) {
+      const file = await invoke<RecordingFile>('recordings_begin', { name, extension });
+      for (let start = 0; start < blob.size; start += CHUNK_BYTES) {
+        const chunk = await blob.slice(start, start + CHUNK_BYTES).arrayBuffer();
+        await invoke('recordings_append', chunk, { headers: { 'x-file-name': file.file_name } });
+      }
+      return { fileName: file.file_name, location: file.path };
+    },
+    list: () => invoke('recordings_list'),
+  },
+  drive: {
+    status: () => invoke('drive_status'),
+    connect: () => invoke('drive_connect'),
+    disconnect: () => invoke('drive_disconnect'),
+    upload: (fileName) => invoke('drive_upload', { fileName }),
+  },
   overview: {
     get: (query) => invoke('overview_get', { query }),
   },
@@ -58,6 +79,7 @@ export const tauriSource: DataSource = {
     get: () => invoke('settings_get'),
     update: (input) => invoke('settings_update', { input }),
   },
+  openUrl: (url) => invoke('plugin:opener|open_url', { url }),
   async notify(title, body) {
     const { isPermissionGranted, requestPermission, sendNotification } =
       await import('@tauri-apps/plugin-notification');

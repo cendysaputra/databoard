@@ -18,6 +18,9 @@ pub enum AppError {
     Io(#[from] std::io::Error),
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
+    /// A problem talking to an outside service, e.g. Google Drive.
+    #[error("{0}")]
+    External(String),
 }
 
 impl AppError {
@@ -29,11 +32,16 @@ impl AppError {
             Self::Migration(_) => "migration",
             Self::Io(_) => "io",
             Self::Json(_) => "json",
+            Self::External(_) => "external",
         }
     }
 
     pub fn validation(message: impl Into<String>) -> Self {
         Self::Validation(message.into())
+    }
+
+    pub fn external(message: impl std::fmt::Display) -> Self {
+        Self::External(message.to_string())
     }
 }
 

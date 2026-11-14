@@ -314,6 +314,28 @@ export const browserSource: DataSource = {
     },
     remove: (id) => remove('entries', id),
   },
+  recordings: {
+    async save(name, extension, blob) {
+      const fileName = `${name.trim().replace(/[\\/:*?"<>|]+/g, '-') || 'rekaman'}.${extension}`;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      // Give the download a moment to start before the temporary address is released.
+      window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      return { fileName, location: fileName };
+    },
+    // A web page cannot read the Downloads folder, so there is nothing to list.
+    list: async () => [],
+  },
+  // Drive upload needs the desktop app: sign-in and upload run in Rust, not in a web page.
+  drive: {
+    status: async () => ({ configured: false, connected: false, account: null }),
+    connect: () => fail('unsupported', 'Google Drive is only available in the desktop app'),
+    disconnect: async () => {},
+    upload: () => fail('unsupported', 'Google Drive is only available in the desktop app'),
+  },
   overview: {
     async get({ now, day_starts, week_starts }) {
       const [events, notes, projects, reminders] = await Promise.all([
@@ -363,6 +385,9 @@ export const browserSource: DataSource = {
       await set(key('settings'), input);
       return input;
     },
+  },
+  async openUrl(url) {
+    window.open(url, '_blank', 'noopener');
   },
   async notify(title, body) {
     if ('Notification' in window) {
