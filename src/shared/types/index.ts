@@ -18,6 +18,7 @@ export type { Page } from './Page';
 export type { Project } from './Project';
 export type { ProjectInput } from './ProjectInput';
 export type { ProjectStatus } from './ProjectStatus';
+export type { RecordingFile } from './RecordingFile';
 export type { Reminder } from './Reminder';
 export type { ReminderInput } from './ReminderInput';
 export type { Settings } from './Settings';

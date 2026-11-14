@@ -314,6 +314,21 @@ export const browserSource: DataSource = {
     },
     remove: (id) => remove('entries', id),
   },
+  recordings: {
+    async save(name, extension, blob) {
+      const fileName = `${name.trim().replace(/[\\/:*?"<>|]+/g, '-') || 'rekaman'}.${extension}`;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      // Give the download a moment to start before the temporary address is released.
+      window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      return fileName;
+    },
+    // A web page cannot read the Downloads folder, so there is nothing to list.
+    list: async () => [],
+  },
   overview: {
     async get({ now, day_starts, week_starts }) {
       const [events, notes, projects, reminders] = await Promise.all([

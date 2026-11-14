@@ -1,5 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
+import type { RecordingFile } from '@/shared/types';
 import type { DataSource } from './source';
+
+/** Recordings are sent to Rust in pieces of this size, so memory use stays flat. */
+const CHUNK_BYTES = 4 * 1024 * 1024;
 
 /** Desktop implementation: every call is a thin Tauri command backed by SQLite. */
 export const tauriSource: DataSource = {
@@ -50,6 +54,17 @@ export const tauriSource: DataSource = {
     create: (collectionId, input) => invoke('entries_create', { collectionId, input }),
     update: (id, input) => invoke('entries_update', { id, input }),
     remove: (id) => invoke('entries_remove', { id }),
+  },
+  recordings: {
+    async save(name, extension, blob) {
+      const file = await invoke<RecordingFile>('recordings_begin', { name, extension });
+      for (let start = 0; start < blob.size; start += CHUNK_BYTES) {
+        const chunk = await blob.slice(start, start + CHUNK_BYTES).arrayBuffer();
+        await invoke('recordings_append', chunk, { headers: { 'x-file-name': file.file_name } });
+      }
+      return file.path;
+    },
+    list: () => invoke('recordings_list'),
   },
   overview: {
     get: (query) => invoke('overview_get', { query }),

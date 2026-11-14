@@ -6,6 +6,7 @@ export const t = {
     calendar: 'Kalender',
     notes: 'Catatan',
     portfolio: 'Portfolio',
+    recorder: 'Rekam layar',
     settings: 'Pengaturan',
     collapse: 'Ciutkan sidebar',
     expand: 'Lebarkan sidebar',
@@ -248,6 +249,35 @@ export const t = {
       status: 'Status',
       sortOrder: 'Urutan',
       description: 'Deskripsi (markdown)',
+    },
+  },
+  recorder: {
+    title: 'Rekam layar',
+    subtitle: 'Rekam monitor, jendela, atau tab, lalu simpan ke komputer',
+    unsupported: 'Perekaman layar tidak didukung di sini.',
+    options: {
+      systemAudio: 'Rekam suara komputer',
+      microphone: 'Rekam mikrofon',
+    },
+    start: 'Mulai rekam',
+    stop: 'Berhenti',
+    recording: 'Sedang merekam',
+    pickHint: 'Setelah menekan Mulai rekam, pilih monitor, jendela, atau tab yang mau direkam.',
+    denied: 'Perekaman dibatalkan atau izin ditolak.',
+    result: {
+      title: 'Hasil rekaman',
+      name: 'Nama file',
+      defaultName: (stamp: string) => `Rekaman ${stamp}`,
+      saveLocal: 'Simpan ke komputer',
+      discard: 'Buang',
+      savedTo: (where: string) => `Tersimpan: ${where}`,
+      size: (mb: string) => `${mb} MB`,
+    },
+    saved: {
+      title: 'Rekaman tersimpan',
+      empty: 'Belum ada rekaman tersimpan.',
+      browserNote:
+        'Di mode browser, rekaman terunduh ke folder Unduhan dan tidak didaftar di sini.',
     },
   },
   settings: {

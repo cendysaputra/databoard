@@ -100,6 +100,17 @@ export function PortfolioIcon(props: IconProps) {
   );
 }
 
+/** Recorder: a screen with a solid record dot. */
+export function RecordIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="4.5" width="18" height="12.5" rx="2" />
+      <path d="M8.5 20.5h7M12 17v3.5" />
+      <circle cx="12" cy="10.7" r="3" {...accent} />
+    </Svg>
+  );
+}
+
 /** Settings: two sliders with accent knobs. */
 export function SettingsIcon(props: IconProps) {
   return (

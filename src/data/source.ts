@@ -12,6 +12,7 @@ import type {
   OverviewQuery,
   Page,
   Project,
+  RecordingFile,
   ProjectInput,
   ProjectStatus,
   Reminder,
@@ -84,6 +85,15 @@ export interface DataSource {
     create(collectionId: string, input: EntryInput): Promise<Entry>;
     update(id: string, input: EntryInput): Promise<Entry>;
     remove(id: string): Promise<void>;
+  };
+  recordings: {
+    /**
+     * Saves a recording to the computer and says where it went. On desktop that is the
+     * `Videos\\DataBoard` folder; in the browser the file is downloaded.
+     */
+    save(name: string, extension: 'webm' | 'mp4', blob: Blob): Promise<string>;
+    /** Recordings saved on this computer, newest first. Empty in the browser. */
+    list(): Promise<RecordingFile[]>;
   };
   overview: {
     get(query: OverviewQuery): Promise<Overview>;
