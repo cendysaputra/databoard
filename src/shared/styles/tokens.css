@@ -1,0 +1,61 @@
+/*
+ * Design tokens: the single place to change how the app looks.
+ * Colors use light-dark(light, dark); the active side follows the system,
+ * or the manual choice set as data-theme on <html>.
+ * The accent color is overridden at runtime from Settings.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Colors */
+  --bg: light-dark(#ffffff, #101113);
+  --surface: light-dark(#f6f6f8, #17181b);
+  --surface-hover: light-dark(#ececf0, #212327);
+  --border: light-dark(#e3e3e8, #2a2c31);
+  --text: light-dark(#18181b, #ececef);
+  --text-muted: light-dark(#6a6a75, #9c9ca8);
+  --accent: #4f46e5;
+  --accent-contrast: #ffffff;
+  /* Accent adjusted so it stays readable as text on the background. */
+  --accent-text: color-mix(in oklab, var(--accent), light-dark(#000000, #ffffff) 25%);
+  --danger: light-dark(#dc2626, #f87171);
+  --overlay: rgb(0 0 0 / 0.45);
+
+  /* Typography */
+  --font-sans: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Cascadia Code', Consolas, ui-monospace, monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.8125rem;
+  --font-size-base: 0.875rem;
+  --font-size-lg: 1.0625rem;
+  --font-size-xl: 1.5rem;
+
+  /* Shape and spacing (spacing utilities are multiples of the unit) */
+  --space-unit: 0.25rem;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Layout */
+  --sidebar-width: 13.5rem;
+  --sidebar-width-collapsed: 3.75rem;
+  --topbar-height: 3.25rem;
+  --content-max-width: 60rem;
+
+  /* Motion: hover, focus, panels and the route fade only */
+  --duration: 160ms;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration: 0ms;
+  }
+}
