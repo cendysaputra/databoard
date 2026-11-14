@@ -1,8 +1,16 @@
 import { del, get, set } from 'idb-keyval';
-import type { CollectionInput, Entry, EntryInput, FieldDef, Settings } from '@/shared/types';
+import type {
+  CollectionInput,
+  Entry,
+  EntryInput,
+  FieldDef,
+  Settings,
+  Tag,
+  TagInput,
+} from '@/shared/types';
 import { showToast } from '@/shared/ui/toast';
 import { slugify } from '@/shared/utils/slug';
-import { createSeed, defaultSettings, type SeedData } from './seed';
+import { createSeed, defaultSettings, seedTags, type SeedData } from './seed';
 import type { DataError, DataSource } from './source';
 
 /**
@@ -16,10 +24,27 @@ type Entity = SeedData[Collection][number];
 const key = (name: string) => `dashboard.${name}`;
 
 /** Writes the seed once per seed version; later visits keep whatever the user changed. */
-const SEED_VERSION = 4;
+const SEED_VERSION = 5;
 
 const ready: Promise<void> = (async () => {
-  if ((await get(key('seeded'))) === SEED_VERSION) return;
+  const version = await get<number>(key('seeded'));
+  if (version === SEED_VERSION) return;
+  if (version === 4) {
+    // Version 5 added labels and note date/status: upgrade in place, keeping the user's data.
+    const notes = (await get<SeedData['notes']>(key('notes'))) ?? [];
+    await set(
+      key('notes'),
+      notes.map((note) => ({
+        ...note,
+        note_date: note.note_date ?? note.created_at.slice(0, 10),
+        status: note.status ?? 'draft',
+        label_ids: note.label_ids ?? [],
+      })),
+    );
+    await set(key('tags'), seedTags);
+    await set(key('seeded'), SEED_VERSION);
+    return;
+  }
   const seed = createSeed();
   await Promise.all((Object.keys(seed) as Collection[]).map((name) => set(key(name), seed[name])));
   // Saved preview settings may hold an accent from an older look; start from the defaults.
@@ -85,6 +110,20 @@ const pickAccents = ({ accent_color, accent_color_secondary }: Settings) => ({
   accent_color,
   accent_color_secondary,
 });
+
+/** Creates a label or renames the one with `id`; names are unique without case. */
+async function saveTag(input: TagInput, id?: string): Promise<Tag> {
+  requireText('name', input.name);
+  const name = input.name.trim();
+  const tags = await load('tags');
+  if (id && !tags.some((tag) => tag.id === id)) fail('not_found', 'label not found');
+  if (tags.some((tag) => tag.id !== id && tag.name.toLowerCase() === name.toLowerCase())) {
+    fail('validation', `label "${name}" already exists`);
+  }
+  const tag: Tag = { id: id ?? crypto.randomUUID(), name, color: input.color?.trim() || null };
+  await set(key('tags'), id ? tags.map((t) => (t.id === id ? tag : t)) : [...tags, tag]);
+  return tag;
+}
 
 /** Name, slug and field keys checked the way the Rust side does, in short form. */
 async function cleanCollection(input: CollectionInput, ownId?: string) {
@@ -168,10 +207,16 @@ export const browserSource: DataSource = {
     remove: (id) => remove('reminders', id),
   },
   notes: {
-    async list({ limit, offset }) {
+    async list({ limit, offset }, labelId = null) {
+      const tagIds = new Set((await load('tags')).map((tag) => tag.id));
       return (await load('notes'))
+        .map((note) => ({ ...note, label_ids: note.label_ids.filter((id) => tagIds.has(id)) }))
+        .filter((note) => labelId === null || note.label_ids.includes(labelId))
         .sort(
-          (a, b) => Number(b.pinned) - Number(a.pinned) || b.updated_at.localeCompare(a.updated_at),
+          (a, b) =>
+            Number(b.pinned) - Number(a.pinned) ||
+            b.note_date.localeCompare(a.note_date) ||
+            b.updated_at.localeCompare(a.updated_at),
         )
         .slice(offset, offset + limit);
     },
@@ -185,6 +230,21 @@ export const browserSource: DataSource = {
       return patch('notes', id, input);
     },
     remove: (id) => remove('notes', id),
+  },
+  tags: {
+    async list() {
+      return (await load('tags')).sort((a, b) => a.name.localeCompare(b.name));
+    },
+    create: (input) => saveTag(input),
+    update: (id, input) => saveTag(input, id),
+    async remove(id) {
+      const tags = await load('tags');
+      if (!tags.some((tag) => tag.id === id)) fail('not_found', 'label not found');
+      await set(
+        key('tags'),
+        tags.filter((tag) => tag.id !== id),
+      );
+    },
   },
   projects: {
     async list(status) {

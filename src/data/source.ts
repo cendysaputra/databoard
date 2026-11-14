@@ -17,6 +17,8 @@ import type {
   Reminder,
   ReminderInput,
   Settings,
+  Tag,
+  TagInput,
 } from '@/shared/types';
 
 /** Shape of every error thrown by a data source (mirrors the Rust `AppError`). */
@@ -46,10 +48,19 @@ export interface DataSource {
     remove(id: string): Promise<void>;
   };
   notes: {
-    list(page: Page): Promise<Note[]>;
+    /** With `labelId`, only notes carrying that label. */
+    list(page: Page, labelId?: string | null): Promise<Note[]>;
     get(id: string): Promise<Note>;
     create(input: NoteInput): Promise<Note>;
     update(id: string, input: NoteInput): Promise<Note>;
+    remove(id: string): Promise<void>;
+  };
+  /** Labels that can be attached to notes. */
+  tags: {
+    list(): Promise<Tag[]>;
+    create(input: TagInput): Promise<Tag>;
+    update(id: string, input: TagInput): Promise<Tag>;
+    /** Also detaches the label from every note. */
     remove(id: string): Promise<void>;
   };
   projects: {

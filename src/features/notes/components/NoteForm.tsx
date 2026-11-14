@@ -33,6 +33,9 @@ export function NoteForm({ note, saving, error, onSubmit, onCancel, extra }: Not
       // Links to an event or project are kept as they are; linking comes later.
       event_id: note?.event_id ?? null,
       project_id: note?.project_id ?? null,
+      note_date: note?.note_date ?? new Date().toISOString().slice(0, 10),
+      status: note?.status ?? 'draft',
+      label_ids: note?.label_ids ?? [],
     });
   };
 

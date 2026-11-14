@@ -3,7 +3,7 @@
 use rusqlite::{params, Connection};
 use time::format_description::well_known::Rfc3339;
 use time::macros::format_description;
-use time::{OffsetDateTime, UtcOffset};
+use time::{Date, OffsetDateTime, UtcOffset};
 
 use crate::error::{AppError, Result};
 
@@ -31,6 +31,14 @@ pub fn normalize_ts(field: &str, value: &str) -> Result<String> {
     OffsetDateTime::parse(value.trim(), &Rfc3339)
         .map(format_utc)
         .map_err(|_| AppError::validation(format!("{field} must be an RFC 3339 timestamp")))
+}
+
+/// Checks a calendar date written as `YYYY-MM-DD` and returns it trimmed.
+pub fn iso_date(field: &str, value: &str) -> Result<String> {
+    let value = value.trim();
+    Date::parse(value, format_description!("[year]-[month]-[day]"))
+        .map(|_| value.to_owned())
+        .map_err(|_| AppError::validation(format!("{field} must be a date (YYYY-MM-DD)")))
 }
 
 /// Trims a required text field and rejects empty or oversized values.

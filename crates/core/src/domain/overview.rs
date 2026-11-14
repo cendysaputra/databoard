@@ -142,6 +142,9 @@ mod tests {
                     event_id: None,
                     project_id: None,
                     pinned: false,
+                    note_date: "2026-11-14".into(),
+                    status: notes::NoteStatus::Draft,
+                    label_ids: vec![],
                 },
             )?;
             projects::create(

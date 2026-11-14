@@ -47,6 +47,10 @@ pub fn run() {
             commands::projects::projects_update,
             commands::projects::projects_remove,
             commands::overview::overview_get,
+            commands::tags::tags_list,
+            commands::tags::tags_create,
+            commands::tags::tags_update,
+            commands::tags::tags_remove,
             commands::settings::settings_get,
             commands::settings::settings_update,
         ])

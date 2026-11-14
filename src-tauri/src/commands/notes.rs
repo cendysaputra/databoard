@@ -6,8 +6,12 @@ use tauri::State;
 use crate::error::CommandResult;
 
 #[tauri::command]
-pub fn notes_list(db: State<'_, Db>, page: Page) -> CommandResult<Vec<Note>> {
-    db.with(|conn| notes::list(conn, page))
+pub fn notes_list(
+    db: State<'_, Db>,
+    page: Page,
+    label_id: Option<String>,
+) -> CommandResult<Vec<Note>> {
+    db.with(|conn| notes::list(conn, page, label_id.as_deref()))
 }
 
 #[tauri::command]
@@ -17,12 +21,12 @@ pub fn notes_get(db: State<'_, Db>, id: String) -> CommandResult<Note> {
 
 #[tauri::command]
 pub fn notes_create(db: State<'_, Db>, input: NoteInput) -> CommandResult<Note> {
-    db.with(|conn| notes::create(conn, &input))
+    db.with_tx(|conn| notes::create(conn, &input))
 }
 
 #[tauri::command]
 pub fn notes_update(db: State<'_, Db>, id: String, input: NoteInput) -> CommandResult<Note> {
-    db.with(|conn| notes::update(conn, &id, &input))
+    db.with_tx(|conn| notes::update(conn, &id, &input))
 }
 
 #[tauri::command]

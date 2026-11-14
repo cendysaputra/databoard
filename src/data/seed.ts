@@ -7,6 +7,7 @@ import type {
   Project,
   Reminder,
   Settings,
+  Tag,
 } from '@/shared/types';
 
 export const defaultSettings: Settings = {
@@ -23,6 +24,7 @@ export interface SeedData {
   reminders: Reminder[];
   notes: Note[];
   projects: Project[];
+  tags: Tag[];
   collections: Collection[];
   entries: Entry[];
 }
@@ -42,21 +44,34 @@ const eventRows: Array<[string, number, number, number, string | null]> = [
   ['Retrospektif', 12, 16, 1, null],
 ];
 
-/** [title, body, created days ago, pinned] */
-const noteRows: Array<[string, string, number, boolean]> = [
+export const seedTags: Tag[] = [
+  { id: 'seed-tag-meeting', name: 'Meeting', color: null },
+  { id: 'seed-tag-ide', name: 'Ide', color: null },
+  { id: 'seed-tag-klien', name: 'Klien', color: null },
+];
+
+/** [title, body, created days ago, pinned, label id] */
+const noteRows: Array<[string, string, number, boolean, string | null]> = [
   [
     'Meeting kickoff',
-    '## Agenda\n- Scope\n- Timeline\n\n## Action Items\n- [ ] Kirim proposal',
+    '## Agenda\n\n- Scope\n- Timeline\n\n## Action Items\n\n- [ ] Kirim proposal',
     1,
     true,
+    'seed-tag-meeting',
   ],
-  ['Ide konten portfolio', 'Tulis studi kasus untuk dua project terakhir.', 3, false],
-  ['Catatan review desain', 'Perbaiki hierarki tipografi di halaman utama.', 9, false],
-  ['Rencana kuartal', 'Tiga prioritas: portfolio, klien baru, belajar Rust.', 12, false],
-  ['Notulen workshop', 'Peserta sepakat rilis bertahap.', 17, false],
-  ['Daftar bacaan', 'Buku tipografi dan desain editorial.', 30, false],
-  ['Evaluasi bulan lalu', 'Dua project selesai tepat waktu.', 38, false],
-  ['Brief klien baru', 'Butuh landing page dalam tiga minggu.', 45, false],
+  [
+    'Ide konten portfolio',
+    'Tulis studi kasus untuk dua project terakhir.',
+    3,
+    false,
+    'seed-tag-ide',
+  ],
+  ['Catatan review desain', 'Perbaiki hierarki tipografi.', 9, false, 'seed-tag-meeting'],
+  ['Rencana kuartal', 'Tiga prioritas: portfolio, klien baru, belajar Rust.', 12, false, null],
+  ['Notulen workshop', 'Peserta sepakat rilis bertahap.', 17, false, 'seed-tag-meeting'],
+  ['Daftar bacaan', 'Buku tipografi dan desain editorial.', 30, false, 'seed-tag-ide'],
+  ['Evaluasi bulan lalu', 'Dua project selesai tepat waktu.', 38, false, null],
+  ['Brief klien baru', 'Butuh landing page dalam tiga minggu.', 45, false, 'seed-tag-klien'],
 ];
 
 /** [title, client, years ago, role, stack, status] */
@@ -95,7 +110,7 @@ export function createSeed(now = new Date()): SeedData {
     ...meta,
   }));
 
-  const notes: Note[] = noteRows.map(([title, body_md, daysAgo, pinned], i) => {
+  const notes: Note[] = noteRows.map(([title, body_md, daysAgo, pinned, label], i) => {
     const created = addDays(now, -daysAgo).toISOString();
     return {
       id: `seed-note-${i + 1}`,
@@ -104,6 +119,9 @@ export function createSeed(now = new Date()): SeedData {
       event_id: i === 0 ? 'seed-event-2' : null,
       project_id: null,
       pinned,
+      note_date: created.slice(0, 10),
+      status: i < 3 ? 'published' : 'draft',
+      label_ids: label ? [label] : [],
       created_at: created,
       updated_at: created,
     };
@@ -206,5 +224,5 @@ export function createSeed(now = new Date()): SeedData {
     },
   ];
 
-  return { events, reminders, notes, projects, collections, entries };
+  return { events, reminders, notes, projects, tags: seedTags, collections, entries };
 }

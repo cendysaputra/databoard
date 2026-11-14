@@ -18,11 +18,17 @@ export const tauriSource: DataSource = {
     remove: (id) => invoke('reminders_remove', { id }),
   },
   notes: {
-    list: (page) => invoke('notes_list', { page }),
+    list: (page, labelId = null) => invoke('notes_list', { page, labelId }),
     get: (id) => invoke('notes_get', { id }),
     create: (input) => invoke('notes_create', { input }),
     update: (id, input) => invoke('notes_update', { id, input }),
     remove: (id) => invoke('notes_remove', { id }),
+  },
+  tags: {
+    list: () => invoke('tags_list'),
+    create: (input) => invoke('tags_create', { input }),
+    update: (id, input) => invoke('tags_update', { id, input }),
+    remove: (id) => invoke('tags_remove', { id }),
   },
   projects: {
     list: (status) => invoke('projects_list', { status }),

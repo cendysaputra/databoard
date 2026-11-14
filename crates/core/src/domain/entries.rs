@@ -4,14 +4,12 @@
 use rusqlite::{params, Connection, OptionalExtension, Row};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use time::macros::format_description;
-use time::Date;
 use ts_rs::TS;
 
 use super::collections::{self, FieldDef, FieldType};
 use super::Page;
 use crate::error::{AppError, Result};
-use crate::util::{new_id, now, required, soft_delete};
+use crate::util::{iso_date, new_id, now, required, soft_delete};
 
 const TABLE: &str = "entries";
 const COLUMNS: &str = "id, collection_id, title, status, data, created_at, updated_at";
@@ -63,10 +61,6 @@ pub struct EntryInput {
     pub data: Map<String, Value>,
 }
 
-fn is_iso_date(value: &str) -> bool {
-    Date::parse(value, format_description!("[year]-[month]-[day]")).is_ok()
-}
-
 /// Checks one value against its field. `Ok(None)` means "empty, store nothing".
 fn clean_value(field: &FieldDef, value: Option<&Value>) -> Result<Option<Value>> {
     let label = &field.label;
@@ -103,7 +97,9 @@ fn clean_value(field: &FieldDef, value: Option<&Value>) -> Result<Option<Value>>
                 _ => text.trim(),
             };
             match text_type {
-                FieldType::Date if !is_iso_date(text) => return Err(wrong("a date (YYYY-MM-DD)")),
+                FieldType::Date if iso_date(label, text).is_err() => {
+                    return Err(wrong("a date (YYYY-MM-DD)"))
+                }
                 FieldType::Url
                     if !(text.starts_with("https://") || text.starts_with("http://")) =>
                 {
