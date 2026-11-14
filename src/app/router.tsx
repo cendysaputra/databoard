@@ -101,6 +101,18 @@ const notesEditRoute = createRoute({
   component: lazyRouteComponent(() => import('@/features/notes/routes'), 'NoteEditPage'),
 });
 
+const portfolioNewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/portfolio/new',
+  component: lazyRouteComponent(() => import('@/features/portfolio/routes'), 'ProjectNewPage'),
+});
+
+const portfolioEditRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/portfolio/$projectId',
+  component: lazyRouteComponent(() => import('@/features/portfolio/routes'), 'ProjectEditPage'),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   collectionsRoute,
@@ -116,6 +128,8 @@ const routeTree = rootRoute.addChildren([
   calendarEditRoute,
   notesNewRoute,
   notesEditRoute,
+  portfolioNewRoute,
+  portfolioEditRoute,
   settingsRoute,
 ]);
 
