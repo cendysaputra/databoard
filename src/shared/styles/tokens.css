@@ -12,7 +12,9 @@
   color-scheme: light dark;
 
   /* Base colors */
-  --canvas: light-dark(#e6e3f5, #09090c); /* behind the frame */
+  /* Behind the frame: a soft gradient from the first to the second canvas color. */
+  --canvas: light-dark(#e6e3f5, #09090c);
+  --canvas-2: light-dark(#d3ebf8, #0a1016);
   --bg: light-dark(#ffffff, #141417); /* the frame */
   --surface: light-dark(#ffffff, #1c1c21); /* dialogs, toasts, menus */
   --surface-hover: light-dark(#f4f3f8, #25252b);

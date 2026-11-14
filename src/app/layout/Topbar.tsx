@@ -6,7 +6,7 @@ import { Button } from '@/shared/ui/Button';
 import { oppositeTheme } from '@/shared/utils/theme';
 import { useUi } from './ui-store';
 
-/** Top row of the frame: search on the left, tools on the right. */
+/** Top row of the frame: the search field on the left, tools on the right. */
 export function Topbar() {
   const openPalette = useUi((state) => state.setPaletteOpen);
   const settings = useSettings().data;
@@ -14,16 +14,16 @@ export function Topbar() {
 
   return (
     <header className="flex h-20 shrink-0 items-center gap-2 px-10">
-      <Button
-        variant="ghost"
-        icon
-        className="-ml-2.5"
+      {/* Looks like a search field; opens the command palette. */}
+      <button
+        type="button"
         onClick={() => openPalette(true)}
-        aria-label={t.palette.open}
-        title={`${t.palette.open} (Ctrl K)`}
+        className="flex h-10 w-80 max-w-full items-center gap-3 rounded-full bg-surface-hover px-4 text-sm text-muted transition-colors hover:text-text"
       >
-        <Search aria-hidden className="size-5" />
-      </Button>
+        <Search aria-hidden className="size-4 shrink-0" />
+        <span className="flex-1 truncate text-left">{t.palette.open}</span>
+        <kbd className="font-mono text-xs opacity-70">Ctrl K</kbd>
+      </button>
 
       <div className="flex-1" />
 

@@ -13,7 +13,7 @@ interface MiniCalendarProps {
   gridStart: Date;
   weeks: number;
   today: Date;
-  selected: Date | null;
+  selected: Date;
   /** Whether a day has at least one event. */
   hasEvents(day: Date): boolean;
   onMonthChange(month: Date): void;
@@ -67,7 +67,7 @@ export function MiniCalendar({
         ))}
         {days.map((day) => {
           const isToday = isSameDay(day, today);
-          const isSelected = selected !== null && isSameDay(day, selected);
+          const isSelected = isSameDay(day, selected);
           return (
             <button
               key={day.toISOString()}

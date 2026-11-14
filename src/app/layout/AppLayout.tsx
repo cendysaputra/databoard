@@ -32,7 +32,7 @@ export function AppLayout() {
   const wide = pathname === '/';
 
   return (
-    <div className="h-full bg-canvas p-3">
+    <div className="h-full bg-linear-to-br from-canvas to-canvas-2 p-3">
       <div className="relative flex h-full overflow-hidden rounded-lg bg-bg shadow-[0_20px_60px_-30px_rgb(23_21_43/0.35)]">
         <FrameArt />
         <Sidebar />

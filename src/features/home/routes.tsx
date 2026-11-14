@@ -1,12 +1,17 @@
 import { Link } from '@tanstack/react-router';
-import { addDays, endOfMonth, isSameDay, startOfMonth, startOfWeek } from 'date-fns';
+import { addDays, endOfMonth, isSameDay, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import { Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Overview } from '@/shared/types';
 import { NotesIcon } from '@/shared/ui/icons';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
-import { formatDayMonth, formatLongDate } from '@/shared/utils/date';
+import {
+  formatDayMonth,
+  formatDayMonthYear,
+  formatLongDate,
+  formatWeekdayLong,
+} from '@/shared/utils/date';
 import {
   overviewBuckets,
   useCollections,
@@ -15,7 +20,9 @@ import {
   useRecentNotes,
 } from './api';
 import { CategoryCard } from './components/CategoryCard';
+import { DayTimeline } from './components/DayTimeline';
 import { MiniCalendar } from './components/MiniCalendar';
+import { NextEventCard } from './components/NextEventCard';
 import { NotesChart } from './components/NotesChart';
 import { ScheduleChart } from './components/ScheduleChart';
 import { StatusBars } from './components/StatusBars';
@@ -36,7 +43,7 @@ function Section({
   aside,
   children,
 }: {
-  title: string;
+  title: ReactNode;
   aside?: ReactNode;
   children: ReactNode;
 }) {
@@ -51,7 +58,7 @@ function Section({
   );
 }
 
-/** Round "+" button that opens a small menu of things to create. */
+/** Floating round "+" button in the second accent; opens a small menu of things to create. */
 function AddMenu() {
   const links = [
     { to: '/calendar/new', label: t.calendar.new },
@@ -65,11 +72,11 @@ function AddMenu() {
       <summary
         aria-label={text.add}
         title={text.add}
-        className="flex size-12 cursor-pointer list-none items-center justify-center rounded-full bg-accent text-accent-contrast transition-[rotate] group-open:rotate-45 [&::-webkit-details-marker]:hidden"
+        className="flex size-13 cursor-pointer list-none items-center justify-center rounded-full bg-accent-2 text-accent-2-contrast shadow-[0_12px_24px_-10px_var(--accent-2)] transition-[rotate] group-open:rotate-45 [&::-webkit-details-marker]:hidden"
       >
-        <Plus aria-hidden className="size-5" />
+        <Plus aria-hidden className="size-6" />
       </summary>
-      <div className="absolute top-14 right-0 z-10 w-44 rounded-md border border-border bg-surface p-1.5 shadow-xl">
+      <div className="absolute right-0 bottom-16 z-10 w-44 rounded-md border border-border bg-surface p-1.5 shadow-xl">
         {links.map(({ to, label }) => (
           <Link
             key={to}
@@ -89,23 +96,26 @@ function Categories({ overview }: { overview: Overview }) {
   const eventsAhead = overview.events_per_day.reduce((sum, n) => sum + n, 0);
 
   return (
-    <div className="-mx-2 flex gap-4 overflow-x-auto px-2 pt-2 pb-6">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] gap-4">
       <CategoryCard
         art={0}
         name={t.nav.calendar}
-        detail={text.counts.events(eventsAhead)}
+        stat={eventsAhead}
+        caption={text.counts.events}
         link={{ to: '/calendar' }}
       />
       <CategoryCard
         art={1}
         name={t.nav.notes}
-        detail={text.counts.notes(overview.notes_total)}
+        stat={overview.notes_total}
+        caption={text.counts.notes}
         link={{ to: '/notes' }}
       />
       <CategoryCard
         art={2}
         name={t.nav.portfolio}
-        detail={text.counts.projects(overview.projects_total)}
+        stat={overview.projects_total}
+        caption={text.counts.projects}
         link={{ to: '/portfolio' }}
       />
       {collections.map((collection, index) => (
@@ -113,7 +123,8 @@ function Categories({ overview }: { overview: Overview }) {
           key={collection.id}
           art={index + 3}
           name={collection.name}
-          detail={t.collections.entryCount(collection.entry_count)}
+          stat={collection.entry_count}
+          caption={text.counts.entries}
           link={{ to: '/collections/$collectionId', params: { collectionId: collection.id } }}
         />
       ))}
@@ -157,9 +168,15 @@ function RecentNotes() {
   );
 }
 
-function CalendarColumn({ overview, today }: { overview: Overview; today: Date }) {
-  const [month, setMonth] = useState(today);
-  const [selected, setSelected] = useState<Date | null>(null);
+interface CalendarColumnProps {
+  overview: Overview;
+  now: Date;
+  selected: Date;
+  onSelect(day: Date): void;
+}
+
+function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnProps) {
+  const [month, setMonth] = useState(now);
 
   // The grid starts on the Monday on or before the 1st and covers whole weeks.
   const gridStart = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
@@ -167,31 +184,26 @@ function CalendarColumn({ overview, today }: { overview: Overview; today: Date }
   const weeks = Math.ceil((Math.round((+lastDay - +gridStart) / 86_400_000) + 1) / 7);
   const monthEvents = useEventsBetween(gridStart, addDays(gridStart, weeks * 7)).data ?? [];
 
-  const onDay = (day: Date) => monthEvents.filter((e) => isSameDay(new Date(e.start_at), day));
-  const dayEvents = selected ? onDay(selected) : [];
-
   return (
     <aside className="flex flex-col gap-8">
-      <h2 className="text-xl font-semibold">{text.calendar.title}</h2>
+      <NextEventCard event={overview.next_events[0]} now={now} />
       <MiniCalendar
         month={month}
         gridStart={gridStart}
         weeks={weeks}
-        today={today}
+        today={now}
         selected={selected}
-        hasEvents={(day) => onDay(day).length > 0}
+        hasEvents={(day) => monthEvents.some((e) => isSameDay(new Date(e.start_at), day))}
         onMonthChange={setMonth}
-        onSelect={(day) => setSelected(selected && isSameDay(day, selected) ? null : day)}
+        onSelect={onSelect}
       />
       <div>
-        <p className="mb-4 text-sm font-medium text-muted">
-          {selected ? formatLongDate(selected) : text.calendar.upcoming}
-        </p>
-        {selected ? (
-          <Timeline events={dayEvents} showDate={false} empty={text.calendar.emptyDay} />
-        ) : (
-          <Timeline events={overview.next_events} showDate empty={text.calendar.emptyUpcoming} />
-        )}
+        <p className="mb-4 text-sm font-medium text-muted">{text.calendar.upcoming}</p>
+        <Timeline
+          events={overview.next_events.slice(1)}
+          showDate
+          empty={text.calendar.emptyUpcoming}
+        />
       </div>
     </aside>
   );
@@ -199,20 +211,37 @@ function CalendarColumn({ overview, today }: { overview: Overview; today: Date }
 
 function HomeView({ overview, now }: { overview: Overview; now: Date }) {
   const { days, weeks } = overviewBuckets(now);
+  // The day shown on the timeline; picked in the calendar, today by default.
+  const [selected, setSelected] = useState(now);
+  const dayStart = startOfDay(selected);
+  const dayEvents = (useEventsBetween(dayStart, addDays(dayStart, 1)).data ?? []).filter((e) =>
+    isSameDay(new Date(e.start_at), selected),
+  );
+  const isToday = isSameDay(selected, now);
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_19rem] gap-14">
       <div className="flex min-w-0 flex-col gap-10">
-        <div className="flex items-start justify-between gap-6">
-          <div>
-            <h1 className="text-3xl leading-tight font-semibold">{greeting(now)} 👋</h1>
-            <p className="mt-2 text-muted">{formatLongDate(now)}</p>
-          </div>
-          <AddMenu />
+        <div>
+          <h1 className="text-3xl leading-tight font-semibold">{greeting(now)} 👋</h1>
+          <p className="mt-2 text-muted">{formatLongDate(now)}</p>
         </div>
 
         <Section title={text.browse}>
           <Categories overview={overview} />
+        </Section>
+
+        <Section
+          title={
+            <>
+              <span className="font-normal text-muted">
+                {isToday ? text.today : formatWeekdayLong(selected)},
+              </span>{' '}
+              {formatDayMonthYear(selected)}
+            </>
+          }
+        >
+          <DayTimeline day={selected} events={dayEvents} now={now} />
         </Section>
 
         <Section
@@ -247,9 +276,22 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
             />
           </Section>
         </div>
+
+        {/* Stays at the bottom of the view while the page scrolls. */}
+        <div className="pointer-events-none sticky bottom-6 flex justify-end">
+          <div className="pointer-events-auto">
+            <AddMenu />
+          </div>
+        </div>
       </div>
 
-      <CalendarColumn overview={overview} today={now} />
+      <CalendarColumn
+        overview={overview}
+        now={now}
+        selected={selected}
+        // Picking the selected day again goes back to today.
+        onSelect={(day) => setSelected(isSameDay(day, selected) ? now : day)}
+      />
     </div>
   );
 }

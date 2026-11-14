@@ -81,36 +81,39 @@ interface CategoryCardProps {
   /** Which look to use; any number works, looks repeat. */
   art: number;
   name: string;
-  detail: string;
+  /** The big number on the card and what it counts. */
+  stat: number;
+  caption: string;
   link: Pick<LinkProps, 'to' | 'params'>;
 }
 
-/** A colorful card that opens a module or a collection. */
-export function CategoryCard({ art, name, detail, link }: CategoryCardProps) {
+/** A wide, colorful card that opens a module or a collection and shows its headline number. */
+export function CategoryCard({ art, name, stat, caption, link }: CategoryCardProps) {
   const look = arts[art % arts.length] ?? arts[0];
   if (!look) return null;
 
   return (
     <Link
       {...link}
-      style={{ color: look.lightText ? '#ffffff' : 'var(--art-navy)' }}
+      style={{ background: look.base, color: look.lightText ? '#ffffff' : 'var(--art-navy)' }}
       className={cn(
-        'relative block h-44 w-36 shrink-0 overflow-hidden rounded-md outline-offset-4',
+        'relative flex h-36 flex-col justify-between overflow-hidden rounded-md p-4 outline-offset-4',
         'transition-[translate,box-shadow] hover:-translate-y-1.5 hover:shadow-[0_18px_30px_-14px_rgb(23_21_43/0.45)]',
       )}
     >
+      {/* The geometric art fills the right side of the card. */}
       <svg
         aria-hidden
         viewBox="0 0 120 150"
         preserveAspectRatio="xMidYMid slice"
-        className="absolute inset-0 size-full"
+        className="absolute inset-y-0 right-0 h-full w-[52%]"
       >
-        <rect width="120" height="150" fill={look.base} />
         {look.shapes}
       </svg>
-      <span className="absolute inset-x-4 bottom-3.5">
-        <span className="block truncate font-semibold">{name}</span>
-        <span className="block truncate text-xs opacity-75">{detail}</span>
+      <span className="relative max-w-[55%] leading-tight font-semibold">{name}</span>
+      <span className="relative max-w-[50%]">
+        <span className="block text-3xl leading-none font-semibold tabular-nums">{stat}</span>
+        <span className="mt-1 block text-xs leading-tight opacity-80">{caption}</span>
       </span>
     </Link>
   );
