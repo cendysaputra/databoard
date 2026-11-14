@@ -1,4 +1,4 @@
-# Dashboard
+# DataBoard
 
 Aplikasi desktop Windows pribadi (Tauri 2, offline-first): kalender + reminder, catatan meeting,
 portfolio, dan MCP server. Rencana kerja lengkap ada di [PLAN.md](PLAN.md).

@@ -1,12 +1,25 @@
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale/id';
+/** Date formatting with the built-in Intl API (Indonesian), so no formatting library ships. */
 
-/** "Jum, 20 Nov · 09.00" in local time. */
-export function formatDateTime(iso: string): string {
-  return format(new Date(iso), "EEE, d MMM '·' HH.mm", { locale: id });
-}
+const LOCALE = 'id-ID';
 
-/** "Jum, 20 Nov" in local time. */
-export function formatDate(iso: string): string {
-  return format(new Date(iso), 'EEE, d MMM', { locale: id });
-}
+const formatter = (options: Intl.DateTimeFormatOptions) => {
+  const intl = new Intl.DateTimeFormat(LOCALE, options);
+  return (value: string | Date) => intl.format(typeof value === 'string' ? new Date(value) : value);
+};
+
+/** "Sabtu, 14 November 2026" */
+export const formatLongDate = formatter({
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+/** "14 Nov" */
+export const formatDayMonth = formatter({ day: 'numeric', month: 'short' });
+
+/** "Sab" */
+export const formatWeekday = formatter({ weekday: 'short' });
+
+/** "09.00" */
+export const formatTime = formatter({ hour: '2-digit', minute: '2-digit' });

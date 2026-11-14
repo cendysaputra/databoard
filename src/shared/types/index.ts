@@ -4,6 +4,8 @@ export type { EventInput } from './EventInput';
 export type { EventRange } from './EventRange';
 export type { Note } from './Note';
 export type { NoteInput } from './NoteInput';
+export type { Overview } from './Overview';
+export type { OverviewQuery } from './OverviewQuery';
 export type { Page } from './Page';
 export type { Project } from './Project';
 export type { ProjectInput } from './ProjectInput';

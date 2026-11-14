@@ -1,6 +1,6 @@
 [package]
 name = "dashboard"
-description = "Personal dashboard: calendar, meeting notes and portfolio"
+description = "DataBoard, a personal dashboard: calendar, meeting notes and portfolio"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

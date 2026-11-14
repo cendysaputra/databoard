@@ -34,7 +34,7 @@ export function Modal({ open, onClose, label, className, children }: ModalProps)
         if (event.target === event.currentTarget) onClose();
       }}
       className={cn(
-        'mx-auto mt-[14vh] w-full max-w-lg rounded-lg border border-border bg-bg p-0 text-text shadow-2xl',
+        'mx-auto mt-[14vh] w-full max-w-lg rounded-lg border border-border bg-surface p-0 text-text shadow-2xl',
         'backdrop:bg-overlay open:animate-fade',
         className,
       )}

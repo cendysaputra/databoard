@@ -1,6 +1,7 @@
 /** All static UI text. Components read from here instead of hardcoding strings. */
 export const t = {
   nav: {
+    home: 'Beranda',
     calendar: 'Kalender',
     notes: 'Catatan',
     portfolio: 'Portfolio',
@@ -15,9 +16,11 @@ export const t = {
     saved: 'Tersimpan',
     desktopOnly: 'Khusus desktop',
     browserMode: 'Mode browser: data contoh disimpan di browser ini.',
+    browserBadge: 'Pratinjau',
   },
   palette: {
     open: 'Cari atau jalankan perintah',
+    button: 'Cari',
     placeholder: 'Ketik perintah…',
     empty: 'Tidak ada perintah yang cocok',
     goTo: (page: string) => `Buka ${page}`,
@@ -31,10 +34,43 @@ export const t = {
     dark: 'Gelap',
     toggle: 'Ganti tema',
   },
+  home: {
+    greeting: {
+      morning: 'Selamat pagi.',
+      midday: 'Selamat siang.',
+      afternoon: 'Selamat sore.',
+      night: 'Selamat malam.',
+    },
+    stats: {
+      events: 'Event 14 hari',
+      reminders: 'Pengingat aktif',
+      notes: 'Catatan',
+      projects: 'Project',
+    },
+    schedule: {
+      title: 'Jadwal 14 hari ke depan',
+      caption: 'Jumlah event per hari',
+      today: 'Hari ini',
+      count: (n: number) => `${n} event`,
+    },
+    notes: {
+      title: 'Catatan baru',
+      caption: 'Per minggu, 8 minggu terakhir',
+      week: (date: string) => `Minggu ${date}`,
+      count: (n: number) => `${n} catatan`,
+    },
+    projects: {
+      title: 'Project menurut status',
+      count: (n: number) => `${n} project`,
+    },
+    next: {
+      title: 'Berikutnya',
+      empty: 'Tidak ada event mendatang.',
+    },
+  },
   calendar: {
     title: 'Kalender',
-    subtitle: 'Event dan pengingat',
-    upcoming: 'Event bulan ini',
+    subtitle: 'Event dan pengingat bulan ini',
     emptyTitle: 'Belum ada event',
     emptyBody: 'Event bulan ini akan muncul di sini.',
     allDay: 'Seharian',

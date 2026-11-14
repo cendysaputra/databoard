@@ -33,8 +33,8 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            app_name: "Dashboard".into(),
-            accent_color: "#4f46e5".into(),
+            app_name: "DataBoard".into(),
+            accent_color: "#d0451b".into(),
             theme: Theme::System,
             default_reminder_minutes: 10,
             backup_dir: None,

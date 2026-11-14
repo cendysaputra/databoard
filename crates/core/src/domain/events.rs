@@ -99,6 +99,19 @@ pub fn list(conn: &Connection, range: &EventRange) -> Result<Vec<CalendarEvent>>
     Ok(rows.collect::<rusqlite::Result<_>>()?)
 }
 
+/// The next events that have not ended yet at `now`, soonest first.
+pub fn upcoming(conn: &Connection, now: &str, limit: u32) -> Result<Vec<CalendarEvent>> {
+    let now = normalize_ts("now", now)?;
+    let sql = format!(
+        "SELECT {COLUMNS} FROM {TABLE}
+         WHERE deleted_at IS NULL AND end_at >= ?1
+         ORDER BY start_at, title LIMIT ?2"
+    );
+    let mut stmt = conn.prepare_cached(&sql)?;
+    let rows = stmt.query_map(params![now, limit], from_row)?;
+    Ok(rows.collect::<rusqlite::Result<_>>()?)
+}
+
 pub fn get(conn: &Connection, id: &str) -> Result<CalendarEvent> {
     let sql = format!("SELECT {COLUMNS} FROM {TABLE} WHERE id = ?1 AND deleted_at IS NULL");
     conn.query_row(&sql, [id], from_row)

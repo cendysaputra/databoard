@@ -75,7 +75,7 @@ function SettingsForm({ settings }: { settings: Settings }) {
             type="color"
             value={settings.accent_color}
             onChange={(event) => save({ accent_color: event.target.value })}
-            className="h-8 w-14 cursor-pointer rounded-sm border border-border bg-bg p-1"
+            className="h-8 w-14 cursor-pointer rounded-sm border border-border bg-transparent p-1"
           />
         )}
       </Field>

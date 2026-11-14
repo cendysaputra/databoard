@@ -35,9 +35,10 @@ pub fn run() {
             commands::projects::projects_create,
             commands::projects::projects_update,
             commands::projects::projects_remove,
+            commands::overview::overview_get,
             commands::settings::settings_get,
             commands::settings::settings_update,
         ])
         .run(tauri::generate_context!())
-        .expect("failed to start the dashboard");
+        .expect("failed to start DataBoard");
 }

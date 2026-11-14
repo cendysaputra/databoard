@@ -3,21 +3,18 @@ import {
   createRoute,
   createRouter,
   lazyRouteComponent,
-  redirect,
 } from '@tanstack/react-router';
 import { AppLayout } from './layout/AppLayout';
 
 const rootRoute = createRootRoute({ component: AppLayout });
 
+// Each module is its own chunk, loaded when its route is first opened.
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  beforeLoad: () => {
-    throw redirect({ to: '/calendar' });
-  },
+  component: lazyRouteComponent(() => import('@/features/home/routes'), 'HomePage'),
 });
 
-// Each module is its own chunk, loaded when its route is first opened.
 const calendarRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/calendar',

@@ -14,12 +14,14 @@ type Entity = SeedData[Collection][number];
 
 const key = (name: string) => `dashboard.${name}`;
 
-/** Writes the seed once; later visits keep whatever the user changed. */
+/** Writes the seed once per seed version; later visits keep whatever the user changed. */
+const SEED_VERSION = 2;
+
 const ready: Promise<void> = (async () => {
-  if (await get(key('seeded'))) return;
+  if ((await get(key('seeded'))) === SEED_VERSION) return;
   const seed = createSeed();
   await Promise.all((Object.keys(seed) as Collection[]).map((name) => set(key(name), seed[name])));
-  await set(key('seeded'), true);
+  await set(key('seeded'), SEED_VERSION);
 })();
 
 async function load<K extends Collection>(name: K): Promise<SeedData[K]> {
@@ -143,6 +145,42 @@ export const browserSource: DataSource = {
       return patch('projects', id, input);
     },
     remove: (id) => remove('projects', id),
+  },
+  overview: {
+    async get({ now, day_starts, week_starts }) {
+      const [events, notes, projects, reminders] = await Promise.all([
+        load('events'),
+        load('notes'),
+        load('projects'),
+        load('reminders'),
+      ]);
+      const perBucket = (bounds: string[], stamps: string[]) =>
+        bounds.slice(0, -1).map((start, i) => {
+          const [from, to] = [new Date(start), new Date(bounds[i + 1] ?? start)];
+          return stamps.filter((s) => new Date(s) >= from && new Date(s) < to).length;
+        });
+      const withStatus = (status: string) => projects.filter((p) => p.status === status).length;
+      return {
+        events_per_day: perBucket(
+          day_starts,
+          events.map((e) => e.start_at),
+        ),
+        notes_per_week: perBucket(
+          week_starts,
+          notes.map((n) => n.created_at),
+        ),
+        next_events: events
+          .filter((e) => new Date(e.end_at) >= new Date(now))
+          .sort((a, b) => a.start_at.localeCompare(b.start_at))
+          .slice(0, 5),
+        active_reminders: reminders.filter((r) => r.done_at === null).length,
+        notes_total: notes.length,
+        projects_total: projects.length,
+        projects_draft: withStatus('draft'),
+        projects_published: withStatus('published'),
+        projects_archived: withStatus('archived'),
+      };
+    },
   },
   settings: {
     async get() {

@@ -2,8 +2,8 @@ import { addDays, addHours, startOfDay } from 'date-fns';
 import type { CalendarEvent, Note, Project, Reminder, Settings } from '@/shared/types';
 
 export const defaultSettings: Settings = {
-  app_name: 'Dashboard',
-  accent_color: '#4f46e5',
+  app_name: 'DataBoard',
+  accent_color: '#d0451b',
   theme: 'system',
   default_reminder_minutes: 10,
   backup_dir: null,
@@ -16,6 +16,55 @@ export interface SeedData {
   projects: Project[];
 }
 
+/** [title, days from today, start hour, duration in hours (0 = all day), location] */
+const eventRows: Array<[string, number, number, number, string | null]> = [
+  ['Standup mingguan', 0, 9, 0.5, 'Google Meet'],
+  ['Kickoff project website', 1, 10, 1, 'Google Meet'],
+  ['Makan siang dengan klien', 1, 12, 1.5, 'Kopi Senja'],
+  ['Review desain', 3, 14, 1, null],
+  ['Sesi foto produk', 4, 9, 3, 'Studio'],
+  ['Deadline proposal', 5, 0, 0, null],
+  ['Presentasi progres', 7, 13, 1, 'Zoom'],
+  ['Standup mingguan', 7, 9, 0.5, 'Google Meet'],
+  ['Workshop konten', 8, 10, 2, null],
+  ['Demo ke klien', 10, 15, 1, 'Zoom'],
+  ['Retrospektif', 12, 16, 1, null],
+];
+
+/** [title, body, created days ago, pinned] */
+const noteRows: Array<[string, string, number, boolean]> = [
+  [
+    'Meeting kickoff',
+    '## Agenda\n- Scope\n- Timeline\n\n## Action Items\n- [ ] Kirim proposal',
+    1,
+    true,
+  ],
+  ['Ide konten portfolio', 'Tulis studi kasus untuk dua project terakhir.', 3, false],
+  ['Catatan review desain', 'Perbaiki hierarki tipografi di halaman utama.', 9, false],
+  ['Rencana kuartal', 'Tiga prioritas: portfolio, klien baru, belajar Rust.', 12, false],
+  ['Notulen workshop', 'Peserta sepakat rilis bertahap.', 17, false],
+  ['Daftar bacaan', 'Buku tipografi dan desain editorial.', 30, false],
+  ['Evaluasi bulan lalu', 'Dua project selesai tepat waktu.', 38, false],
+  ['Brief klien baru', 'Butuh landing page dalam tiga minggu.', 45, false],
+];
+
+/** [title, client, years ago, role, stack, status] */
+const projectRows: Array<[string, string | null, number, string, string[], Project['status']]> = [
+  [
+    'Website Kedai Kopi',
+    'Kopi Senja',
+    0,
+    'Fullstack Developer',
+    ['React', 'Tailwind CSS'],
+    'published',
+  ],
+  ['Aplikasi Kasir', null, 1, 'Frontend Developer', ['Rust', 'Tauri'], 'draft'],
+  ['Company Profile Arsitek', 'Studio Ruang', 0, 'Web Designer', ['Astro'], 'published'],
+  ['Dashboard Penjualan', 'Toko Maju', 1, 'Fullstack Developer', ['React', 'SQLite'], 'published'],
+  ['Katalog Batik', 'Batik Lestari', 2, 'Frontend Developer', ['Vue'], 'archived'],
+  ['Landing Page Kursus', null, 0, 'Web Designer', ['Astro', 'Tailwind CSS'], 'draft'],
+];
+
 /** Example content for the browser preview, dated around today so it is always visible. */
 export function createSeed(now = new Date()): SeedData {
   const stamp = now.toISOString();
@@ -23,107 +72,63 @@ export function createSeed(now = new Date()): SeedData {
   const at = (days: number, hour: number) =>
     addHours(addDays(startOfDay(now), days), hour).toISOString();
 
-  const events: CalendarEvent[] = [
-    {
-      id: 'seed-event-1',
-      title: 'Kickoff project website',
-      description: 'Bahas scope dan timeline.',
-      location: 'Google Meet',
-      start_at: at(1, 10),
-      end_at: at(1, 11),
-      all_day: false,
-      color: null,
-      ...meta,
-    },
-    {
-      id: 'seed-event-2',
-      title: 'Review desain',
-      description: null,
-      location: null,
-      start_at: at(3, 14),
-      end_at: at(3, 15),
-      all_day: false,
-      color: null,
-      ...meta,
-    },
-    {
-      id: 'seed-event-3',
-      title: 'Deadline proposal',
-      description: null,
-      location: null,
-      start_at: at(5, 0),
-      end_at: at(6, 0),
-      all_day: true,
-      color: null,
-      ...meta,
-    },
-  ];
+  const events: CalendarEvent[] = eventRows.map(([title, days, hour, hours, location], i) => ({
+    id: `seed-event-${i + 1}`,
+    title,
+    description: null,
+    location,
+    start_at: at(days, hour),
+    end_at: hours === 0 ? at(days + 1, 0) : at(days, hour + hours),
+    all_day: hours === 0,
+    color: null,
+    ...meta,
+  }));
 
-  const notes: Note[] = [
-    {
-      id: 'seed-note-1',
-      title: 'Meeting kickoff',
-      body_md: '## Agenda\n- Scope\n- Timeline\n\n## Action Items\n- [ ] Kirim proposal',
-      event_id: 'seed-event-1',
+  const notes: Note[] = noteRows.map(([title, body_md, daysAgo, pinned], i) => {
+    const created = addDays(now, -daysAgo).toISOString();
+    return {
+      id: `seed-note-${i + 1}`,
+      title,
+      body_md,
+      event_id: i === 0 ? 'seed-event-2' : null,
       project_id: null,
-      pinned: true,
-      ...meta,
-    },
-    {
-      id: 'seed-note-2',
-      title: 'Ide konten portfolio',
-      body_md: 'Tulis studi kasus untuk dua project terakhir.',
-      event_id: null,
-      project_id: null,
-      pinned: false,
-      ...meta,
-    },
-  ];
+      pinned,
+      created_at: created,
+      updated_at: created,
+    };
+  });
 
-  const projects: Project[] = [
-    {
-      id: 'seed-project-1',
-      title: 'Website Kedai Kopi',
-      client: 'Kopi Senja',
-      year: now.getFullYear(),
-      role: 'Fullstack Developer',
-      stack: ['React', 'Tailwind CSS'],
-      url: null,
-      repo_url: null,
-      description_md: 'Landing page dan menu online.',
-      cover_path: null,
-      status: 'published',
-      sort_order: 1,
-      ...meta,
-    },
-    {
-      id: 'seed-project-2',
-      title: 'Aplikasi Kasir',
-      client: null,
-      year: now.getFullYear() - 1,
-      role: 'Frontend Developer',
-      stack: ['Rust', 'Tauri'],
+  const projects: Project[] = projectRows.map(
+    ([title, client, yearsAgo, role, stack, status], i) => ({
+      id: `seed-project-${i + 1}`,
+      title,
+      client,
+      year: now.getFullYear() - yearsAgo,
+      role,
+      stack,
       url: null,
       repo_url: null,
       description_md: '',
       cover_path: null,
-      status: 'draft',
-      sort_order: 2,
+      status,
+      sort_order: i + 1,
       ...meta,
-    },
-  ];
+    }),
+  );
 
   const reminders: Reminder[] = [
-    {
-      id: 'seed-reminder-1',
-      event_id: 'seed-event-1',
-      note_id: null,
-      remind_at: at(1, 9.75),
-      message: 'Kickoff project website 15 menit lagi',
-      done_at: null,
-      ...meta,
-    },
-  ];
+    ['seed-event-2', at(1, 9.75), 'Kickoff project website 15 menit lagi'],
+    ['seed-event-6', at(4, 9), 'Deadline proposal besok'],
+    ['seed-event-10', at(10, 14), 'Demo ke klien 1 jam lagi'],
+  ].map(([event_id, remind_at, message], i) => ({
+    id: `seed-reminder-${i + 1}`,
+    event_id: event_id ?? null,
+    note_id: null,
+    remind_at: remind_at ?? stamp,
+    message: message ?? '',
+    done_at: null,
+    ...meta,
+  }));
 
   return { events, reminders, notes, projects };
 }

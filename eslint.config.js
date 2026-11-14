@@ -5,7 +5,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 /** Features must not reach into each other; shared code lives in `src/shared`. */
-const featureNames = ['calendar', 'notes', 'portfolio', 'settings'];
+const featureNames = ['home', 'calendar', 'notes', 'portfolio', 'settings'];
 const noCrossFeatureImports = featureNames.map((name) => ({
   files: [`src/features/${name}/**`],
   rules: {

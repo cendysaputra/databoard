@@ -30,6 +30,9 @@ export const tauriSource: DataSource = {
     update: (id, input) => invoke('projects_update', { id, input }),
     remove: (id) => invoke('projects_remove', { id }),
   },
+  overview: {
+    get: (query) => invoke('overview_get', { query }),
+  },
   settings: {
     get: () => invoke('settings_get'),
     update: (input) => invoke('settings_update', { input }),

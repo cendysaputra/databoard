@@ -3,6 +3,7 @@
 
 pub mod events;
 pub mod notes;
+pub mod overview;
 pub mod projects;
 pub mod reminders;
 pub mod settings;

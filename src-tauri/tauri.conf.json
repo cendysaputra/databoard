@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Dashboard",
+  "productName": "DataBoard",
   "version": "0.1.0",
-  "identifier": "com.cendi.dashboard",
+  "identifier": "com.cendi.databoard",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Dashboard",
+        "title": "DataBoard",
         "width": 1200,
         "height": 780,
         "minWidth": 880,

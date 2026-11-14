@@ -1,7 +1,6 @@
-import { FolderKanban } from 'lucide-react';
 import { t } from '@/shared/i18n/id';
-import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
+import { PortfolioIcon } from '@/shared/ui/icons';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { useProjects } from './api';
@@ -17,27 +16,31 @@ export function PortfolioPage() {
         {(items) =>
           items.length === 0 ? (
             <EmptyState
-              icon={FolderKanban}
+              icon={PortfolioIcon}
               title={t.portfolio.emptyTitle}
               body={t.portfolio.emptyBody}
             />
           ) : (
-            <ul className="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-3">
-              {items.map((project) => (
-                <li key={project.id}>
-                  <Card className="flex h-full flex-col gap-1">
-                    <span className="font-medium">{project.title}</span>
-                    <span className="text-sm text-muted">
-                      {[project.client, project.year].filter(Boolean).join(' · ')}
-                    </span>
-                    <span className="mt-2 text-xs text-muted">
-                      {t.portfolio.status[project.status]}
-                      {project.stack.length > 0 && ` · ${project.stack.join(', ')}`}
-                    </span>
-                  </Card>
+            <ol className="grid grid-cols-2 gap-x-12">
+              {items.map((project, index) => (
+                <li key={project.id} className="flex gap-5 border-b border-border py-6">
+                  <span className="w-8 shrink-0 font-display text-xl leading-none text-muted">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <div className="min-w-0">
+                    <h2 className="font-display text-xl leading-none">{project.title}</h2>
+                    <p className="mt-2 text-sm text-muted">
+                      {[project.client, project.role].filter(Boolean).join(' · ')}
+                    </p>
+                    <p className="label mt-4">
+                      {[project.year, t.portfolio.status[project.status], ...project.stack]
+                        .filter(Boolean)
+                        .join(' / ')}
+                    </p>
+                  </div>
                 </li>
               ))}
-            </ul>
+            </ol>
           )
         }
       </QueryBoundary>

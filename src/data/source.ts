@@ -4,6 +4,8 @@ import type {
   EventRange,
   Note,
   NoteInput,
+  Overview,
+  OverviewQuery,
   Page,
   Project,
   ProjectInput,
@@ -51,6 +53,9 @@ export interface DataSource {
     create(input: ProjectInput): Promise<Project>;
     update(id: string, input: ProjectInput): Promise<Project>;
     remove(id: string): Promise<void>;
+  };
+  overview: {
+    get(query: OverviewQuery): Promise<Overview>;
   };
   settings: {
     get(): Promise<Settings>;

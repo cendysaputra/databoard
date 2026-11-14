@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
-import { Moon, PanelLeft, Search, type LucideIcon } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { Moon, PanelLeft, Search } from 'lucide-react';
+import { useEffect, useMemo, useState, type ComponentType } from 'react';
 import { useSettings, useUpdateSettings } from '@/shared/hooks/use-settings';
 import { t } from '@/shared/i18n/id';
 import { Modal } from '@/shared/ui/Modal';
@@ -12,7 +12,7 @@ import { useUi } from './ui-store';
 interface Command {
   id: string;
   label: string;
-  icon: LucideIcon;
+  icon: ComponentType<{ className?: string }>;
   run(): void;
 }
 
@@ -104,7 +104,7 @@ function PaletteContent({ onDone }: { onDone(): void }) {
               index === selected && 'bg-surface-hover',
             )}
           >
-            <command.icon aria-hidden className="size-4 text-muted" />
+            <command.icon className="size-5 text-muted" />
             {command.label}
           </li>
         ))}
