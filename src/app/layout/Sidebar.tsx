@@ -10,8 +10,8 @@ import { navItems } from './nav';
 import { useUi } from './ui-store';
 
 const itemClass = cn(
-  'group relative flex h-10 items-center gap-3 rounded-sm px-2.5 text-muted transition-colors',
-  'hover:text-text aria-[current=page]:font-medium aria-[current=page]:text-accent-text',
+  'nav-item group relative flex h-11 items-center gap-3 rounded-sm px-3 text-muted transition-colors',
+  'hover:text-text aria-[current=page]:font-medium aria-[current=page]:text-accent-contrast',
 );
 
 const subItemClass = cn(
@@ -31,11 +31,11 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'relative flex shrink-0 flex-col overflow-hidden transition-[width]',
+        'app-sidebar relative flex shrink-0 flex-col overflow-hidden border-r border-border transition-[width]',
         collapsed ? 'w-(--sidebar-width-collapsed)' : 'w-(--sidebar-width)',
       )}
     >
-      <div className="flex h-20 shrink-0 items-center gap-2.5 px-6">
+      <div className="sidebar-brand flex h-24 shrink-0 items-center gap-2.5 px-6">
         <LogoMark className="size-8 shrink-0" />
         {!collapsed && (
           <span className="truncate text-lg font-semibold tracking-tight">{appName}</span>
@@ -44,17 +44,17 @@ export function Sidebar() {
 
       <nav
         className={cn(
-          'flex flex-1 flex-col gap-1 overflow-y-auto px-5',
-          collapsed && 'justify-center',
+          'sidebar-nav flex flex-1 flex-col gap-2 overflow-y-auto px-4',
+          collapsed && 'items-center',
         )}
       >
         {navItems.map(({ to, label, icon: Icon }) => (
           <Fragment key={to}>
-            <Link to={to} title={collapsed ? label : undefined} className={itemClass}>
+            <Link to={to} aria-label={label} title={label} className={itemClass}>
               <Icon className="size-5 shrink-0" />
               {!collapsed && <span className="truncate">{label}</span>}
               {/* Active marker: a small dot beside the icon. */}
-              <span className="absolute top-1/2 -right-1 size-1.5 -translate-y-1/2 rounded-full bg-accent-2 opacity-0 group-aria-[current=page]:opacity-100" />
+              <span className="nav-marker absolute top-1/2 right-2 size-1.5 -translate-y-1/2 rounded-full bg-accent-2 opacity-0 group-aria-[current=page]:opacity-100" />
             </Link>
 
             {/* The user's collections sit right under their heading. */}
@@ -83,7 +83,7 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-5 py-5">
+      <div className="sidebar-footer border-t border-border px-4 py-5">
         <button
           type="button"
           onClick={toggle}

@@ -88,7 +88,7 @@ export function EventForm({
   const whenInput = allDay ? { type: 'date' } : { type: 'datetime-local' };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-7">
+    <form onSubmit={submit} className="editor-panel flex flex-col gap-7">
       <FormField label={text.title} required>
         {(id) => (
           <Input
@@ -111,7 +111,7 @@ export function EventForm({
         {t.calendar.allDay}
       </label>
 
-      <div className="flex gap-6">
+      <div className="form-columns flex flex-wrap gap-6">
         <FormField label={text.start} required>
           {(id) => (
             <Input

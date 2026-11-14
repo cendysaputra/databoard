@@ -68,7 +68,7 @@ export function ProjectForm({
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-7">
+    <form onSubmit={submit} className="editor-panel flex flex-col gap-7">
       <FormField label={text.title} required>
         {(id) => (
           <Input
@@ -81,7 +81,7 @@ export function ProjectForm({
         )}
       </FormField>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="form-grid grid grid-cols-2 gap-6">
         <FormField label={text.client}>
           {(id) => (
             <Input id={id} value={form.client} onChange={(e) => set({ client: e.target.value })} />

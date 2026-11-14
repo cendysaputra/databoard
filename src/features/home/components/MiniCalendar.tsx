@@ -36,7 +36,7 @@ export function MiniCalendar({
     'flex size-7 items-center justify-center rounded-sm bg-surface-hover text-muted transition-colors hover:text-text';
 
   return (
-    <div>
+    <div className="mini-calendar">
       <div className="mb-5 flex items-center justify-between">
         <p className="font-semibold capitalize">{formatMonthYear(month)}</p>
         <div className="flex gap-2">

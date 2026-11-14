@@ -6,15 +6,14 @@ interface PageHeaderProps {
   actions?: ReactNode;
 }
 
-/** Page heading with an optional subtitle and actions. */
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
-    <header className="mb-8 flex items-end justify-between gap-4">
-      <div>
-        <h1 className="text-2xl leading-none font-semibold">{title}</h1>
-        {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
+    <header className="page-header">
+      <div className="relative min-w-0">
+        <h1 className="text-2xl leading-tight font-semibold">{title}</h1>
+        {subtitle && <p className="mt-2 max-w-md text-muted">{subtitle}</p>}
       </div>
-      {actions}
+      {actions && <div className="page-actions relative flex flex-wrap gap-2">{actions}</div>}
     </header>
   );
 }

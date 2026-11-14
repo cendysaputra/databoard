@@ -16,12 +16,12 @@ const themes: Array<{ value: Theme; label: string }> = [
 const MAX_REMINDER_MINUTES = 10_080;
 
 /** Must match the accent defaults in the Rust settings and tokens.css. */
-const DEFAULT_ACCENTS = { accent_color: '#6c3fc5', accent_color_secondary: '#ff8a3d' };
+const DEFAULT_ACCENTS = { accent_color: '#111111', accent_color_secondary: '#8c8c8c' };
 
 function Field({ label, children }: { label: string; children(id: string): ReactNode }) {
   const id = useId();
   return (
-    <div className="flex items-center justify-between gap-6 border-b border-border py-4">
+    <div className="settings-field flex items-center justify-between gap-6 border-b border-border py-5">
       <label htmlFor={id} className="font-medium">
         {label}
       </label>
@@ -35,7 +35,7 @@ function SettingsForm({ settings }: { settings: Settings }) {
   const save = (changes: Partial<Settings>) => update.mutate({ ...settings, ...changes });
 
   return (
-    <div>
+    <div className="settings-panel">
       <Field label={t.settings.appName}>
         {(id) => (
           <Input

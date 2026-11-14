@@ -18,9 +18,9 @@ const variants: Record<Variant, string> = {
 /** The button look as class names, for links that should look like buttons. */
 export function buttonClass(variant: Variant = 'secondary', icon = false): string {
   return cn(
-    'inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-sm text-sm font-medium',
+    'inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-sm text-sm font-medium',
     'transition-[background-color,color,opacity] disabled:opacity-50',
-    icon ? 'w-9' : 'px-3.5',
+    icon ? 'w-10' : 'px-4',
     variants[variant],
   );
 }

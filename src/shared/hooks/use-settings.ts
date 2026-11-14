@@ -1,12 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { data } from '@/data';
 import type { Settings } from '@/shared/types';
+import { DEFAULT_ACCENTS, markPaletteCurrent, needsPaletteUpgrade } from '@/shared/utils/theme';
 
 const settingsKey = ['settings'] as const;
 
 /** App settings; shared because the layout, theme and Settings page all read them. */
 export function useSettings() {
-  return useQuery({ queryKey: settingsKey, queryFn: () => data.settings.get() });
+  return useQuery({
+    queryKey: settingsKey,
+    queryFn: async () => {
+      const settings = await data.settings.get();
+      const current = needsPaletteUpgrade(settings)
+        ? await data.settings.update({ ...settings, ...DEFAULT_ACCENTS })
+        : settings;
+      markPaletteCurrent();
+      return current;
+    },
+  });
 }
 
 /** Saves settings and shows the new values immediately (rolled back if saving fails). */
