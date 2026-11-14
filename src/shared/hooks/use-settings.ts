@@ -11,11 +11,18 @@ export function useSettings() {
     queryKey: settingsKey,
     queryFn: async () => {
       const settings = await data.settings.get();
-      const current = needsPaletteUpgrade(settings)
-        ? await data.settings.update({ ...settings, ...DEFAULT_ACCENTS })
-        : settings;
+      if (needsPaletteUpgrade(settings)) {
+        try {
+          const current = await data.settings.update({ ...settings, ...DEFAULT_ACCENTS });
+          markPaletteCurrent();
+          return current;
+        } catch {
+          // A cosmetic upgrade must not make readable settings unavailable.
+          return { ...settings, ...DEFAULT_ACCENTS };
+        }
+      }
       markPaletteCurrent();
-      return current;
+      return settings;
     },
   });
 }

@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { addDays, endOfMonth, isSameDay, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { Plus } from 'lucide-react';
+import { ArrowUpRight, Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Overview } from '@/shared/types';
@@ -185,20 +185,32 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
   const monthEvents = useEventsBetween(gridStart, addDays(gridStart, weeks * 7)).data ?? [];
 
   return (
-    <aside className="calendar-column flex flex-col gap-8">
+    <aside className="calendar-column" aria-label={text.calendar.title}>
+      <div className="calendar-widget">
+        <div className="calendar-heading">
+          <h2 className="text-base font-semibold">{text.calendar.title}</h2>
+          <Link
+            to="/calendar"
+            aria-label={t.nav.calendar}
+            className="flex size-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface-hover hover:text-text"
+          >
+            <ArrowUpRight aria-hidden className="size-4" />
+          </Link>
+        </div>
+        <MiniCalendar
+          month={month}
+          gridStart={gridStart}
+          weeks={weeks}
+          today={now}
+          selected={selected}
+          hasEvents={(day) => monthEvents.some((e) => isSameDay(new Date(e.start_at), day))}
+          onMonthChange={setMonth}
+          onSelect={onSelect}
+        />
+      </div>
       <NextEventCard event={overview.next_events[0]} now={now} />
-      <MiniCalendar
-        month={month}
-        gridStart={gridStart}
-        weeks={weeks}
-        today={now}
-        selected={selected}
-        hasEvents={(day) => monthEvents.some((e) => isSameDay(new Date(e.start_at), day))}
-        onMonthChange={setMonth}
-        onSelect={onSelect}
-      />
-      <div>
-        <p className="mb-4 text-sm font-medium text-muted">{text.calendar.upcoming}</p>
+      <div className="calendar-agenda">
+        <p className="mb-1 text-xs font-medium text-muted">{text.calendar.upcoming}</p>
         <Timeline
           events={overview.next_events.slice(1)}
           showDate

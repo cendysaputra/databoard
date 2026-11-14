@@ -33,12 +33,12 @@ export function MiniCalendar({
 }: MiniCalendarProps) {
   const days = Array.from({ length: weeks * 7 }, (_, i) => addDays(gridStart, i));
   const arrow =
-    'flex size-7 items-center justify-center rounded-sm bg-surface-hover text-muted transition-colors hover:text-text';
+    'flex size-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface-hover hover:text-text';
 
   return (
     <div className="mini-calendar">
-      <div className="mb-5 flex items-center justify-between">
-        <p className="font-semibold capitalize">{formatMonthYear(month)}</p>
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm font-medium capitalize">{formatMonthYear(month)}</p>
         <div className="flex gap-2">
           <button
             type="button"
@@ -76,7 +76,7 @@ export function MiniCalendar({
               aria-pressed={isSelected}
               onClick={() => onSelect(day)}
               className={cn(
-                'relative mx-auto flex size-9 items-center justify-center rounded-sm text-sm font-medium tabular-nums transition-colors',
+                'calendar-day relative mx-auto flex aspect-square w-full max-w-9 items-center justify-center rounded-full text-sm font-medium tabular-nums transition-colors',
                 !isSameMonth(day, month) && 'text-muted opacity-50',
                 isToday ? 'bg-accent text-accent-contrast' : 'hover:bg-surface-hover',
                 isSelected && !isToday && 'ring-2 ring-accent ring-inset',
