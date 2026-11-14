@@ -1,0 +1,11 @@
+node_modules/
+dist/
+target/
+src-tauri/gen/
+*.log
+.DS_Store
+.env
+.env.*
+# Updater signing keys must never be committed.
+*.key
+*.key.pub
