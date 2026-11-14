@@ -1,0 +1,14 @@
+[package]
+name = "dashboard-mcp"
+description = "MCP server (stdio) that lets AI clients read and write dashboard data"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "mcp-server"
+path = "src/main.rs"
+
+[dependencies]
+dashboard-core.workspace = true
