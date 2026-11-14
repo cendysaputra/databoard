@@ -115,7 +115,6 @@ export function NotesPage() {
   return (
     <>
       <PageHeader
-        art={1}
         title={t.notes.title}
         subtitle={t.notes.subtitle}
         actions={

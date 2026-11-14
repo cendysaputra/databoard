@@ -16,7 +16,7 @@ const themes: Array<{ value: Theme; label: string }> = [
 const MAX_REMINDER_MINUTES = 10_080;
 
 /** Must match the accent defaults in the Rust settings and tokens.css. */
-const DEFAULT_ACCENTS = { accent_color: '#6c3fc5', accent_color_secondary: '#ff8a3d' };
+const DEFAULT_ACCENTS = { accent_color: '#111111', accent_color_secondary: '#8c8c8c' };
 
 function Field({ label, children }: { label: string; children(id: string): ReactNode }) {
   const id = useId();

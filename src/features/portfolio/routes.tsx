@@ -18,7 +18,6 @@ export function PortfolioPage() {
   return (
     <>
       <PageHeader
-        art={2}
         title={t.portfolio.title}
         subtitle={t.portfolio.subtitle}
         actions={

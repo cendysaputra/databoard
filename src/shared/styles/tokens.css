@@ -1,52 +1,45 @@
-/*
- * Design tokens: the single place to change how the app looks.
- * The look: a white rounded frame floating on a soft tinted canvas, near-black text,
- * a purple main accent and an orange second accent, IBM Plex Sans, and a small set of
- * playful colors for category cards and event cards.
- * Colors use light-dark(light, dark); the active side follows the system,
- * or the manual choice set as data-theme on <html>.
- * The two accent colors come from Settings and are applied at runtime; the values below
- * are the defaults and must match the Rust settings defaults.
+/* Neutral white surfaces, black primary actions, gray secondary accents.
+ * Settings can override the two accents. Light/dark theme support is retained.
  */
 :root {
   color-scheme: light dark;
 
   /* Base colors */
-  /* Behind the frame: a soft gradient from the first to the second canvas color. */
-  --canvas: light-dark(#f2eff9, #09090c);
-  --canvas-2: light-dark(#f7f5fb, #0a1016);
-  --bg: light-dark(#ffffff, #141417); /* the frame */
-  --surface: light-dark(#ffffff, #1c1c21); /* dialogs, toasts, menus */
-  --surface-hover: light-dark(#f4f3f8, #25252b);
-  --border: light-dark(#ebe7f1, #2c2c33);
-  --text: light-dark(#17152b, #f3f3f6);
-  --text-muted: light-dark(#777184, #9d9cab);
+  /* Neutral canvas behind the white application surface. */
+  --canvas: light-dark(#fafafa, #0b0b0b);
+  --canvas-2: light-dark(#fafafa, #0b0b0b);
+  --bg: light-dark(#ffffff, #151515); /* the frame */
+  --surface: light-dark(#ffffff, #1e1e1e); /* dialogs, toasts, menus */
+  --surface-hover: light-dark(#f5f5f5, #282828);
+  --border: light-dark(#e9e9e9, #303030);
+  --text: light-dark(#111111, #f5f5f5);
+  --text-muted: light-dark(#737373, #a3a3a3);
   /* Main accent: buttons, selection, charts. The contrast color is the text on top of it. */
-  --accent: #6c3fc5;
+  --accent: #111111;
   --accent-contrast: #ffffff;
   /* Second accent: small highlights such as markers, dots and badges. */
-  --accent-2: #ff8a3d;
-  --accent-2-contrast: #17152b;
+  --accent-2: #8c8c8c;
+  --accent-2-contrast: #111111;
   /* Accent adjusted so it stays readable as text on the background. */
   --accent-text: color-mix(in oklab, var(--accent), var(--text) 30%);
   /* Soft accent wash for chart backdrops. */
   --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
   --danger: light-dark(#d32f4a, #ff8a9b);
-  --overlay: rgb(23 21 43 / 0.4);
+  --overlay: rgb(0 0 0 / 0.4);
 
-  /* Playful colors: the art on category cards (same in both themes) */
-  --art-yellow: #ffcf47;
-  --art-orange: #ff8a4c;
-  --art-pink: #ef2f8e;
-  --art-purple: #6a3d9a;
-  --art-sky: #a5dbf3;
-  --art-navy: #1d1a3d;
+  /* Legacy artwork tokens retained as neutral shades. */
+  --art-yellow: #e5e5e5;
+  --art-orange: #bdbdbd;
+  --art-pink: #d4d4d4;
+  --art-purple: #737373;
+  --art-sky: #ededed;
+  --art-navy: #262626;
 
   /* Soft tints: backgrounds of event cards */
-  --tint-sky: light-dark(#e2f3fd, #14303f);
-  --tint-pink: light-dark(#ffdbee, #401a2f);
-  --tint-yellow: light-dark(#fff2cc, #3a3012);
-  --tint-mint: light-dark(#dbf5e6, #153125);
+  --tint-sky: light-dark(#f5f5f5, #262626);
+  --tint-pink: light-dark(#f5f5f5, #262626);
+  --tint-yellow: light-dark(#f5f5f5, #262626);
+  --tint-mint: light-dark(#f5f5f5, #262626);
 
   /* Typography */
   --font-sans: 'IBM Plex Sans Variable', 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;

@@ -72,7 +72,7 @@ function AddMenu() {
       <summary
         aria-label={text.add}
         title={text.add}
-        className="flex size-13 cursor-pointer list-none items-center justify-center rounded-full bg-accent-2 text-accent-2-contrast shadow-[0_12px_24px_-10px_var(--accent-2)] transition-[rotate] group-open:rotate-45 [&::-webkit-details-marker]:hidden"
+        className="flex size-13 cursor-pointer list-none items-center justify-center rounded-full bg-accent text-accent-contrast shadow-[0_8px_18px_-10px_rgb(0_0_0/0.3)] transition-[rotate] group-open:rotate-45 [&::-webkit-details-marker]:hidden"
       >
         <Plus aria-hidden className="size-6" />
       </summary>
@@ -227,14 +227,9 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
             <p className="mb-2 text-xs font-medium tracking-widest text-accent-text uppercase">
               {t.nav.home}
             </p>
-            <h1 className="text-3xl leading-tight font-semibold">
-              {greeting(now)} <span className="greeting-wave">👋</span>
-            </h1>
+            <h1 className="text-3xl leading-tight font-semibold">{greeting(now)}</h1>
             <p className="mt-2 text-muted">{formatLongDate(now)}</p>
           </div>
-          <span aria-hidden className="greeting-orbit">
-            <span />
-          </span>
         </div>
 
         <Section title={text.browse}>

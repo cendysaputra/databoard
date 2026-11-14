@@ -36,8 +36,8 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             app_name: "DataBoard".into(),
-            accent_color: "#6c3fc5".into(),
-            accent_color_secondary: "#ff8a3d".into(),
+            accent_color: "#111111".into(),
+            accent_color_secondary: "#8c8c8c".into(),
             theme: Theme::System,
             default_reminder_minutes: 10,
             backup_dir: None,
