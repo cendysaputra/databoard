@@ -30,6 +30,13 @@ pub struct Settings {
     /// How long before an event a new reminder fires by default.
     pub default_reminder_minutes: i32,
     pub backup_dir: Option<String>,
+    /// The user's name. Empty until the profile is filled in on first start.
+    /// Profile fields stay in the local database; nothing sends them anywhere.
+    pub profile_name: String,
+    /// What the app calls the user in greetings; falls back to the first name.
+    pub profile_nickname: String,
+    /// The user's role or job, free text.
+    pub profile_role: String,
 }
 
 impl Default for Settings {
@@ -41,8 +48,22 @@ impl Default for Settings {
             theme: Theme::System,
             default_reminder_minutes: 10,
             backup_dir: None,
+            profile_name: String::new(),
+            profile_nickname: String::new(),
+            profile_role: String::new(),
         }
     }
+}
+
+const MAX_PROFILE_LEN: usize = 80;
+
+/// Trims a profile field; it may be empty but not overly long.
+fn profile_text(field: &str, value: &str) -> Result<String> {
+    let value = value.trim();
+    if value.chars().count() > MAX_PROFILE_LEN {
+        return Err(AppError::validation(format!("{field} is too long")));
+    }
+    Ok(value.to_owned())
 }
 
 fn is_hex_color(value: &str) -> bool {
@@ -84,6 +105,9 @@ pub fn update(conn: &Connection, input: &Settings) -> Result<Settings> {
         accent_color: input.accent_color.to_ascii_lowercase(),
         accent_color_secondary: input.accent_color_secondary.to_ascii_lowercase(),
         backup_dir: optional(input.backup_dir.as_deref()),
+        profile_name: profile_text("profile_name", &input.profile_name)?,
+        profile_nickname: profile_text("profile_nickname", &input.profile_nickname)?,
+        profile_role: profile_text("profile_role", &input.profile_role)?,
         ..input.clone()
     };
 
@@ -118,9 +142,18 @@ mod tests {
                 theme: Theme::Dark,
                 default_reminder_minutes: 60,
                 backup_dir: Some("D:\\Backup".into()),
+                profile_name: "  Cendi Saputra ".into(),
+                profile_nickname: "Cendi".into(),
+                profile_role: String::new(),
             };
             let saved = update(c, &wanted)?;
             assert_eq!(saved.app_name, "Meja Kerja");
+            assert_eq!(saved.profile_name, "Cendi Saputra");
+            let long = Settings {
+                profile_name: "x".repeat(81),
+                ..Settings::default()
+            };
+            assert!(update(c, &long).is_err());
             assert_eq!(saved.accent_color, "#0ea5e9");
             assert_eq!(saved.accent_color_secondary, "#f97316");
             assert_eq!(get(c)?, saved);

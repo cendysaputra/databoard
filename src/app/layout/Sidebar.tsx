@@ -53,8 +53,6 @@ export function Sidebar() {
             <Link to={to} aria-label={label} title={label} className={itemClass}>
               <Icon className="size-5 shrink-0" />
               {!collapsed && <span className="truncate">{label}</span>}
-              {/* Active marker: a small dot beside the icon. */}
-              <span className="nav-marker absolute top-1/2 right-2 size-1.5 -translate-y-1/2 rounded-full bg-accent-2 opacity-0 group-aria-[current=page]:opacity-100" />
             </Link>
 
             {/* The user's collections sit right under their heading. */}
@@ -91,7 +89,7 @@ export function Sidebar() {
           title={toggleLabel}
           className={cn(itemClass, 'w-full')}
         >
-          <ToggleIcon aria-hidden className="size-5 shrink-0" />
+          <ToggleIcon aria-hidden strokeWidth={1.5} className="size-5 shrink-0" />
         </button>
       </div>
     </aside>

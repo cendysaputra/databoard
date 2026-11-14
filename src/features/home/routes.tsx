@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { addDays, endOfMonth, isSameDay, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { Plus } from 'lucide-react';
+import { ArrowUpRight, Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Overview } from '@/shared/types';
@@ -18,6 +18,7 @@ import {
   useEventsBetween,
   useOverview,
   useRecentNotes,
+  useSettings,
 } from './api';
 import { CategoryCard } from './components/CategoryCard';
 import { DayTimeline } from './components/DayTimeline';
@@ -36,6 +37,12 @@ function greeting(now: Date): string {
   if (hour < 15) return text.greeting.midday;
   if (hour < 19) return text.greeting.afternoon;
   return text.greeting.night;
+}
+
+/** What to call the user: the nickname, else the first word of the name. */
+function useGreetingName(): string {
+  const settings = useSettings().data;
+  return settings?.profile_nickname || settings?.profile_name.split(' ')[0] || '';
 }
 
 function Section({
@@ -185,20 +192,32 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
   const monthEvents = useEventsBetween(gridStart, addDays(gridStart, weeks * 7)).data ?? [];
 
   return (
-    <aside className="calendar-column flex flex-col gap-8">
+    <aside className="calendar-column" aria-label={text.calendar.title}>
+      <div className="calendar-widget">
+        <div className="calendar-heading">
+          <h2 className="text-base font-semibold">{text.calendar.title}</h2>
+          <Link
+            to="/calendar"
+            aria-label={t.nav.calendar}
+            className="flex size-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface-hover hover:text-text"
+          >
+            <ArrowUpRight aria-hidden className="size-4" />
+          </Link>
+        </div>
+        <MiniCalendar
+          month={month}
+          gridStart={gridStart}
+          weeks={weeks}
+          today={now}
+          selected={selected}
+          hasEvents={(day) => monthEvents.some((e) => isSameDay(new Date(e.start_at), day))}
+          onMonthChange={setMonth}
+          onSelect={onSelect}
+        />
+      </div>
       <NextEventCard event={overview.next_events[0]} now={now} />
-      <MiniCalendar
-        month={month}
-        gridStart={gridStart}
-        weeks={weeks}
-        today={now}
-        selected={selected}
-        hasEvents={(day) => monthEvents.some((e) => isSameDay(new Date(e.start_at), day))}
-        onMonthChange={setMonth}
-        onSelect={onSelect}
-      />
-      <div>
-        <p className="mb-4 text-sm font-medium text-muted">{text.calendar.upcoming}</p>
+      <div className="calendar-agenda">
+        <p className="mb-1 text-xs font-medium text-muted">{text.calendar.upcoming}</p>
         <Timeline
           events={overview.next_events.slice(1)}
           showDate
@@ -210,6 +229,7 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
 }
 
 function HomeView({ overview, now }: { overview: Overview; now: Date }) {
+  const name = useGreetingName();
   const { days, weeks } = overviewBuckets(now);
   // The day shown on the timeline; picked in the calendar, today by default.
   const [selected, setSelected] = useState(now);
@@ -227,7 +247,10 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
             <p className="mb-2 text-xs font-medium tracking-widest text-accent-text uppercase">
               {t.nav.home}
             </p>
-            <h1 className="text-3xl leading-tight font-semibold">{greeting(now)}</h1>
+            <h1 className="text-3xl leading-tight font-semibold">
+              {greeting(now)}
+              {name && `, ${name}`}
+            </h1>
             <p className="mt-2 text-muted">{formatLongDate(now)}</p>
           </div>
         </div>

@@ -1,17 +1,23 @@
-import { useId, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Settings, Theme } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
+import { showToast } from '@/shared/ui/toast';
+import { cn } from '@/shared/utils/cn';
 import { sendTestNotification, useSettings, useUpdateSettings } from './api';
+import { ProfileForm } from './components/ProfileForm';
 
 const themes: Array<{ value: Theme; label: string }> = [
   { value: 'system', label: t.theme.system },
   { value: 'light', label: t.theme.light },
   { value: 'dark', label: t.theme.dark },
 ];
+
+type Tab = keyof typeof t.settings.tabs;
+const tabs = Object.keys(t.settings.tabs) as Tab[];
 
 const MAX_REMINDER_MINUTES = 10_080;
 
@@ -30,12 +36,15 @@ function Field({ label, children }: { label: string; children(id: string): React
   );
 }
 
-function SettingsForm({ settings }: { settings: Settings }) {
-  const update = useUpdateSettings();
-  const save = (changes: Partial<Settings>) => update.mutate({ ...settings, ...changes });
+interface PanelProps {
+  settings: Settings;
+  save(changes: Partial<Settings>): void;
+}
 
+/** App name, reminders and notifications. */
+function AppPanel({ settings, save }: PanelProps) {
   return (
-    <div className="settings-panel">
+    <>
       <Field label={t.settings.appName}>
         {(id) => (
           <Input
@@ -52,6 +61,49 @@ function SettingsForm({ settings }: { settings: Settings }) {
         )}
       </Field>
 
+      <Field label={t.settings.defaultReminder}>
+        {(id) => (
+          <Input
+            id={id}
+            type="number"
+            min={0}
+            max={MAX_REMINDER_MINUTES}
+            key={settings.default_reminder_minutes}
+            defaultValue={settings.default_reminder_minutes}
+            onBlur={(event) => {
+              const minutes = Math.round(event.target.valueAsNumber);
+              if (minutes >= 0 && minutes <= MAX_REMINDER_MINUTES) {
+                if (minutes !== settings.default_reminder_minutes) {
+                  save({ default_reminder_minutes: minutes });
+                }
+              } else {
+                event.target.value = String(settings.default_reminder_minutes);
+              }
+            }}
+          />
+        )}
+      </Field>
+
+      <Field label={t.settings.notification}>
+        {(id) => (
+          <Button
+            id={id}
+            onClick={() =>
+              void sendTestNotification(settings.app_name, t.settings.testNotificationBody)
+            }
+          >
+            {t.settings.testNotification}
+          </Button>
+        )}
+      </Field>
+    </>
+  );
+}
+
+/** Theme and accent colors. */
+function AppearancePanel({ settings, save }: PanelProps) {
+  return (
+    <>
       <Field label={t.theme.label}>
         {(id) => (
           <div id={id} role="radiogroup" className="flex gap-1">
@@ -107,42 +159,52 @@ function SettingsForm({ settings }: { settings: Settings }) {
           </Button>
         )}
       </Field>
+    </>
+  );
+}
 
-      <Field label={t.settings.defaultReminder}>
-        {(id) => (
-          <Input
-            id={id}
-            type="number"
-            min={0}
-            max={MAX_REMINDER_MINUTES}
-            key={settings.default_reminder_minutes}
-            defaultValue={settings.default_reminder_minutes}
-            onBlur={(event) => {
-              const minutes = Math.round(event.target.valueAsNumber);
-              if (minutes >= 0 && minutes <= MAX_REMINDER_MINUTES) {
-                if (minutes !== settings.default_reminder_minutes) {
-                  save({ default_reminder_minutes: minutes });
-                }
-              } else {
-                event.target.value = String(settings.default_reminder_minutes);
-              }
-            }}
-          />
-        )}
-      </Field>
+function SettingsTabs({ settings }: { settings: Settings }) {
+  const update = useUpdateSettings();
+  const save = (changes: Partial<Settings>) => update.mutate({ ...settings, ...changes });
+  const [tab, setTab] = useState<Tab>('profile');
 
-      <Field label={t.settings.notification}>
-        {(id) => (
-          <Button
-            id={id}
-            onClick={() =>
-              void sendTestNotification(settings.app_name, t.settings.testNotificationBody)
-            }
+  return (
+    <div>
+      <div role="tablist" className="mb-8 flex gap-1 border-b border-border">
+        {tabs.map((name) => (
+          <button
+            key={name}
+            type="button"
+            role="tab"
+            aria-selected={tab === name}
+            onClick={() => setTab(name)}
+            className={cn(
+              '-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors',
+              tab === name
+                ? 'border-accent text-text'
+                : 'border-transparent text-muted hover:text-text',
+            )}
           >
-            {t.settings.testNotification}
-          </Button>
+            {t.settings.tabs[name]}
+          </button>
+        ))}
+      </div>
+
+      <div role="tabpanel" className="settings-panel">
+        {tab === 'profile' && (
+          <div className="max-w-md">
+            <ProfileForm
+              // Remount when the saved profile changes, so the fields show what is stored.
+              key={`${settings.profile_name}|${settings.profile_nickname}|${settings.profile_role}`}
+              settings={settings}
+              submitLabel={t.common.save}
+              onSaved={() => showToast(t.common.saved)}
+            />
+          </div>
         )}
-      </Field>
+        {tab === 'appearance' && <AppearancePanel settings={settings} save={save} />}
+        {tab === 'app' && <AppPanel settings={settings} save={save} />}
+      </div>
 
       {update.isError && (
         <p role="alert" className="mt-4 text-danger">
@@ -159,7 +221,7 @@ export function SettingsPage() {
   return (
     <>
       <PageHeader title={t.settings.title} subtitle={t.settings.subtitle} />
-      <QueryBoundary query={settings}>{(value) => <SettingsForm settings={value} />}</QueryBoundary>
+      <QueryBoundary query={settings}>{(value) => <SettingsTabs settings={value} />}</QueryBoundary>
     </>
   );
 }

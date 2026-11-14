@@ -1,9 +1,11 @@
 import { Outlet, useLocation } from '@tanstack/react-router';
 import { Suspense } from 'react';
+import { useSettings } from '@/shared/hooks/use-settings';
 import { t } from '@/shared/i18n/id';
 import { Toaster } from '@/shared/ui/Toaster';
 import { cn } from '@/shared/utils/cn';
 import { CommandPalette } from './CommandPalette';
+import { Onboarding } from './Onboarding';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 
@@ -11,6 +13,10 @@ import { Topbar } from './Topbar';
 export function AppLayout() {
   const { pathname } = useLocation();
   const wide = pathname === '/';
+  const settings = useSettings().data;
+
+  // A fresh install has no profile yet: ask for it before showing the app.
+  if (settings && !settings.profile_name.trim()) return <Onboarding settings={settings} />;
 
   return (
     <div className="app-canvas h-full bg-canvas p-4">

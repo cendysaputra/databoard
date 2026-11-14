@@ -298,7 +298,23 @@ export const t = {
   },
   settings: {
     title: 'Pengaturan',
-    subtitle: 'Tampilan dan preferensi aplikasi',
+    subtitle: 'Profil, tampilan, dan preferensi aplikasi',
+    tabs: { profile: 'Profil', appearance: 'Tampilan', app: 'Aplikasi' },
+    profile: {
+      name: 'Nama',
+      namePlaceholder: 'Nama lengkapmu',
+      nickname: 'Nama panggilan',
+      nicknameHint: 'Dipakai di sapaan Beranda. Kosongkan untuk memakai nama depan.',
+      role: 'Peran atau pekerjaan',
+      rolePlaceholder: 'mis. Web Developer',
+      privacy:
+        'Data profil hanya disimpan di komputer ini. Tidak dikirim atau dipublikasikan ke mana pun.',
+      continue: 'Mulai pakai',
+    },
+    welcome: {
+      title: 'Selamat datang di DataBoard',
+      body: 'Isi profil singkat dulu supaya dashboard ini terasa milikmu.',
+    },
     appName: 'Nama aplikasi',
     accent: 'Warna aksen utama',
     accentSecondary: 'Warna aksen kedua',

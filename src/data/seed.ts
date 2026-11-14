@@ -17,6 +17,9 @@ export const defaultSettings: Settings = {
   theme: 'system',
   default_reminder_minutes: 10,
   backup_dir: null,
+  profile_name: '',
+  profile_nickname: '',
+  profile_role: '',
 };
 
 export interface SeedData {
