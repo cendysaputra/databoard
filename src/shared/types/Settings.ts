@@ -17,4 +17,17 @@ accent_color_secondary: string, theme: Theme,
 /**
  * How long before an event a new reminder fires by default.
  */
-default_reminder_minutes: number, backup_dir: string | null, };
+default_reminder_minutes: number, backup_dir: string | null, 
+/**
+ * The user's name. Empty until the profile is filled in on first start.
+ * Profile fields stay in the local database; nothing sends them anywhere.
+ */
+profile_name: string, 
+/**
+ * What the app calls the user in greetings; falls back to the first name.
+ */
+profile_nickname: string, 
+/**
+ * The user's role or job, free text.
+ */
+profile_role: string, };

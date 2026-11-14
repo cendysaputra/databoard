@@ -297,3 +297,23 @@ Gambar cover disimpan sebagai file di `app_data_dir()/media/`, sedangkan DB hany
 - Jangan menambah dependency baru tanpa alasan tertulis di laporan fase (sebutkan ukuran dan alternatifnya).
 - Kalau ada keputusan yang ambigu, pilih opsi yang paling ringan dan paling sederhana, lalu catat di laporan.
 - Jangan mengubah `identifier` app, struktur folder data, atau migration yang sudah ada. Perubahan schema selalu lewat migration baru.
+
+---
+
+## 11. Catatan untuk akhir (sebelum rilis)
+
+Hal-hal yang sengaja ditunda dan harus dibereskan sebelum app dibagikan ke orang lain:
+
+- **Google Drive, kredensial di rilis:** `DATABOARD_GOOGLE_CLIENT_ID` dan
+  `DATABOARD_GOOGLE_CLIENT_SECRET` (OAuth client tipe "Desktop app") disimpan sebagai GitHub
+  Secrets dan dipakai workflow rilis saat build installer. Pengguna tidak mengisi apa pun;
+  tidak ada field Client ID di Pengaturan.
+- **Google Drive, "Publish app":** di Google Cloud (bagian Audience) supaya orang di luar
+  daftar penguji bisa login dan login tidak kedaluwarsa tiap 7 hari.
+- **Google Drive, verifikasi:** cek aturan terbaru apakah izin `drive.file` butuh verifikasi
+  Google; tanpa verifikasi pengguna bisa melihat layar "app belum diverifikasi".
+- **Google Drive, tes sungguhan:** login, pembuatan folder, dan unggah belum pernah dijalankan
+  terhadap Google; tes di Windows setelah Client ID ada.
+- **Rekam layar di Windows:** jendela pemilih layar di WebView2 dan penulisan ke
+  `Videos\DataBoard` belum dites.
+- **App desktop secara umum:** `npm run dev:app` belum pernah dijalankan di Windows.

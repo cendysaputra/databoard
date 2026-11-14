@@ -18,6 +18,7 @@ import {
   useEventsBetween,
   useOverview,
   useRecentNotes,
+  useSettings,
 } from './api';
 import { CategoryCard } from './components/CategoryCard';
 import { DayTimeline } from './components/DayTimeline';
@@ -36,6 +37,12 @@ function greeting(now: Date): string {
   if (hour < 15) return text.greeting.midday;
   if (hour < 19) return text.greeting.afternoon;
   return text.greeting.night;
+}
+
+/** What to call the user: the nickname, else the first word of the name. */
+function useGreetingName(): string {
+  const settings = useSettings().data;
+  return settings?.profile_nickname || settings?.profile_name.split(' ')[0] || '';
 }
 
 function Section({
@@ -222,6 +229,7 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
 }
 
 function HomeView({ overview, now }: { overview: Overview; now: Date }) {
+  const name = useGreetingName();
   const { days, weeks } = overviewBuckets(now);
   // The day shown on the timeline; picked in the calendar, today by default.
   const [selected, setSelected] = useState(now);
@@ -239,7 +247,10 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
             <p className="mb-2 text-xs font-medium tracking-widest text-accent-text uppercase">
               {t.nav.home}
             </p>
-            <h1 className="text-3xl leading-tight font-semibold">{greeting(now)}</h1>
+            <h1 className="text-3xl leading-tight font-semibold">
+              {greeting(now)}
+              {name && `, ${name}`}
+            </h1>
             <p className="mt-2 text-muted">{formatLongDate(now)}</p>
           </div>
         </div>
