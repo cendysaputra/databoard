@@ -13,12 +13,12 @@ export function Topbar() {
   const update = useUpdateSettings();
 
   return (
-    <header className="flex h-20 shrink-0 items-center gap-2 px-10">
+    <header className="app-topbar flex h-24 shrink-0 items-center gap-2 border-b border-border px-10">
       {/* Looks like a search field; opens the command palette. */}
       <button
         type="button"
         onClick={() => openPalette(true)}
-        className="flex h-10 w-80 max-w-full items-center gap-3 rounded-full bg-surface-hover px-4 text-sm text-muted transition-colors hover:text-text"
+        className="palette-trigger flex h-11 w-80 max-w-full items-center gap-3 rounded-sm bg-surface-hover px-4 text-sm text-muted transition-colors hover:text-text"
       >
         <Search aria-hidden className="size-4 shrink-0" />
         <span className="flex-1 truncate text-left">{t.palette.open}</span>

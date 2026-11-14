@@ -13,14 +13,14 @@
 
   /* Base colors */
   /* Behind the frame: a soft gradient from the first to the second canvas color. */
-  --canvas: light-dark(#e6e3f5, #09090c);
-  --canvas-2: light-dark(#d3ebf8, #0a1016);
+  --canvas: light-dark(#f2eff9, #09090c);
+  --canvas-2: light-dark(#f7f5fb, #0a1016);
   --bg: light-dark(#ffffff, #141417); /* the frame */
   --surface: light-dark(#ffffff, #1c1c21); /* dialogs, toasts, menus */
   --surface-hover: light-dark(#f4f3f8, #25252b);
-  --border: light-dark(#ebeaf1, #2c2c33);
+  --border: light-dark(#ebe7f1, #2c2c33);
   --text: light-dark(#17152b, #f3f3f6);
-  --text-muted: light-dark(#8a8898, #9d9cab);
+  --text-muted: light-dark(#777184, #9d9cab);
   /* Main accent: buttons, selection, charts. The contrast color is the text on top of it. */
   --accent: #6c3fc5;
   --accent-contrast: #ffffff;
@@ -61,15 +61,15 @@
 
   /* Shape and spacing (spacing utilities are multiples of the unit) */
   --space-unit: 0.25rem;
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 28px;
+  --radius-sm: 12px;
+  --radius-md: 22px;
+  --radius-lg: 30px;
 
   /* Layout */
-  --sidebar-width: 14rem;
-  --sidebar-width-collapsed: 5rem;
+  --sidebar-width: 13.5rem;
+  --sidebar-width-collapsed: 5.25rem;
   --content-max-width: 60rem;
-  --content-max-width-wide: 74rem;
+  --content-max-width-wide: 88rem;
 
   /* Motion: hover, focus, panels and the route fade only */
   --duration: 160ms;
