@@ -6,6 +6,10 @@ The interface uses white surfaces, a #fafafa canvas, black primary actions, gray
 secondary accents and IBM Plex Sans. Character artwork and illustrated page
 banners have been removed; further illustration work is deferred.
 
+The CMS logo and favicon use a minimal split D monogram. Sidebar icons share a
+1.5px outline style, with no active-state dot. The active background and accessible
+current-page state remain available.
+
 The original routes, forms, queries, persistence, exports and theme controls are
 retained. Existing installations using the previous default purple/orange pair
 receive a one-time upgrade to the neutral pair. Custom palettes remain available.
