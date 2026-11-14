@@ -66,7 +66,7 @@ export function DayTimeline({ day, events, now }: DayTimelineProps) {
       timed.find((e) => new Date(e.start_at) > now));
 
   return (
-    <div>
+    <div className="day-timeline overflow-x-auto pb-2">
       {allDay.length > 0 && (
         <ul className="mb-4 flex flex-wrap items-center gap-2">
           <li className="text-xs text-muted">{text.allDay}</li>
@@ -84,7 +84,7 @@ export function DayTimeline({ day, events, now }: DayTimelineProps) {
         </ul>
       )}
 
-      <div className="relative px-6">
+      <div className="relative min-w-140 px-6">
         {/* Hour labels */}
         <div className="relative h-7">
           {hours.map((hour) => (

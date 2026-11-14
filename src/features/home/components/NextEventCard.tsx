@@ -25,7 +25,7 @@ export function NextEventCard({ event, now }: { event: CalendarEvent | undefined
   );
 
   return (
-    <div className="relative overflow-hidden rounded-md bg-accent p-6 text-accent-contrast">
+    <div className="next-event relative overflow-hidden rounded-md bg-accent p-6 text-accent-contrast">
       {/* Decoration in the corner, tinted from the card's own text color. */}
       <svg
         aria-hidden

@@ -48,8 +48,8 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section>
-      <div className="mb-5 flex items-baseline justify-between gap-4">
+    <section className="dashboard-section">
+      <div className="mb-5 flex flex-wrap items-baseline justify-between gap-4">
         <h2 className="text-xl font-semibold">{title}</h2>
         {aside}
       </div>
@@ -96,7 +96,7 @@ function Categories({ overview }: { overview: Overview }) {
   const eventsAhead = overview.events_per_day.reduce((sum, n) => sum + n, 0);
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] gap-4">
+    <div className="category-grid">
       <CategoryCard
         art={0}
         name={t.nav.calendar}
@@ -141,10 +141,10 @@ function RecentNotes() {
         items.length === 0 ? (
           <p className="text-sm text-muted">{text.recent.empty}</p>
         ) : (
-          <ul className="grid grid-cols-2 gap-x-8 gap-y-5">
+          <ul className="recent-notes grid grid-cols-2 gap-x-8 gap-y-5">
             {items.map((note) => (
-              <li key={note.id} className="relative flex items-center gap-4">
-                <span className="flex h-14 w-11 shrink-0 items-center justify-center rounded-sm rounded-tr-[1.1rem] bg-surface-hover text-muted">
+              <li key={note.id} className="recent-note relative flex items-center gap-4">
+                <span className="note-glyph flex h-14 w-11 shrink-0 items-center justify-center rounded-sm rounded-tr-[1.1rem] bg-surface-hover text-muted">
                   <NotesIcon className="size-5" />
                 </span>
                 <span className="min-w-0">
@@ -185,7 +185,7 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
   const monthEvents = useEventsBetween(gridStart, addDays(gridStart, weeks * 7)).data ?? [];
 
   return (
-    <aside className="flex flex-col gap-8">
+    <aside className="calendar-column flex flex-col gap-8">
       <NextEventCard event={overview.next_events[0]} now={now} />
       <MiniCalendar
         month={month}
@@ -220,11 +220,21 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
   const isToday = isSameDay(selected, now);
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_19rem] gap-14">
-      <div className="flex min-w-0 flex-col gap-10">
-        <div>
-          <h1 className="text-3xl leading-tight font-semibold">{greeting(now)} 👋</h1>
-          <p className="mt-2 text-muted">{formatLongDate(now)}</p>
+    <div className="dashboard-grid">
+      <div className="dashboard-primary flex min-w-0 flex-col gap-9">
+        <div className="dashboard-greeting">
+          <div>
+            <p className="mb-2 text-xs font-medium tracking-widest text-accent-text uppercase">
+              {t.nav.home}
+            </p>
+            <h1 className="text-3xl leading-tight font-semibold">
+              {greeting(now)} <span className="greeting-wave">👋</span>
+            </h1>
+            <p className="mt-2 text-muted">{formatLongDate(now)}</p>
+          </div>
+          <span aria-hidden className="greeting-orbit">
+            <span />
+          </span>
         </div>
 
         <Section title={text.browse}>
@@ -262,7 +272,7 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
           <ScheduleChart days={days} counts={overview.events_per_day} />
         </Section>
 
-        <div className="grid grid-cols-2 gap-10">
+        <div className="dashboard-charts grid grid-cols-2 gap-6">
           <Section title={text.notes.title}>
             <NotesChart weeks={weeks.slice(0, -1)} counts={overview.notes_per_week} />
           </Section>
