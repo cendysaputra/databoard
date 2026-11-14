@@ -20,7 +20,7 @@ export function StatusBars({ rows }: StatusBarsProps) {
           <span className="h-2.5 border-l border-border">
             <span
               style={{ width: `${(count / max) * 100}%` }}
-              className="block h-full rounded-r-[4px] bg-text"
+              className="block h-full rounded-r-[4px] bg-accent"
             />
           </span>
           <span className="text-right text-sm font-semibold tabular-nums">{count}</span>

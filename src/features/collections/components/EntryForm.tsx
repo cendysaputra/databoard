@@ -53,7 +53,7 @@ export function EntryForm({
         autoFocus={!entry}
         value={title}
         onChange={(event) => setTitle(event.target.value)}
-        className="w-full border-b border-text bg-transparent pb-4 font-display text-2xl leading-none outline-none placeholder:text-muted"
+        className="w-full border-b border-border bg-transparent pb-4 text-2xl leading-none font-semibold outline-none placeholder:text-muted"
       />
 
       <FormField label={text.status}>

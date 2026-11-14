@@ -144,8 +144,8 @@ export function BlueprintForm({
       </div>
 
       <section>
-        <div className="mb-1 flex items-baseline justify-between border-b border-text pb-3">
-          <h2 className="font-display text-xl leading-none">{text.fields}</h2>
+        <div className="mb-1 flex items-baseline justify-between border-b border-border pb-3">
+          <h2 className="text-xl leading-none font-semibold">{text.fields}</h2>
           <p className="text-sm text-muted">{text.fieldsHint}</p>
         </div>
 

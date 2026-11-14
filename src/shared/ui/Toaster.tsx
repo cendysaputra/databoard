@@ -8,7 +8,7 @@ export function Toaster() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="animate-fade rounded-md border border-text bg-surface px-4 py-3 shadow-lg"
+          className="animate-fade rounded-md border border-border bg-surface px-4 py-3 shadow-lg"
         >
           <p className="font-medium">{toast.title}</p>
           {toast.body && <p className="text-sm text-muted">{toast.body}</p>}

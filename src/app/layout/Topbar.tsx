@@ -8,7 +8,7 @@ import { formatLongDate } from '@/shared/utils/date';
 import { oppositeTheme } from '@/shared/utils/theme';
 import { useUi } from './ui-store';
 
-/** The running head of the sheet: today's date on the left, tools on the right. */
+/** Top row: today's date on the left, tools on the right. */
 export function Topbar() {
   const openPalette = useUi((state) => state.setPaletteOpen);
   const settings = useSettings().data;
@@ -16,11 +16,14 @@ export function Topbar() {
   const [today] = useState(() => new Date());
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 px-10">
-      <p className="label flex-1 truncate">{formatLongDate(today)}</p>
+    <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-10">
+      <p className="flex-1 truncate text-sm text-muted">{formatLongDate(today)}</p>
 
       {data.kind === 'browser' && (
-        <span title={t.common.browserMode} className="label mr-2 text-accent-text">
+        <span
+          title={t.common.browserMode}
+          className="mr-2 rounded-full border border-border px-2.5 py-0.5 text-xs text-muted"
+        >
           {t.common.browserBadge}
         </span>
       )}

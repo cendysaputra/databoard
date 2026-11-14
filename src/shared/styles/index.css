@@ -1,6 +1,5 @@
 @import 'tailwindcss';
-@import '@fontsource/instrument-serif/400.css';
-@import '@fontsource/instrument-serif/400-italic.css';
+@import '@fontsource-variable/ibm-plex-sans';
 @import './tokens.css';
 
 /* `dark:` follows the manual theme when set, otherwise the system. */
@@ -31,7 +30,6 @@
   --color-danger: var(--danger);
   --color-overlay: var(--overlay);
 
-  --font-display: var(--font-display);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --text-xs: var(--font-size-xs);
@@ -72,13 +70,16 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Small uppercase label used for dates, column heads and captions. */
+  /* Small muted label used for dates, column heads and captions. */
   .label {
-    font-family: var(--font-mono);
     font-size: var(--font-size-xs);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-weight: 500;
     color: var(--text-muted);
+  }
+
+  h1,
+  h2 {
+    letter-spacing: -0.02em;
   }
 
   :focus-visible {

@@ -1,8 +1,8 @@
 import type { SVGProps } from 'react';
 
 /**
- * DataBoard's own icon set. Each icon is drawn in ink (currentColor) with one part
- * filled by the accent color, so the set carries the brand instead of looking generic.
+ * DataBoard's own icon set. Each icon mixes an outline with one solid part,
+ * so the set carries the brand instead of looking generic.
  * Small utility icons (search, arrows) still come from lucide-react.
  */
 
@@ -24,19 +24,20 @@ function Svg(props: IconProps) {
   );
 }
 
-const accent = { fill: 'var(--accent)', stroke: 'none' } as const;
+/** The solid part of an icon; the rest is outline. */
+const accent = { fill: 'currentColor', stroke: 'none' } as const;
 
 /** The DataBoard mark: bars of data whose ends trace the letter D. */
 export function LogoMark(props: IconProps) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden {...props}>
       <rect width="24" height="24" rx="6" fill="var(--text)" />
-      <g fill="var(--surface)">
+      <g fill="var(--bg)">
         <rect x="6" y="5.5" width="8" height="2.6" rx="1.3" />
         <rect x="6" y="15.9" width="8" height="2.6" rx="1.3" />
         <rect x="6" y="12.4" width="12" height="2.6" rx="1.3" />
       </g>
-      <rect x="6" y="9" width="12" height="2.6" rx="1.3" fill="var(--accent)" />
+      <rect x="6" y="9" width="12" height="2.6" rx="1.3" fill="var(--bg)" opacity="0.45" />
     </svg>
   );
 }
@@ -94,7 +95,7 @@ export function PortfolioIcon(props: IconProps) {
     <Svg {...props}>
       <rect x="7.5" y="3.5" width="13" height="11" rx="1.5" />
       <rect x="3.5" y="9" width="13" height="11.5" rx="1.5" {...accent} />
-      <path d="M6.5 17.500l2.5-3 2 2 1.5-1.5 1.5 2.5" stroke="var(--surface)" />
+      <path d="M6.5 17.500l2.5-3 2 2 1.5-1.5 1.5 2.5" stroke="var(--bg)" />
     </Svg>
   );
 }

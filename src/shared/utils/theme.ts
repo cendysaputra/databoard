@@ -2,6 +2,15 @@ import type { Settings, Theme } from '@/shared/types';
 
 const STORAGE_KEY = 'dashboard.appearance';
 
+/** Must match the default accent in the Rust settings. */
+const DEFAULT_ACCENT = '#111111';
+
+/** Whether a `#rrggbb` color is light enough to need dark text on top of it. */
+function isLight(hex: string): boolean {
+  const [r = 0, g = 0, b = 0] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150;
+}
+
 type Appearance = Pick<Settings, 'theme' | 'accent_color'>;
 
 /** Applies theme and accent to <html>. `system` removes the override so CSS follows the OS. */
@@ -12,7 +21,14 @@ export function applyAppearance({ theme, accent_color }: Appearance): void {
   } else {
     root.dataset.theme = theme;
   }
-  root.style.setProperty('--accent', accent_color);
+  if (accent_color === DEFAULT_ACCENT) {
+    // The default accent is the theme's own black/white pair from tokens.css.
+    root.style.removeProperty('--accent');
+    root.style.removeProperty('--accent-contrast');
+  } else {
+    root.style.setProperty('--accent', accent_color);
+    root.style.setProperty('--accent-contrast', isLight(accent_color) ? '#111111' : '#ffffff');
+  }
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ theme, accent_color }));
   } catch {

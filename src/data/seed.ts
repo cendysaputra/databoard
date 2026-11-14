@@ -11,7 +11,7 @@ import type {
 
 export const defaultSettings: Settings = {
   app_name: 'DataBoard',
-  accent_color: '#d0451b',
+  accent_color: '#111111',
   theme: 'system',
   default_reminder_minutes: 10,
   backup_dir: null,

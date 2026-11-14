@@ -42,11 +42,11 @@ export function PortfolioPage() {
                   key={project.id}
                   className="relative flex gap-5 border-b border-border py-6 transition-colors hover:bg-surface-hover/50"
                 >
-                  <span className="w-8 shrink-0 font-display text-xl leading-none text-muted">
+                  <span className="w-8 shrink-0 pt-0.5 text-sm text-muted tabular-nums">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <div className="min-w-0">
-                    <h2 className="font-display text-xl leading-none">
+                    <h2 className="text-xl leading-none font-semibold">
                       <Link
                         to="/portfolio/$projectId"
                         params={{ projectId: project.id }}

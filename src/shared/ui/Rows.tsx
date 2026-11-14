@@ -17,7 +17,9 @@ interface RowProps {
 export function Row({ lead, children, trail }: RowProps) {
   return (
     <li className="relative flex items-baseline gap-5 border-b border-border py-3.5 transition-colors hover:bg-surface-hover/50">
-      {lead !== undefined && <div className="label w-24 shrink-0">{lead}</div>}
+      {lead !== undefined && (
+        <div className="w-24 shrink-0 text-sm text-muted tabular-nums">{lead}</div>
+      )}
       <div className="min-w-0 flex-1">{children}</div>
       {trail !== undefined && <div className="shrink-0 text-sm text-muted">{trail}</div>}
     </li>

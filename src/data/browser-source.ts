@@ -1,4 +1,4 @@
-import { get, set } from 'idb-keyval';
+import { del, get, set } from 'idb-keyval';
 import type { CollectionInput, Entry, EntryInput, FieldDef, Settings } from '@/shared/types';
 import { showToast } from '@/shared/ui/toast';
 import { slugify } from '@/shared/utils/slug';
@@ -16,12 +16,14 @@ type Entity = SeedData[Collection][number];
 const key = (name: string) => `dashboard.${name}`;
 
 /** Writes the seed once per seed version; later visits keep whatever the user changed. */
-const SEED_VERSION = 3;
+const SEED_VERSION = 4;
 
 const ready: Promise<void> = (async () => {
   if ((await get(key('seeded'))) === SEED_VERSION) return;
   const seed = createSeed();
   await Promise.all((Object.keys(seed) as Collection[]).map((name) => set(key(name), seed[name])));
+  // Saved preview settings may hold an accent from an older look; start from the defaults.
+  await del(key('settings'));
   await set(key('seeded'), SEED_VERSION);
 })();
 

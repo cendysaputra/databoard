@@ -6,13 +6,13 @@ interface PageHeaderProps {
   actions?: ReactNode;
 }
 
-/** Page masthead: a large serif title over an ink rule. */
+/** Page heading with an optional subtitle and actions. */
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
-    <header className="mb-8 flex items-end justify-between gap-4 border-b border-text pb-5">
+    <header className="mb-8 flex items-end justify-between gap-4">
       <div>
-        <h1 className="font-display text-2xl leading-none">{title}</h1>
-        {subtitle && <p className="mt-3 text-muted">{subtitle}</p>}
+        <h1 className="text-2xl leading-none font-semibold">{title}</h1>
+        {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
       </div>
       {actions}
     </header>

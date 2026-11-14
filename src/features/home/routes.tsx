@@ -31,7 +31,7 @@ function Section({
   return (
     <section className={className}>
       <div className="mb-5 flex items-baseline justify-between gap-4">
-        <h2 className="font-display text-xl leading-none">{title}</h2>
+        <h2 className="text-xl leading-none font-semibold">{title}</h2>
         {caption && <p className="label">{caption}</p>}
       </div>
       {children}
@@ -59,10 +59,10 @@ function OverviewView({ overview, now }: { overview: Overview; now: Date }) {
 
   return (
     <div className="flex flex-col gap-12">
-      <dl className="grid grid-cols-4 border-y border-text">
+      <dl className="grid grid-cols-4 gap-4">
         {stats.map(({ label, value }) => (
-          <div key={label} className="border-l border-border py-5 pl-5 first:border-l-0 first:pl-0">
-            <dd className="font-display text-3xl leading-none tabular-nums">{value}</dd>
+          <div key={label} className="rounded-md border border-border p-5">
+            <dd className="text-3xl leading-none font-semibold tabular-nums">{value}</dd>
             <dt className="label mt-3">{label}</dt>
           </div>
         ))}
@@ -116,9 +116,7 @@ export function HomePage() {
 
   return (
     <>
-      <h1 className="mb-10 font-display text-3xl leading-none">
-        <em>{greeting(now)}</em>
-      </h1>
+      <h1 className="mb-8 text-2xl leading-none font-semibold">{greeting(now)}</h1>
       <QueryBoundary query={overview}>
         {(value) => <OverviewView overview={value} now={now} />}
       </QueryBoundary>

@@ -1,51 +1,51 @@
 /*
  * Design tokens: the single place to change how the app looks.
- * The look is "almanac": warm paper, ink, a serif display face, hairline rules, one accent.
+ * The look is clean and modern: white surfaces, black as the only accent, IBM Plex Sans.
  * Colors use light-dark(light, dark); the active side follows the system,
  * or the manual choice set as data-theme on <html>.
- * The accent color is overridden at runtime from Settings.
+ * A custom accent color from Settings overrides --accent and --accent-contrast at runtime.
  */
 :root {
   color-scheme: light dark;
 
   /* Colors */
-  --bg: light-dark(#efeae0, #121110); /* desk behind the sheet */
-  --surface: light-dark(#faf7f1, #1a1917); /* the sheet of paper */
-  --surface-hover: light-dark(#ece6da, #262421);
-  --border: light-dark(#d9d2c3, #33302b); /* hairline rules */
-  --text: light-dark(#1d1b18, #ece7dc); /* ink */
-  --text-muted: light-dark(#6f695e, #a39d90);
-  --accent: #d0451b;
-  --accent-contrast: #ffffff;
+  --bg: light-dark(#ffffff, #0e0e0e);
+  --surface: light-dark(#ffffff, #171717); /* dialogs, toasts, menus */
+  --surface-hover: light-dark(#f4f4f4, #232323);
+  --border: light-dark(#e7e7e7, #2c2c2c);
+  --text: light-dark(#111111, #f3f3f3);
+  --text-muted: light-dark(#6e6e6e, #a1a1a1);
+  /* The accent is black on white, and flips to white in dark mode. */
+  --accent: light-dark(#111111, #f3f3f3);
+  --accent-contrast: light-dark(#ffffff, #111111);
   /* Accent adjusted so it stays readable as text on the background. */
-  --accent-text: color-mix(in oklab, var(--accent), light-dark(#000000, #ffffff) 22%);
-  /* Soft accent wash for the filled part of the icons and chart backdrops. */
-  --accent-soft: color-mix(in oklab, var(--accent) 22%, transparent);
-  --danger: light-dark(#b42318, #f08a7c);
-  --overlay: rgb(20 18 15 / 0.5);
+  --accent-text: color-mix(in oklab, var(--accent), var(--text) 25%);
+  /* Soft accent wash for chart backdrops. */
+  --accent-soft: color-mix(in oklab, var(--accent) 10%, transparent);
+  --danger: light-dark(#c62828, #ff8a80);
+  --overlay: rgb(0 0 0 / 0.4);
 
   /* Typography */
-  --font-display: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans Variable', 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'Cascadia Code', Consolas, ui-monospace, monospace;
-  --font-size-xs: 0.6875rem;
+  --font-size-xs: 0.75rem;
   --font-size-sm: 0.8125rem;
   --font-size-base: 0.875rem;
-  --font-size-lg: 1.0625rem;
-  --font-size-xl: 1.625rem;
-  --font-size-2xl: 2.5rem;
-  --font-size-3xl: 3.5rem;
+  --font-size-lg: 1rem;
+  --font-size-xl: 1.125rem;
+  --font-size-2xl: 1.75rem;
+  --font-size-3xl: 2.5rem;
 
   /* Shape and spacing (spacing utilities are multiples of the unit) */
   --space-unit: 0.25rem;
-  --radius-sm: 4px;
-  --radius-md: 8px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
   --radius-lg: 14px;
 
   /* Layout */
-  --sidebar-width: 13rem;
+  --sidebar-width: 14rem;
   --sidebar-width-collapsed: 4.25rem;
-  --content-max-width: 58rem;
+  --content-max-width: 60rem;
 
   /* Motion: hover, focus, panels and the route fade only */
   --duration: 160ms;
