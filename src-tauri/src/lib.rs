@@ -17,6 +17,16 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::collections::collections_list,
+            commands::collections::collections_get,
+            commands::collections::collections_create,
+            commands::collections::collections_update,
+            commands::collections::collections_remove,
+            commands::entries::entries_list,
+            commands::entries::entries_get,
+            commands::entries::entries_create,
+            commands::entries::entries_update,
+            commands::entries::entries_remove,
             commands::events::events_list,
             commands::events::events_create,
             commands::events::events_update,

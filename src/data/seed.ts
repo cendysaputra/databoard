@@ -1,5 +1,13 @@
 import { addDays, addHours, startOfDay } from 'date-fns';
-import type { CalendarEvent, Note, Project, Reminder, Settings } from '@/shared/types';
+import type {
+  CalendarEvent,
+  Collection,
+  Entry,
+  Note,
+  Project,
+  Reminder,
+  Settings,
+} from '@/shared/types';
 
 export const defaultSettings: Settings = {
   app_name: 'DataBoard',
@@ -14,6 +22,8 @@ export interface SeedData {
   reminders: Reminder[];
   notes: Note[];
   projects: Project[];
+  collections: Collection[];
+  entries: Entry[];
 }
 
 /** [title, days from today, start hour, duration in hours (0 = all day), location] */
@@ -130,5 +140,70 @@ export function createSeed(now = new Date()): SeedData {
     ...meta,
   }));
 
-  return { events, reminders, notes, projects };
+  const collections: Collection[] = [
+    {
+      id: 'seed-collection-1',
+      name: 'Posts',
+      slug: 'posts',
+      description: 'Artikel blog.',
+      fields: [
+        {
+          key: 'excerpt',
+          label: 'Ringkasan',
+          field_type: 'textarea',
+          required: false,
+          options: [],
+        },
+        { key: 'body', label: 'Isi', field_type: 'markdown', required: true, options: [] },
+        {
+          key: 'category',
+          label: 'Kategori',
+          field_type: 'select',
+          required: false,
+          options: ['Catatan', 'Tutorial', 'Kabar'],
+        },
+        {
+          key: 'publish_date',
+          label: 'Tanggal terbit',
+          field_type: 'date',
+          required: false,
+          options: [],
+        },
+        { key: 'featured', label: 'Unggulan', field_type: 'toggle', required: false, options: [] },
+      ],
+      entry_count: 0,
+      ...meta,
+    },
+  ];
+
+  const entries: Entry[] = [
+    {
+      id: 'seed-entry-1',
+      collection_id: 'seed-collection-1',
+      title: 'Halo, DataBoard',
+      status: 'published',
+      data: {
+        excerpt: 'Tulisan pertama di koleksi Posts.',
+        body: '# Halo\n\nIni contoh entri. Ubah atau hapus sesukamu.',
+        category: 'Kabar',
+        publish_date: now.toISOString().slice(0, 10),
+        featured: true,
+      },
+      ...meta,
+    },
+    {
+      id: 'seed-entry-2',
+      collection_id: 'seed-collection-1',
+      title: 'Cara menyusun blueprint',
+      status: 'draft',
+      data: {
+        body: 'Tambah field lewat tombol Edit blueprint.',
+        category: 'Tutorial',
+        featured: false,
+      },
+      ...meta,
+    },
+  ];
+
+  return { events, reminders, notes, projects, collections, entries };
 }

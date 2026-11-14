@@ -1,6 +1,8 @@
 //! Business logic. Every function takes a `&Connection` and plain input types,
 //! so Tauri commands and MCP tools stay thin wrappers around the same code.
 
+pub mod collections;
+pub mod entries;
 pub mod events;
 pub mod notes;
 pub mod overview;

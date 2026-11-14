@@ -9,7 +9,10 @@ use super::backup::backup_to;
 use crate::error::Result;
 
 /// Numbered migrations, in order. Released files are never edited; append a new one instead.
-const MIGRATIONS: &[&str] = &[include_str!("../../migrations/001_init.sql")];
+const MIGRATIONS: &[&str] = &[
+    include_str!("../../migrations/001_init.sql"),
+    include_str!("../../migrations/002_collections.sql"),
+];
 
 /// Brings the schema to the latest version. If an existing database is behind, it is first
 /// copied to `backup_dir/dashboard-<app_version>-<date>.db`.

@@ -1,6 +1,7 @@
 import { get, set } from 'idb-keyval';
-import type { Settings } from '@/shared/types';
+import type { CollectionInput, Entry, EntryInput, FieldDef, Settings } from '@/shared/types';
 import { showToast } from '@/shared/ui/toast';
+import { slugify } from '@/shared/utils/slug';
 import { createSeed, defaultSettings, type SeedData } from './seed';
 import type { DataError, DataSource } from './source';
 
@@ -15,7 +16,7 @@ type Entity = SeedData[Collection][number];
 const key = (name: string) => `dashboard.${name}`;
 
 /** Writes the seed once per seed version; later visits keep whatever the user changed. */
-const SEED_VERSION = 2;
+const SEED_VERSION = 3;
 
 const ready: Promise<void> = (async () => {
   if ((await get(key('seeded'))) === SEED_VERSION) return;
@@ -76,6 +77,47 @@ async function remove(name: Collection, id: string): Promise<void> {
     key(name),
     rows.filter((row) => row.id !== id),
   );
+}
+
+/** Name, slug and field keys checked the way the Rust side does, in short form. */
+async function cleanCollection(input: CollectionInput, ownId?: string) {
+  requireText('name', input.name);
+  const slug = slugify(input.slug?.trim() || input.name);
+  if (!slug) fail('validation', 'slug needs at least one letter or digit');
+  if ((await load('collections')).some((c) => c.slug === slug && c.id !== ownId)) {
+    fail('validation', `slug "${slug}" is already used`);
+  }
+  const keys = new Set<string>();
+  for (const field of input.fields) {
+    requireText('field label', field.label);
+    if (!/^[a-z][a-z0-9_]*$/.test(field.key) || keys.has(field.key)) {
+      fail('validation', `field key "${field.key}" is invalid or already used`);
+    }
+    keys.add(field.key);
+    if (field.field_type === 'select' && field.options.length === 0) {
+      fail('validation', `${field.label} needs at least one option`);
+    }
+  }
+  return {
+    ...input,
+    name: input.name.trim(),
+    slug,
+    description: input.description?.trim() || null,
+  };
+}
+
+/** Keeps the blueprint's fields only and enforces the required ones. */
+function cleanEntry(fields: FieldDef[], input: EntryInput) {
+  requireText('title', input.title);
+  const data: Entry['data'] = {};
+  for (const field of fields) {
+    const value = input.data[field.key];
+    const empty = value === undefined || value === null || value === '';
+    if (field.field_type === 'toggle') data[field.key] = value === true;
+    else if (!empty) data[field.key] = value;
+    else if (field.required) fail('validation', `${field.label} is required`);
+  }
+  return { title: input.title.trim(), status: input.status, data };
 }
 
 export const browserSource: DataSource = {
@@ -145,6 +187,57 @@ export const browserSource: DataSource = {
       return patch('projects', id, input);
     },
     remove: (id) => remove('projects', id),
+  },
+  collections: {
+    async list() {
+      const entries = await load('entries');
+      return (await load('collections'))
+        .map((c) => ({
+          ...c,
+          entry_count: entries.filter((e) => e.collection_id === c.id).length,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
+    async get(id) {
+      const found = (await browserSource.collections.list()).find((c) => c.id === id);
+      return found ?? fail('not_found', 'collection not found');
+    },
+    async create(input) {
+      return insert('collections', await cleanCollection(input), { entry_count: 0 });
+    },
+    async update(id, input) {
+      await patch('collections', id, await cleanCollection(input, id));
+      return browserSource.collections.get(id);
+    },
+    async remove(id) {
+      await remove('collections', id);
+      const entries = await load('entries');
+      await set(
+        key('entries'),
+        entries.filter((e) => e.collection_id !== id),
+      );
+    },
+  },
+  entries: {
+    async list(collectionId, { limit, offset }) {
+      return (await load('entries'))
+        .filter((e) => e.collection_id === collectionId)
+        .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+        .slice(offset, offset + limit);
+    },
+    get: (id) => find('entries', id),
+    async create(collectionId, input) {
+      const collection = await find('collections', collectionId);
+      return insert('entries', cleanEntry(collection.fields, input), {
+        collection_id: collectionId,
+      });
+    },
+    async update(id, input) {
+      const current = await find('entries', id);
+      const collection = await find('collections', current.collection_id);
+      return patch('entries', id, cleanEntry(collection.fields, input));
+    },
+    remove: (id) => remove('entries', id),
   },
   overview: {
     async get({ now, day_starts, week_starts }) {
