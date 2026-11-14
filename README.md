@@ -30,3 +30,7 @@ portfolio, dan MCP server. Rencana kerja lengkap ada di [PLAN.md](PLAN.md).
 - Schema: tambah file baru di `crates/core/migrations/` dan daftarkan di
   `crates/core/src/db/migrations.rs`. Migration yang sudah rilis tidak boleh diedit.
 - Tipe data: ubah struct Rust di `crates/core/src/domain/`, lalu `npm run gen:types`.
+
+## Lisensi
+
+[MIT](LICENSE)
