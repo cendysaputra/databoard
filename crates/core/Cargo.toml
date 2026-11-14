@@ -1,0 +1,20 @@
+[package]
+name = "dashboard-core"
+description = "Domain logic and SQLite access shared by the desktop app and the MCP server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+rusqlite = { version = "0.41", features = ["bundled", "backup"] }
+rusqlite_migration = "2.7"
+serde.workspace = true
+serde_json.workspace = true
+thiserror = "2"
+time = { version = "0.3", features = ["parsing", "formatting", "macros"] }
+ts-rs = "12"
+uuid = { version = "1", features = ["v7"] }
+
+[dev-dependencies]
+tempfile = "3"
