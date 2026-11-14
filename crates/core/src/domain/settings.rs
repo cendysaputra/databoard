@@ -22,8 +22,10 @@ pub enum Theme {
 #[ts(export)]
 pub struct Settings {
     pub app_name: String,
-    /// Accent color as `#rrggbb`.
+    /// Main accent color as `#rrggbb`: buttons, selection, charts.
     pub accent_color: String,
+    /// Second accent color as `#rrggbb`: small highlights such as markers and dots.
+    pub accent_color_secondary: String,
     pub theme: Theme,
     /// How long before an event a new reminder fires by default.
     pub default_reminder_minutes: i32,
@@ -34,7 +36,8 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             app_name: "DataBoard".into(),
-            accent_color: "#111111".into(),
+            accent_color: "#6c3fc5".into(),
+            accent_color_secondary: "#ff8a3d".into(),
             theme: Theme::System,
             default_reminder_minutes: 10,
             backup_dir: None,
@@ -68,8 +71,8 @@ pub fn get(conn: &Connection) -> Result<Settings> {
 
 /// Validates and stores all settings, then returns what is now saved.
 pub fn update(conn: &Connection, input: &Settings) -> Result<Settings> {
-    if !is_hex_color(&input.accent_color) {
-        return Err(AppError::validation("accent_color must look like #rrggbb"));
+    if !is_hex_color(&input.accent_color) || !is_hex_color(&input.accent_color_secondary) {
+        return Err(AppError::validation("accent colors must look like #rrggbb"));
     }
     if !(0..=10_080).contains(&input.default_reminder_minutes) {
         return Err(AppError::validation(
@@ -79,6 +82,7 @@ pub fn update(conn: &Connection, input: &Settings) -> Result<Settings> {
     let cleaned = Settings {
         app_name: required("app_name", &input.app_name)?,
         accent_color: input.accent_color.to_ascii_lowercase(),
+        accent_color_secondary: input.accent_color_secondary.to_ascii_lowercase(),
         backup_dir: optional(input.backup_dir.as_deref()),
         ..input.clone()
     };
@@ -110,6 +114,7 @@ mod tests {
             let wanted = Settings {
                 app_name: " Meja Kerja ".into(),
                 accent_color: "#0EA5E9".into(),
+                accent_color_secondary: "#F97316".into(),
                 theme: Theme::Dark,
                 default_reminder_minutes: 60,
                 backup_dir: Some("D:\\Backup".into()),
@@ -117,10 +122,16 @@ mod tests {
             let saved = update(c, &wanted)?;
             assert_eq!(saved.app_name, "Meja Kerja");
             assert_eq!(saved.accent_color, "#0ea5e9");
+            assert_eq!(saved.accent_color_secondary, "#f97316");
             assert_eq!(get(c)?, saved);
 
             let bad = Settings {
                 accent_color: "red".into(),
+                ..Settings::default()
+            };
+            assert!(update(c, &bad).is_err());
+            let bad = Settings {
+                accent_color_secondary: "#12".into(),
                 ..Settings::default()
             };
             assert!(update(c, &bad).is_err());

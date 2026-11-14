@@ -37,7 +37,7 @@ export function LogoMark(props: IconProps) {
         <rect x="6" y="15.9" width="8" height="2.6" rx="1.3" />
         <rect x="6" y="12.4" width="12" height="2.6" rx="1.3" />
       </g>
-      <rect x="6" y="9" width="12" height="2.6" rx="1.3" fill="var(--bg)" opacity="0.45" />
+      <rect x="6" y="9" width="12" height="2.6" rx="1.3" fill="var(--accent-2)" />
     </svg>
   );
 }

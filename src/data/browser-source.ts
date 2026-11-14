@@ -81,6 +81,11 @@ async function remove(name: Collection, id: string): Promise<void> {
   );
 }
 
+const pickAccents = ({ accent_color, accent_color_secondary }: Settings) => ({
+  accent_color,
+  accent_color_secondary,
+});
+
 /** Name, slug and field keys checked the way the Rust side does, in short form. */
 async function cleanCollection(input: CollectionInput, ownId?: string) {
   requireText('name', input.name);
@@ -287,7 +292,11 @@ export const browserSource: DataSource = {
   },
   settings: {
     async get() {
-      return { ...defaultSettings, ...(await get<Partial<Settings>>(key('settings'))) };
+      const saved = await get<Partial<Settings>>(key('settings'));
+      // Settings saved before the second accent existed still hold the old single accent;
+      // let those pick up the current default pair.
+      const stale = saved && !saved.accent_color_secondary;
+      return { ...defaultSettings, ...saved, ...(stale ? pickAccents(defaultSettings) : {}) };
     },
     async update(input) {
       requireText('app_name', input.app_name);

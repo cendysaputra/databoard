@@ -7,9 +7,13 @@ import type { Theme } from "./Theme";
  */
 export type Settings = { app_name: string, 
 /**
- * Accent color as `#rrggbb`.
+ * Main accent color as `#rrggbb`: buttons, selection, charts.
  */
-accent_color: string, theme: Theme, 
+accent_color: string, 
+/**
+ * Second accent color as `#rrggbb`: small highlights such as markers and dots.
+ */
+accent_color_secondary: string, theme: Theme, 
 /**
  * How long before an event a new reminder fires by default.
  */

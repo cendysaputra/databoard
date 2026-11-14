@@ -11,7 +11,7 @@ interface ScheduleChartProps {
   counts: number[];
 }
 
-/** Bar chart of events per day. Today is the solid bar; hover a day for its count. */
+/** Bar chart of events per day. Today is the bar in the second accent; hover a day for its count. */
 export function ScheduleChart({ days, counts }: ScheduleChartProps) {
   const max = Math.max(...counts, 1);
   const peak = counts.indexOf(Math.max(...counts));
@@ -41,7 +41,7 @@ export function ScheduleChart({ days, counts }: ScheduleChartProps) {
                 style={{ height: `${(count / max) * 78}%` }}
                 className={cn(
                   'mx-auto w-full max-w-5 rounded-t-[4px]',
-                  isToday ? 'bg-accent' : 'bg-text/20',
+                  isToday ? 'bg-accent-2' : 'bg-accent/30',
                   count === 0 && 'hidden',
                 )}
               />

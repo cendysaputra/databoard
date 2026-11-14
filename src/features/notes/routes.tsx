@@ -47,7 +47,7 @@ export function NotesPage() {
                   lead={formatDayMonth(note.updated_at)}
                   trail={
                     note.pinned && (
-                      <Pin aria-label={t.notes.pinned} className="size-3.5 text-accent-text" />
+                      <Pin aria-label={t.notes.pinned} className="size-3.5 text-accent-2" />
                     )
                   }
                 >

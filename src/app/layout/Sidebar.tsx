@@ -11,7 +11,7 @@ import { useUi } from './ui-store';
 
 const itemClass = cn(
   'group relative flex h-10 items-center gap-3 rounded-sm px-2.5 text-muted transition-colors',
-  'hover:text-text aria-[current=page]:font-medium aria-[current=page]:text-text',
+  'hover:text-text aria-[current=page]:font-medium aria-[current=page]:text-accent-text',
 );
 
 const subItemClass = cn(
@@ -54,7 +54,7 @@ export function Sidebar() {
               <Icon className="size-5 shrink-0" />
               {!collapsed && <span className="truncate">{label}</span>}
               {/* Active marker: a small dot beside the icon. */}
-              <span className="absolute top-1/2 -right-1 size-1 -translate-y-1/2 rounded-full bg-text opacity-0 group-aria-[current=page]:opacity-100" />
+              <span className="absolute top-1/2 -right-1 size-1.5 -translate-y-1/2 rounded-full bg-accent-2 opacity-0 group-aria-[current=page]:opacity-100" />
             </Link>
 
             {/* The user's collections sit right under their heading. */}

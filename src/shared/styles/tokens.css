@@ -1,10 +1,12 @@
 /*
  * Design tokens: the single place to change how the app looks.
- * The look: a white rounded frame floating on a soft tinted canvas, black as the accent,
- * IBM Plex Sans, and a small set of playful colors for category cards and event cards.
+ * The look: a white rounded frame floating on a soft tinted canvas, near-black text,
+ * a purple main accent and an orange second accent, IBM Plex Sans, and a small set of
+ * playful colors for category cards and event cards.
  * Colors use light-dark(light, dark); the active side follows the system,
  * or the manual choice set as data-theme on <html>.
- * A custom accent color from Settings overrides --accent and --accent-contrast at runtime.
+ * The two accent colors come from Settings and are applied at runtime; the values below
+ * are the defaults and must match the Rust settings defaults.
  */
 :root {
   color-scheme: light dark;
@@ -17,13 +19,16 @@
   --border: light-dark(#ebeaf1, #2c2c33);
   --text: light-dark(#17152b, #f3f3f6);
   --text-muted: light-dark(#8a8898, #9d9cab);
-  /* The accent is near-black on white, and flips to white in dark mode. */
-  --accent: light-dark(#17152b, #f3f3f6);
-  --accent-contrast: light-dark(#ffffff, #17152b);
+  /* Main accent: buttons, selection, charts. The contrast color is the text on top of it. */
+  --accent: #6c3fc5;
+  --accent-contrast: #ffffff;
+  /* Second accent: small highlights such as markers, dots and badges. */
+  --accent-2: #ff8a3d;
+  --accent-2-contrast: #17152b;
   /* Accent adjusted so it stays readable as text on the background. */
-  --accent-text: color-mix(in oklab, var(--accent), var(--text) 25%);
+  --accent-text: color-mix(in oklab, var(--accent), var(--text) 30%);
   /* Soft accent wash for chart backdrops. */
-  --accent-soft: color-mix(in oklab, var(--accent) 10%, transparent);
+  --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
   --danger: light-dark(#d32f4a, #ff8a9b);
   --overlay: rgb(23 21 43 / 0.4);
 

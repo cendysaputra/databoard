@@ -14,15 +14,18 @@ const queryClient = new QueryClient({
   },
 });
 
-/** Keeps <html> in sync with the saved theme and accent color. */
+/** Keeps <html> in sync with the saved theme and accent colors. */
 function AppearanceSync() {
   const settings = useSettings().data;
   const theme = settings?.theme;
   const accent = settings?.accent_color;
+  const secondary = settings?.accent_color_secondary;
 
   useEffect(() => {
-    if (theme && accent) applyAppearance({ theme, accent_color: accent });
-  }, [theme, accent]);
+    if (theme && accent && secondary) {
+      applyAppearance({ theme, accent_color: accent, accent_color_secondary: secondary });
+    }
+  }, [theme, accent, secondary]);
 
   return null;
 }

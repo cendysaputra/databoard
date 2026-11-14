@@ -87,7 +87,7 @@ export function MiniCalendar({
                 <span
                   className={cn(
                     'absolute bottom-1 size-1 rounded-full',
-                    isToday ? 'bg-accent-contrast' : 'bg-art-pink',
+                    isToday ? 'bg-accent-contrast' : 'bg-accent-2',
                   )}
                 />
               )}

@@ -30,7 +30,7 @@ export function Topbar() {
       {data.kind === 'browser' && (
         <span
           title={t.common.browserMode}
-          className="mr-2 rounded-full bg-surface-hover px-3 py-1 text-xs text-muted"
+          className="mr-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent-text"
         >
           {t.common.browserBadge}
         </span>

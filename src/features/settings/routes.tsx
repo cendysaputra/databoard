@@ -15,6 +15,9 @@ const themes: Array<{ value: Theme; label: string }> = [
 
 const MAX_REMINDER_MINUTES = 10_080;
 
+/** Must match the accent defaults in the Rust settings and tokens.css. */
+const DEFAULT_ACCENTS = { accent_color: '#6c3fc5', accent_color_secondary: '#ff8a3d' };
+
 function Field({ label, children }: { label: string; children(id: string): ReactNode }) {
   const id = useId();
   return (
@@ -68,15 +71,40 @@ function SettingsForm({ settings }: { settings: Settings }) {
         )}
       </Field>
 
-      <Field label={t.settings.accent}>
+      {(
+        [
+          ['accent_color', t.settings.accent],
+          ['accent_color_secondary', t.settings.accentSecondary],
+        ] as const
+      ).map(([key, label]) => (
+        <Field key={key} label={label}>
+          {(id) => (
+            <div className="flex items-center gap-3">
+              <input
+                id={id}
+                type="color"
+                value={settings[key]}
+                onChange={(event) => save({ [key]: event.target.value })}
+                className="h-9 w-14 cursor-pointer rounded-sm border border-border bg-transparent p-1"
+              />
+              <span className="font-mono text-sm text-muted">{settings[key]}</span>
+            </div>
+          )}
+        </Field>
+      ))}
+
+      <Field label={t.settings.accentReset}>
         {(id) => (
-          <input
+          <Button
             id={id}
-            type="color"
-            value={settings.accent_color}
-            onChange={(event) => save({ accent_color: event.target.value })}
-            className="h-8 w-14 cursor-pointer rounded-sm border border-border bg-transparent p-1"
-          />
+            disabled={
+              settings.accent_color === DEFAULT_ACCENTS.accent_color &&
+              settings.accent_color_secondary === DEFAULT_ACCENTS.accent_color_secondary
+            }
+            onClick={() => save(DEFAULT_ACCENTS)}
+          >
+            {t.settings.accentReset}
+          </Button>
         )}
       </Field>
 
