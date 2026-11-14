@@ -52,6 +52,16 @@ export function HomeIcon(props: IconProps) {
   );
 }
 
+/** Collections: a stack of sheets, the top one in accent. */
+export function CollectionIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M4 13.5l8 4 8-4M4 17l8 4 8-4" />
+      <path d="M12 3l8 4-8 4-8-4 8-4Z" {...accent} />
+    </Svg>
+  );
+}
+
 /** Calendar: a tear-off page with today marked. */
 export function CalendarIcon(props: IconProps) {
   return (

@@ -15,6 +15,44 @@ const indexRoute = createRoute({
   component: lazyRouteComponent(() => import('@/features/home/routes'), 'HomePage'),
 });
 
+const collections = () => import('@/features/collections/routes');
+
+const collectionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/collections',
+  component: lazyRouteComponent(collections, 'CollectionsPage'),
+});
+
+const collectionNewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/collections/new',
+  component: lazyRouteComponent(collections, 'CollectionNewPage'),
+});
+
+const collectionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/collections/$collectionId',
+  component: lazyRouteComponent(collections, 'CollectionPage'),
+});
+
+const collectionEditRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/collections/$collectionId/edit',
+  component: lazyRouteComponent(collections, 'CollectionEditPage'),
+});
+
+const entryNewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/collections/$collectionId/entries/new',
+  component: lazyRouteComponent(collections, 'EntryNewPage'),
+});
+
+const entryRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/collections/$collectionId/entries/$entryId',
+  component: lazyRouteComponent(collections, 'EntryEditPage'),
+});
+
 const calendarRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/calendar',
@@ -41,6 +79,12 @@ const settingsRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  collectionsRoute,
+  collectionNewRoute,
+  collectionRoute,
+  collectionEditRoute,
+  entryNewRoute,
+  entryRoute,
   calendarRoute,
   notesRoute,
   portfolioRoute,

@@ -15,6 +15,16 @@ const variants: Record<Variant, string> = {
   ghost: 'text-muted hover:bg-surface-hover hover:text-text',
 };
 
+/** The button look as class names, for links that should look like buttons. */
+export function buttonClass(variant: Variant = 'secondary', icon = false): string {
+  return cn(
+    'inline-flex h-8 shrink-0 items-center justify-center gap-2 rounded-sm text-sm font-medium',
+    'transition-[background-color,color,opacity] disabled:opacity-50',
+    icon ? 'w-8' : 'px-3',
+    variants[variant],
+  );
+}
+
 export function Button({
   variant = 'secondary',
   icon = false,
@@ -22,17 +32,5 @@ export function Button({
   type = 'button',
   ...props
 }: ButtonProps) {
-  return (
-    <button
-      type={type}
-      className={cn(
-        'inline-flex h-8 shrink-0 items-center justify-center gap-2 rounded-sm text-sm font-medium',
-        'transition-[background-color,color,opacity] disabled:opacity-50',
-        icon ? 'w-8' : 'px-3',
-        variants[variant],
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <button type={type} className={cn(buttonClass(variant, icon), className)} {...props} />;
 }
