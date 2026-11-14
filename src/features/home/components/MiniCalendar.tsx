@@ -33,7 +33,7 @@ export function MiniCalendar({
 }: MiniCalendarProps) {
   const days = Array.from({ length: weeks * 7 }, (_, i) => addDays(gridStart, i));
   const arrow =
-    'flex size-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface-hover hover:text-text';
+    'flex size-7 items-center justify-center rounded-sm text-muted transition-colors hover:bg-surface-hover hover:text-text';
 
   return (
     <div className="mini-calendar">
@@ -76,7 +76,7 @@ export function MiniCalendar({
               aria-pressed={isSelected}
               onClick={() => onSelect(day)}
               className={cn(
-                'calendar-day relative mx-auto flex aspect-square w-full max-w-9 items-center justify-center rounded-full text-sm font-medium tabular-nums transition-colors',
+                'calendar-day relative mx-auto flex aspect-square w-full max-w-9 items-center justify-center rounded-sm text-sm font-medium tabular-nums transition-colors',
                 !isSameMonth(day, month) && 'text-muted opacity-50',
                 isToday ? 'bg-accent text-accent-contrast' : 'hover:bg-surface-hover',
                 isSelected && !isToday && 'ring-2 ring-accent ring-inset',
@@ -86,7 +86,7 @@ export function MiniCalendar({
               {hasEvents(day) && (
                 <span
                   className={cn(
-                    'absolute bottom-1 size-1 rounded-full',
+                    'absolute bottom-1 size-1 rounded-sm',
                     isToday ? 'bg-accent-contrast' : 'bg-accent-2',
                   )}
                 />

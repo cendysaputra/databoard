@@ -10,7 +10,6 @@ import { NotesIcon } from '@/shared/ui/icons';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { Row, Rows } from '@/shared/ui/Rows';
-import { showToast } from '@/shared/ui/toast';
 import { formatDayMonth, fromIsoDay } from '@/shared/utils/date';
 import { useLabels, useNote, useNotes, useRemoveNote, useSaveNote } from './api';
 import { LabelChip } from './components/LabelChip';
@@ -89,7 +88,7 @@ function NoteList({ labels }: { labels: Tag[] }) {
                     {note.label_ids.map((id) => (
                       <span
                         key={id}
-                        className="shrink-0 rounded-full bg-surface-hover px-2 py-0.5 text-xs text-muted"
+                        className="shrink-0 rounded-sm bg-surface-hover px-2 py-0.5 text-xs text-muted"
                       >
                         {nameOf(id)}
                       </span>
@@ -152,7 +151,6 @@ function NoteEditor({ note }: { note?: Note }) {
             onSubmit={(input) =>
               save.mutate(input, {
                 onSuccess: (saved) => {
-                  showToast(t.common.saved, saved.title);
                   // A new note continues on its own page, so further saves update it.
                   if (!note) {
                     void navigate({

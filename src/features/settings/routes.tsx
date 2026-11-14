@@ -5,7 +5,7 @@ import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
-import { showToast } from '@/shared/ui/toast';
+import { notifySaved } from '@/shared/ui/toast';
 import { cn } from '@/shared/utils/cn';
 import { sendTestNotification, useSettings, useUpdateSettings } from './api';
 import { ProfileForm } from './components/ProfileForm';
@@ -198,7 +198,7 @@ function SettingsTabs({ settings }: { settings: Settings }) {
               key={`${settings.profile_name}|${settings.profile_nickname}|${settings.profile_role}`}
               settings={settings}
               submitLabel={t.common.save}
-              onSaved={() => showToast(t.common.saved)}
+              onSaved={notifySaved}
             />
           </div>
         )}

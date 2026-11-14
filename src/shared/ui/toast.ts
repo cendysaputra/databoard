@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { t } from '@/shared/i18n/id';
 
 export interface Toast {
   id: number;
@@ -25,3 +26,9 @@ export function showToast(title: string, body?: string): void {
   useToasts.setState((state) => ({ toasts: [...state.toasts, { id, title, body }] }));
   window.setTimeout(() => useToasts.getState().dismiss(id), TOAST_MS);
 }
+
+/** The confirmation shown after content is saved. */
+export const notifySaved = () => showToast(t.common.saved);
+
+/** The confirmation shown after content is deleted. */
+export const notifyDeleted = () => showToast(t.common.deleted);

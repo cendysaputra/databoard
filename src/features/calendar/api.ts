@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addMonths, startOfMonth } from 'date-fns';
 import { data } from '@/data';
+import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
 import type { EventInput } from '@/shared/types';
 
 export { useSettings } from '@/shared/hooks/use-settings';
@@ -59,7 +60,10 @@ export function useSaveEvent(id?: string) {
       }
       return event;
     },
-    onSuccess: refresh,
+    onSuccess: () => {
+      notifySaved();
+      return refresh();
+    },
   });
 }
 
@@ -68,6 +72,9 @@ export function useRemoveEvent() {
   return useMutation({
     mutationFn: (id: string) => data.events.remove(id),
     // Not awaited: the page showing the removed event is left before it refetches.
-    onSuccess: () => void refresh(),
+    onSuccess: () => {
+      notifyDeleted();
+      void refresh();
+    },
   });
 }

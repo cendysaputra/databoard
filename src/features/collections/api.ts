@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { data } from '@/data';
+import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
 import { collectionsKey } from '@/shared/hooks/use-collections';
 import type { CollectionInput, EntryInput } from '@/shared/types';
 
@@ -42,7 +43,10 @@ export function useSaveCollection(id?: string) {
   return useMutation({
     mutationFn: (input: CollectionInput) =>
       id ? data.collections.update(id, input) : data.collections.create(input),
-    onSuccess: refresh,
+    onSuccess: () => {
+      notifySaved();
+      return refresh();
+    },
   });
 }
 
@@ -51,7 +55,10 @@ export function useRemoveCollection() {
   return useMutation({
     mutationFn: (id: string) => data.collections.remove(id),
     // Not awaited: the page showing the removed item is left before it refetches.
-    onSuccess: () => void refresh(),
+    onSuccess: () => {
+      notifyDeleted();
+      void refresh();
+    },
   });
 }
 
@@ -61,7 +68,10 @@ export function useSaveEntry(collectionId: string, id?: string) {
   return useMutation({
     mutationFn: (input: EntryInput) =>
       id ? data.entries.update(id, input) : data.entries.create(collectionId, input),
-    onSuccess: refresh,
+    onSuccess: () => {
+      notifySaved();
+      return refresh();
+    },
   });
 }
 
@@ -69,6 +79,9 @@ export function useRemoveEntry() {
   const refresh = useRefresh();
   return useMutation({
     mutationFn: (id: string) => data.entries.remove(id),
-    onSuccess: () => void refresh(),
+    onSuccess: () => {
+      notifyDeleted();
+      void refresh();
+    },
   });
 }

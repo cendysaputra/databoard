@@ -12,14 +12,7 @@ import {
   formatLongDate,
   formatWeekdayLong,
 } from '@/shared/utils/date';
-import {
-  overviewBuckets,
-  useCollections,
-  useEventsBetween,
-  useOverview,
-  useRecentNotes,
-  useSettings,
-} from './api';
+import { overviewBuckets, useEventsBetween, useOverview, useRecentNotes, useSettings } from './api';
 import { CategoryCard } from './components/CategoryCard';
 import { DayTimeline } from './components/DayTimeline';
 import { MiniCalendar } from './components/MiniCalendar';
@@ -71,7 +64,6 @@ function AddMenu() {
     { to: '/calendar/new', label: t.calendar.new },
     { to: '/notes/new', label: t.notes.new },
     { to: '/portfolio/new', label: t.portfolio.new },
-    { to: '/collections/new', label: t.collections.new },
   ] as const;
 
   return (
@@ -79,7 +71,7 @@ function AddMenu() {
       <summary
         aria-label={text.add}
         title={text.add}
-        className="flex size-13 cursor-pointer list-none items-center justify-center rounded-full bg-accent text-accent-contrast shadow-[0_8px_18px_-10px_rgb(0_0_0/0.3)] transition-[rotate] group-open:rotate-45 [&::-webkit-details-marker]:hidden"
+        className="flex size-13 cursor-pointer list-none items-center justify-center rounded-sm bg-accent text-accent-contrast shadow-[0_8px_18px_-10px_rgb(0_0_0/0.3)] transition-[rotate] group-open:rotate-45 [&::-webkit-details-marker]:hidden"
       >
         <Plus aria-hidden className="size-6" />
       </summary>
@@ -99,7 +91,6 @@ function AddMenu() {
 }
 
 function Categories({ overview }: { overview: Overview }) {
-  const collections = useCollections().data ?? [];
   const eventsAhead = overview.events_per_day.reduce((sum, n) => sum + n, 0);
 
   return (
@@ -125,16 +116,6 @@ function Categories({ overview }: { overview: Overview }) {
         caption={text.counts.projects}
         link={{ to: '/portfolio' }}
       />
-      {collections.map((collection, index) => (
-        <CategoryCard
-          key={collection.id}
-          art={index + 3}
-          name={collection.name}
-          stat={collection.entry_count}
-          caption={text.counts.entries}
-          link={{ to: '/collections/$collectionId', params: { collectionId: collection.id } }}
-        />
-      ))}
     </div>
   );
 }
@@ -199,7 +180,7 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
           <Link
             to="/calendar"
             aria-label={t.nav.calendar}
-            className="flex size-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface-hover hover:text-text"
+            className="flex size-7 items-center justify-center rounded-sm text-muted transition-colors hover:bg-surface-hover hover:text-text"
           >
             <ArrowUpRight aria-hidden className="size-4" />
           </Link>
@@ -244,9 +225,6 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
       <div className="dashboard-primary flex min-w-0 flex-col gap-9">
         <div className="dashboard-greeting">
           <div>
-            <p className="mb-2 text-xs font-medium tracking-widest text-accent-text uppercase">
-              {t.nav.home}
-            </p>
             <h1 className="text-3xl leading-tight font-semibold">
               {greeting(now)}
               {name && `, ${name}`}

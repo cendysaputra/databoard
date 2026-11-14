@@ -36,7 +36,6 @@ function useCommands(): Command[] {
           ['/calendar/new', t.calendar.new],
           ['/notes/new', t.notes.new],
           ['/portfolio/new', t.portfolio.new],
-          ['/collections/new', t.collections.new],
         ] as const
       ).map(([to, label]) => ({ id: to, label, icon: Plus, run: () => void navigate({ to }) })),
       {

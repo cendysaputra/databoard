@@ -1,10 +1,7 @@
 import { Link } from '@tanstack/react-router';
-import { ChevronsLeft, ChevronsRight, Plus } from 'lucide-react';
-import { Fragment } from 'react';
-import { useCollections } from '@/shared/hooks/use-collections';
+import { Menu } from 'lucide-react';
 import { useSettings } from '@/shared/hooks/use-settings';
 import { t } from '@/shared/i18n/id';
-import { LogoMark } from '@/shared/ui/icons';
 import { cn } from '@/shared/utils/cn';
 import { navItems } from './nav';
 import { useUi } from './ui-store';
@@ -14,18 +11,14 @@ const itemClass = cn(
   'hover:text-text aria-[current=page]:font-medium aria-[current=page]:text-text',
 );
 
-const subItemClass = cn(
-  'truncate rounded-sm px-2.5 py-1.5 text-sm text-muted transition-colors hover:text-text',
-  'aria-[current=page]:font-medium aria-[current=page]:text-text',
-);
-
-/** Left rail: logo and module icons. Expanded, it also shows labels and the collections. */
+/**
+ * Left rail: the app name, the module menu centered vertically, and the menu button.
+ * Collapsed, it shows icons only and the name is written vertically.
+ */
 export function Sidebar() {
   const collapsed = useUi((state) => state.sidebarCollapsed);
   const toggle = useUi((state) => state.toggleSidebar);
   const appName = useSettings().data?.app_name;
-  const collections = useCollections().data ?? [];
-  const ToggleIcon = collapsed ? ChevronsRight : ChevronsLeft;
   const toggleLabel = collapsed ? t.nav.expand : t.nav.collapse;
 
   return (
@@ -35,64 +28,50 @@ export function Sidebar() {
         collapsed ? 'w-(--sidebar-width-collapsed)' : 'w-(--sidebar-width)',
       )}
     >
-      <div className="sidebar-brand flex h-24 shrink-0 items-center gap-2.5 px-6">
-        <LogoMark className="size-8 shrink-0" />
-        {!collapsed && (
-          <span className="truncate text-lg font-semibold tracking-tight">{appName}</span>
+      <div
+        className={cn(
+          'sidebar-brand flex shrink-0 px-6 pt-8',
+          collapsed ? 'justify-center' : 'h-24 items-start',
         )}
+      >
+        <span
+          className={cn(
+            'text-lg font-semibold tracking-tight whitespace-nowrap',
+            // Collapsed: the name runs down the rail, read from top to bottom.
+            collapsed ? '[writing-mode:vertical-rl]' : 'truncate',
+          )}
+        >
+          {appName}
+        </span>
       </div>
 
       <nav
         className={cn(
-          'sidebar-nav flex flex-1 flex-col gap-2 overflow-y-auto px-4',
+          'sidebar-nav flex flex-1 flex-col justify-center gap-2 overflow-y-auto px-4',
           collapsed && 'items-center',
         )}
       >
         {navItems.map(({ to, label, icon: Icon }) => (
-          <Fragment key={to}>
-            <Link to={to} aria-label={label} title={label} className={itemClass}>
-              <span className="nav-icon relative flex size-5 shrink-0">
-                <Icon className="size-5" />
-                <span aria-hidden className="nav-active-dot" />
-              </span>
-              {!collapsed && <span className="nav-label truncate">{label}</span>}
-            </Link>
-
-            {/* The user's collections sit right under their heading. */}
-            {to === '/collections' && !collapsed && (
-              <div className="mb-2 ml-5 flex flex-col border-l border-border pl-2">
-                {collections.map((collection) => (
-                  <Link
-                    key={collection.id}
-                    to="/collections/$collectionId"
-                    params={{ collectionId: collection.id }}
-                    className={subItemClass}
-                  >
-                    {collection.name}
-                  </Link>
-                ))}
-                <Link
-                  to="/collections/new"
-                  className={cn(subItemClass, 'flex items-center gap-1.5')}
-                >
-                  <Plus aria-hidden className="size-3.5" />
-                  {t.collections.newShort}
-                </Link>
-              </div>
-            )}
-          </Fragment>
+          <Link key={to} to={to} aria-label={label} title={label} className={itemClass}>
+            <span className="nav-icon relative flex size-5 shrink-0">
+              <Icon className="size-5" />
+              <span aria-hidden className="nav-active-dot" />
+            </span>
+            {!collapsed && <span className="nav-label truncate">{label}</span>}
+          </Link>
         ))}
       </nav>
 
-      <div className="sidebar-footer border-t border-border px-4 py-5">
+      <div className={cn('sidebar-footer flex px-4 py-5', collapsed && 'justify-center')}>
         <button
           type="button"
           onClick={toggle}
           aria-label={toggleLabel}
+          aria-expanded={!collapsed}
           title={toggleLabel}
-          className={cn(itemClass, 'w-full')}
+          className={itemClass}
         >
-          <ToggleIcon aria-hidden strokeWidth={1.5} className="size-5 shrink-0" />
+          <Menu aria-hidden strokeWidth={1} className="size-6 shrink-0" />
         </button>
       </div>
     </aside>

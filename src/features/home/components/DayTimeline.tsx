@@ -75,7 +75,7 @@ export function DayTimeline({ day, events, now }: DayTimelineProps) {
               <Link
                 to="/calendar/$eventId"
                 params={{ eventId: event.id }}
-                className="block rounded-full bg-tint-yellow px-3.5 py-1.5 text-sm font-medium"
+                className="block rounded-sm bg-tint-yellow px-3.5 py-1.5 text-sm font-medium"
               >
                 {event.title}
               </Link>
@@ -106,7 +106,7 @@ export function DayTimeline({ day, events, now }: DayTimelineProps) {
             <span
               style={{ left: `${share(nowHour)}%` }}
               title={text.now}
-              className="absolute -top-1 z-10 -translate-x-1/2 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-contrast tabular-nums"
+              className="absolute -top-1 z-10 -translate-x-1/2 rounded-sm bg-accent px-2.5 py-1 text-xs font-medium text-accent-contrast tabular-nums"
             >
               {formatTime(now)}
             </span>
@@ -148,7 +148,7 @@ export function DayTimeline({ day, events, now }: DayTimelineProps) {
                   top: `${row * ROW_HEIGHT_REM + 0.75}rem`,
                 }}
                 className={cn(
-                  'absolute max-w-56 rounded-full px-4 py-1.5 shadow-[0_6px_16px_-8px_rgb(23_21_43/0.35)]',
+                  'absolute max-w-56 rounded-sm px-4 py-1.5 shadow-[0_6px_16px_-8px_rgb(23_21_43/0.35)]',
                   'transition-[translate] hover:-translate-y-0.5',
                   active ? 'bg-accent text-accent-contrast' : 'border border-border bg-surface',
                 )}

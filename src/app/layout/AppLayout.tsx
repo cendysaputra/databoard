@@ -7,7 +7,6 @@ import { cn } from '@/shared/utils/cn';
 import { CommandPalette } from './CommandPalette';
 import { Onboarding } from './Onboarding';
 import { Sidebar } from './Sidebar';
-import { Topbar } from './Topbar';
 
 /** App frame: a white rounded window on the canvas, with a rail at the left. */
 export function AppLayout() {
@@ -23,13 +22,12 @@ export function AppLayout() {
       <div className="app-frame relative flex h-full overflow-hidden rounded-lg border border-border bg-bg">
         <Sidebar />
         <div className="relative flex min-w-0 flex-1 flex-col">
-          <Topbar />
           <main className="app-main flex-1 overflow-y-auto">
             {/* The key restarts the fade whenever the route changes. */}
             <div
               key={pathname}
               className={cn(
-                'app-content mx-auto animate-fade px-10 pt-6 pb-14',
+                'app-content mx-auto animate-fade px-10 pt-12 pb-14',
                 wide ? 'max-w-(--content-max-width-wide)' : 'max-w-(--content-max-width)',
               )}
             >

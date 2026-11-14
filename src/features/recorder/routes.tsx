@@ -248,7 +248,7 @@ export function RecorderPage() {
 
           {recorder.status === 'recording' && (
             <section className="flex items-center gap-5" aria-live="polite">
-              <span className="size-3 animate-pulse rounded-full bg-danger" />
+              <span className="size-3 animate-pulse rounded-sm bg-danger" />
               <p className="font-medium">{text.recording}</p>
               <p className="text-2xl font-semibold tabular-nums">{clock(recorder.seconds)}</p>
               <Button onClick={recorder.stop}>

@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { addDays, addWeeks, startOfDay, startOfWeek } from 'date-fns';
 import { data } from '@/data';
 
-export { useCollections } from '@/shared/hooks/use-collections';
 export { useSettings } from '@/shared/hooks/use-settings';
 
 export const SCHEDULE_DAYS = 14;

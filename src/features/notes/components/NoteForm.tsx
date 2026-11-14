@@ -94,7 +94,7 @@ export function NoteForm({ note, labels, saving, error, onSubmit, extra }: NoteF
       className="note-editor-panel flex flex-col gap-6"
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-surface-hover px-3 py-1 text-xs font-medium text-muted">
+        <span className="rounded-sm bg-surface-hover px-3 py-1 text-xs font-medium text-muted">
           {t.notes.status[status]}
         </span>
         <div className="flex-1" />
@@ -187,7 +187,7 @@ export function NoteForm({ note, labels, saving, error, onSubmit, extra }: NoteF
             <button
               type="button"
               onClick={() => setManaging(true)}
-              className="rounded-full px-2 py-1 text-xs text-muted underline-offset-2 transition-colors hover:text-text hover:underline"
+              className="rounded-sm px-2 py-1 text-xs text-muted underline-offset-2 transition-colors hover:text-text hover:underline"
             >
               {t.notes.labels.manage}
             </button>

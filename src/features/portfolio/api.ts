@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { data } from '@/data';
+import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
 import type { ProjectInput } from '@/shared/types';
 
 /** All projects in their manual order. */
@@ -28,7 +29,10 @@ export function useSaveProject(id?: string) {
   return useMutation({
     mutationFn: (input: ProjectInput) =>
       id ? data.projects.update(id, input) : data.projects.create(input),
-    onSuccess: refresh,
+    onSuccess: () => {
+      notifySaved();
+      return refresh();
+    },
   });
 }
 
@@ -37,6 +41,9 @@ export function useRemoveProject() {
   return useMutation({
     mutationFn: (id: string) => data.projects.remove(id),
     // Not awaited: the page showing the removed project is left before it refetches.
-    onSuccess: () => void refresh(),
+    onSuccess: () => {
+      notifyDeleted();
+      void refresh();
+    },
   });
 }

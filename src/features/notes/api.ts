@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { data } from '@/data';
+import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
 import type { NoteInput, TagInput } from '@/shared/types';
 
 const PAGE_SIZE = 100;
@@ -35,7 +36,10 @@ export function useSaveNote(id?: string) {
   return useMutation({
     mutationFn: (input: NoteInput) =>
       id ? data.notes.update(id, input) : data.notes.create(input),
-    onSuccess: refresh,
+    onSuccess: () => {
+      notifySaved();
+      return refresh();
+    },
   });
 }
 
@@ -44,7 +48,10 @@ export function useRemoveNote() {
   return useMutation({
     mutationFn: (id: string) => data.notes.remove(id),
     // Not awaited: the page showing the removed note is left before it refetches.
-    onSuccess: () => void refresh(),
+    onSuccess: () => {
+      notifyDeleted();
+      void refresh();
+    },
   });
 }
 
@@ -54,12 +61,21 @@ export function useSaveLabel() {
   return useMutation({
     mutationFn: ({ id, input }: { id?: string; input: TagInput }) =>
       id ? data.tags.update(id, input) : data.tags.create(input),
-    onSuccess: refresh,
+    onSuccess: () => {
+      notifySaved();
+      return refresh();
+    },
   });
 }
 
 /** Deletes a label; notes that carried it simply lose it. */
 export function useRemoveLabel() {
   const refresh = useRefresh();
-  return useMutation({ mutationFn: (id: string) => data.tags.remove(id), onSuccess: refresh });
+  return useMutation({
+    mutationFn: (id: string) => data.tags.remove(id),
+    onSuccess: () => {
+      notifyDeleted();
+      return refresh();
+    },
+  });
 }
