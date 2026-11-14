@@ -27,17 +27,15 @@ function Svg(props: IconProps) {
 /** The solid part of an icon; the rest is outline. */
 const accent = { fill: 'currentColor', stroke: 'none' } as const;
 
-/** The DataBoard mark: bars of data whose ends trace the letter D. */
+/** A split D monogram: one stem and one open bowl, without decorative accents. */
 export function LogoMark(props: IconProps) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden {...props}>
-      <rect width="24" height="24" rx="6" fill="var(--text)" />
+      <rect width="24" height="24" rx="5" fill="var(--text)" />
       <g fill="var(--bg)">
-        <rect x="6" y="5.5" width="8" height="2.6" rx="1.3" />
-        <rect x="6" y="15.9" width="8" height="2.6" rx="1.3" />
-        <rect x="6" y="12.4" width="12" height="2.6" rx="1.3" />
+        <rect x="6.5" y="6" width="2.8" height="12" rx="0.8" />
+        <path d="M11 6h1a6 6 0 0 1 0 12h-1v-2.8h1a3.2 3.2 0 0 0 0-6.4h-1Z" />
       </g>
-      <rect x="6" y="9" width="12" height="2.6" rx="1.3" fill="var(--accent-2)" />
     </svg>
   );
 }
