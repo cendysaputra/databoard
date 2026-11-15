@@ -19,7 +19,6 @@ export function PortfolioPage() {
     <>
       <PageHeader
         title={t.portfolio.title}
-        subtitle={t.portfolio.subtitle}
         actions={
           <Link to="/portfolio/new" className={buttonClass('primary')}>
             <Plus aria-hidden className="size-4" />
