@@ -4,8 +4,8 @@ import { data } from '@/data';
 
 export { useSettings } from '@/shared/hooks/use-settings';
 
-export const SCHEDULE_DAYS = 14;
-export const NOTE_WEEKS = 8;
+const SCHEDULE_DAYS = 14;
+const NOTE_WEEKS = 8;
 const RECENT_NOTES = 4;
 
 /** Local-time bucket boundaries for the home charts; N buckets need N+1 boundaries. */
