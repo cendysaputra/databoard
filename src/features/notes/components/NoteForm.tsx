@@ -9,9 +9,9 @@ import { Input } from '@/shared/ui/Input';
 import { formatLongDate, fromIsoDay } from '@/shared/utils/date';
 import { toDateInput } from '@/shared/utils/datetime-input';
 import { exportDocx, exportPdf, fileName, type NoteExport } from '../export';
-import { LabelChip } from './LabelChip';
+import { LabelChip } from '@/shared/ui/LabelChip';
 import { LabelManager } from './LabelManager';
-import { RichEditor } from './RichEditor';
+import { RichEditor } from '@/shared/ui/RichEditor';
 
 const text = t.notes.form;
 
