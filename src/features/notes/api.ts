@@ -1,9 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { addMonths, startOfMonth } from 'date-fns';
 import { data } from '@/data';
 import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
-import type { NoteInput, TagInput } from '@/shared/types';
+import type { NoteInput, ReminderInput, TagInput } from '@/shared/types';
 
 const PAGE_SIZE = 100;
+
+/** Events offered when linking a note: this far back and ahead of the current month. */
+const EVENT_MONTHS_BACK = 3;
+const EVENT_MONTHS_AHEAD = 6;
 
 /** Notes: pinned first, then newest date. With a label id, only notes carrying that label. */
 export function useNotes(labelId: string | null) {
@@ -92,5 +97,50 @@ export function useRemoveNotes() {
     onSuccess: () => notifyDeleted(),
     // Also after a failure, so the list shows what was really removed.
     onSettled: () => refresh(),
+  });
+}
+
+/** Events a note can be linked to: the recent and the coming ones, by start time. */
+export function useLinkableEvents() {
+  const month = startOfMonth(new Date());
+  const range = {
+    from: addMonths(month, -EVENT_MONTHS_BACK).toISOString(),
+    to: addMonths(month, EVENT_MONTHS_AHEAD).toISOString(),
+  };
+  return useQuery({
+    queryKey: ['events', 'linkable', range.from],
+    queryFn: () => data.events.list(range),
+  });
+}
+
+/** One event by id; idle while there is no id. */
+export function useLinkedEvent(id: string | null) {
+  return useQuery({
+    queryKey: ['events', 'one', id],
+    queryFn: () => data.events.get(id ?? ''),
+    enabled: id !== null,
+  });
+}
+
+/** Reminders made from a note's action items, done or not. Idle for an unsaved note. */
+export function useNoteReminders(noteId: string | undefined) {
+  return useQuery({
+    queryKey: ['reminders', 'note', noteId],
+    queryFn: async () => (await data.reminders.list(false)).filter((r) => r.note_id === noteId),
+    enabled: noteId !== undefined,
+  });
+}
+
+/** Creates a reminder; the notifications and the home page numbers follow. */
+export function useCreateReminder() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ReminderInput) => data.reminders.create(input),
+    onSuccess: () => {
+      notifySaved();
+      return Promise.all(
+        ['reminders', 'overview'].map((key) => client.invalidateQueries({ queryKey: [key] })),
+      );
+    },
   });
 }
