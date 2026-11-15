@@ -1,7 +1,6 @@
 /*
- * IBM Plex Sans (variable weight), Latin and Latin Extended only.
- * The other scripts the font ships (Cyrillic, Greek, Vietnamese) are left out to keep the
- * installer small. Generated from @fontsource-variable/ibm-plex-sans/index.css.
+ * IBM Plex Sans (variable weight), Latin and Latin Extended only, to keep the installer small.
+ * Generated from @fontsource-variable/ibm-plex-sans/index.css.
  */
 @font-face {
   font-family: 'IBM Plex Sans Variable';
