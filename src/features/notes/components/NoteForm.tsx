@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import type { Editor } from '@tiptap/react';
 import { Download } from 'lucide-react';
 import { useCallback, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import type { DataError } from '@/data';
 import { t } from '@/shared/i18n/id';
 import type { Note, NoteInput, NoteStatus, Tag } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
@@ -98,8 +99,12 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
   // The select offers recent and coming events; a link to an older one is fetched by itself.
   const nearby = useLinkableEvents().data ?? [];
   const isNearby = nearby.some((event) => event.id === eventId);
-  const linked = useLinkedEvent(isNearby ? null : eventId).data;
+  const linkedEvent = useLinkedEvent(isNearby ? null : eventId);
+  const linked = linkedEvent.data;
   const events = linked && !isNearby ? [linked, ...nearby] : nearby;
+  // A link to an event that no longer exists counts as no link; saving the note drops it.
+  const linkMissing = !isNearby && (linkedEvent.error as DataError | null)?.code === 'not_found';
+  const linkedId = linkMissing ? null : eventId;
 
   const status: NoteStatus = note?.status ?? 'draft';
   const selected = labels.filter((label) => labelIds.includes(label.id));
@@ -112,7 +117,7 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
       note_date: date,
       status: nextStatus,
       label_ids: selected.map((label) => label.id),
-      event_id: eventId,
+      event_id: linkedId,
       // The link to a project is kept as it is.
       project_id: note?.project_id ?? null,
     });
@@ -250,7 +255,7 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
             <Select
               aria-label={text.event}
               style={{ maxWidth: '20rem' }}
-              value={eventId ?? ''}
+              value={linkedId ?? ''}
               onChange={(event) => setEventId(event.target.value || null)}
             >
               <option value="">{text.eventNone}</option>
@@ -260,10 +265,10 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
                 </option>
               ))}
             </Select>
-            {eventId && (
+            {linkedId && (
               <Link
                 to="/calendar/$eventId"
-                params={{ eventId }}
+                params={{ eventId: linkedId }}
                 className="text-xs text-muted transition-colors hover:text-text"
               >
                 {text.eventOpen}
