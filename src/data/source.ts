@@ -61,6 +61,8 @@ export interface DataSource {
   notes: {
     /** With `labelId`, only notes carrying that label. */
     list(page: Page, labelId?: string | null): Promise<NoteSummary[]>;
+    /** Notes whose title or body contain every word of `query`; a word may be cut short. */
+    search(query: string, page: Page): Promise<NoteSummary[]>;
     get(id: string): Promise<Note>;
     create(input: NoteInput): Promise<Note>;
     update(id: string, input: NoteInput): Promise<Note>;
@@ -121,6 +123,17 @@ export interface DataSource {
     get(): Promise<Settings>;
     update(input: Settings): Promise<Settings>;
   };
+  /** Starting the app when the user signs in to Windows. Desktop only. */
+  autostart: {
+    get(): Promise<boolean>;
+    /** Resolves to the new state. */
+    set(enabled: boolean): Promise<boolean>;
+  };
+  /**
+   * Calls `handler` with a path when the desktop shell asks the open window to show a page
+   * (e.g. "Event baru" in the tray menu). Returns a function that stops listening.
+   */
+  onNavigate(handler: (path: string) => void): () => void;
   /** Opens a web address in the system browser (desktop: only Google Drive links are allowed). */
   openUrl(url: string): Promise<void>;
   /** Shows a notification: native on desktop, Web Notification or toast in the browser. */
