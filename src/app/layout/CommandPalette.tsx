@@ -8,11 +8,14 @@ import { cn } from '@/shared/utils/cn';
 import { oppositeTheme } from '@/shared/utils/theme';
 import { navItems } from './nav';
 import { useUi } from './ui-store';
+import { shortcutDigit } from './use-shortcuts';
 
 interface Command {
   id: string;
   label: string;
   icon: ComponentType<{ className?: string }>;
+  /** Keyboard shortcut shown at the end of the row, e.g. "Ctrl+2". */
+  hint?: string;
   run(): void;
 }
 
@@ -25,10 +28,11 @@ function useCommands(): Command[] {
 
   return useMemo(
     () => [
-      ...navItems.map(({ to, label, icon }) => ({
+      ...navItems.map(({ to, label, icon }, index) => ({
         id: to,
         label: t.palette.goTo(label),
         icon,
+        hint: t.palette.shortcut(shortcutDigit(index)),
         run: () => void navigate({ to }),
       })),
       ...(
@@ -112,7 +116,10 @@ function PaletteContent({ onDone }: { onDone(): void }) {
             )}
           >
             <command.icon className="size-5 text-muted" />
-            {command.label}
+            <span className="min-w-0 flex-1 truncate">{command.label}</span>
+            {command.hint && (
+              <kbd className="font-sans text-xs text-muted tabular-nums">{command.hint}</kbd>
+            )}
           </li>
         ))}
       </ul>
