@@ -205,6 +205,8 @@ export const t = {
     pinned: 'Disematkan',
     new: 'Catatan baru',
     filter: {
+      search: 'Cari catatan',
+      searchPlaceholder: 'Cari…',
       label: 'Label',
       status: 'Status',
       allLabels: 'Semua label',
@@ -381,6 +383,8 @@ export const t = {
     accentSecondary: 'Warna aksen kedua',
     accentReset: 'Kembalikan warna bawaan',
     defaultReminder: 'Pengingat default (menit sebelum event)',
+    autostart: 'Jalankan saat Windows menyala',
+    autostartOn: 'Aktif',
     notification: 'Notifikasi',
     testNotification: 'Tes notifikasi',
     testNotificationBody: 'Notifikasi berfungsi.',
