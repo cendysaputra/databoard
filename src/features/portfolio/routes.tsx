@@ -21,6 +21,7 @@ import {
   useRemoveProjects,
   useSaveProject,
 } from './api';
+import { Cover } from './components/Cover';
 import { OptionManager } from './components/OptionManager';
 import { ProjectForm } from './components/ProjectForm';
 
@@ -73,6 +74,7 @@ interface CardSelect {
 function ProjectCard({ project, select }: { project: Project; select?: CardSelect }) {
   return (
     <li className="project-card relative flex flex-col gap-4 rounded-card p-6">
+      <Cover path={project.cover_path} alt={text.form.coverAlt(project.title)} />
       <div className="flex items-center gap-2 text-xs">
         {project.kind && (
           <span className="rounded-full bg-accent-soft px-2.5 py-1 font-medium">
