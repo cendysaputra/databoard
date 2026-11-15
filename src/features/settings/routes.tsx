@@ -2,13 +2,15 @@ import { useId, useState, type ReactNode } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Settings, Theme } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
+import { FormError } from '@/shared/ui/FormError';
 import { Input } from '@/shared/ui/Input';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
-import { notifySaved } from '@/shared/ui/toast';
+import { notifySaved, showToast } from '@/shared/ui/toast';
 import { cn } from '@/shared/utils/cn';
 import { sendTestNotification, useSettings, useUpdateSettings } from './api';
 import { ProfileForm } from './components/ProfileForm';
+import { exportJson, exportNotesMarkdown, exportProjectsCsv } from './export';
 
 const themes: Array<{ value: Theme; label: string }> = [
   { value: 'system', label: t.theme.system },
@@ -163,6 +165,59 @@ function AppearancePanel({ settings, save }: PanelProps) {
   );
 }
 
+/** One export: its label and the job, which resolves to the message to confirm with. */
+const exportsOffered: Array<{ label: string; run(): Promise<string | null> }> = [
+  { label: t.settings.data.exportJson, run: () => exportJson().then(() => t.settings.data.done) },
+  {
+    label: t.settings.data.exportCsv,
+    run: () => exportProjectsCsv().then(() => t.settings.data.done),
+  },
+  {
+    label: t.settings.data.exportNotes,
+    // Nothing is confirmed when the folder dialog was cancelled.
+    run: () =>
+      exportNotesMarkdown().then((count) =>
+        count === null ? null : t.settings.data.notesDone(count),
+      ),
+  },
+];
+
+/** Exports of the app's content as files. */
+function DataPanel() {
+  const [running, setRunning] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
+
+  return (
+    <>
+      {exportsOffered.map(({ label, run }) => (
+        <Field key={label} label={label}>
+          {(id) => (
+            <Button
+              id={id}
+              disabled={running !== null}
+              onClick={() => {
+                setRunning(label);
+                setError(null);
+                run()
+                  .then((message) => message && showToast(message))
+                  .catch(setError)
+                  .finally(() => setRunning(null));
+              }}
+            >
+              {t.settings.data.export}
+            </Button>
+          )}
+        </Field>
+      ))}
+      {error !== null && (
+        <div className="mt-5">
+          <FormError error={error} />
+        </div>
+      )}
+    </>
+  );
+}
+
 function SettingsTabs({ settings }: { settings: Settings }) {
   const update = useUpdateSettings();
   const save = (changes: Partial<Settings>) => update.mutate({ ...settings, ...changes });
@@ -209,6 +264,7 @@ function SettingsTabs({ settings }: { settings: Settings }) {
           )}
           {tab === 'appearance' && <AppearancePanel settings={settings} save={save} />}
           {tab === 'app' && <AppPanel settings={settings} save={save} />}
+          {tab === 'data' && <DataPanel />}
         </div>
 
         {update.isError && (
