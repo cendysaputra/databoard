@@ -15,7 +15,7 @@ import { Row, Rows } from '@/shared/ui/Rows';
 import { SelectionBar } from '@/shared/ui/SelectionBar';
 import { formatDayMonth, fromIsoDay } from '@/shared/utils/date';
 import { useLabels, useNote, useNotes, useRemoveNote, useRemoveNotes, useSaveNote } from './api';
-import { LabelChip } from './components/LabelChip';
+import { LabelChip } from '@/shared/ui/LabelChip';
 import { LabelManager } from './components/LabelManager';
 
 // The editor is heavy (rich text engine), so it loads only when a note is opened,
