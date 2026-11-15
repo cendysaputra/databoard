@@ -93,6 +93,28 @@ pub fn remove(conn: &Connection, id: &str) -> Result<()> {
     soft_delete(conn, TABLE, id)
 }
 
+/// Reminders whose time has come and that were not shown as a notification yet, oldest first.
+/// Ones that came due while the app was closed are included, so they are shown on the next start.
+pub fn due(conn: &Connection) -> Result<Vec<Reminder>> {
+    let sql = format!(
+        "SELECT {COLUMNS} FROM {TABLE}
+         WHERE deleted_at IS NULL AND done_at IS NULL AND notified_at IS NULL AND remind_at <= ?1
+         ORDER BY remind_at"
+    );
+    let mut stmt = conn.prepare_cached(&sql)?;
+    let rows = stmt.query_map([now()], from_row)?;
+    Ok(rows.collect::<rusqlite::Result<_>>()?)
+}
+
+/// Records that the reminder was shown, so it is not shown again. It stays open until done.
+pub fn mark_notified(conn: &Connection, id: &str) -> Result<()> {
+    conn.execute(
+        "UPDATE reminders SET notified_at = ?2 WHERE id = ?1 AND notified_at IS NULL",
+        params![id, now()],
+    )?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -117,6 +139,33 @@ mod tests {
 
             remove(c, &reminder.id)?;
             assert!(list(c, false)?.is_empty());
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn due_reminders_are_shown_once() {
+        let db = Db::open_in_memory().unwrap();
+        db.with(|c| {
+            let at = |remind_at: &str| ReminderInput {
+                event_id: None,
+                note_id: None,
+                remind_at: remind_at.into(),
+                message: "x".into(),
+            };
+            let past = create(c, &at("2020-01-01T00:00:00Z"))?;
+            create(c, &at("2999-01-01T00:00:00Z"))?;
+            let finished = create(c, &at("2020-01-02T00:00:00Z"))?;
+            complete(c, &finished.id)?;
+
+            let ids: Vec<_> = due(c)?.into_iter().map(|r| r.id).collect();
+            assert_eq!(ids, std::slice::from_ref(&past.id));
+
+            mark_notified(c, &past.id)?;
+            assert!(due(c)?.is_empty());
+            // Shown, but still open until the user marks it done.
+            assert_eq!(list(c, true)?.len(), 2);
             Ok(())
         })
         .unwrap();
