@@ -427,6 +427,8 @@ export const browserSource: DataSource = {
       }),
     url: async (path) => path,
   },
+  // The preview is a web page; reloading it is its update.
+  updates: { check: async () => null, install: async () => {} },
   backup: {
     pickDir: async () => null,
     run: async () => fail('desktop_only', 'backups need the desktop app'),
