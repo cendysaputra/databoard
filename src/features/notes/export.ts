@@ -1,5 +1,6 @@
 import type { JSONContent } from '@tiptap/react';
 import type { IParagraphOptions, ParagraphChild } from 'docx';
+import { downloadBlob } from '@/shared/utils/download';
 
 /** What both exports need to know about a note. */
 export interface NoteExport {
@@ -182,10 +183,5 @@ export async function exportDocx({ title, meta, doc }: NoteExport, name: string)
     ],
   });
 
-  const url = URL.createObjectURL(await docx.Packer.toBlob(file));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${name}.docx`;
-  link.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(await docx.Packer.toBlob(file), `${name}.docx`);
 }
