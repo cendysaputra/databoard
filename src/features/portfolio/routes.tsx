@@ -40,7 +40,7 @@ export function PortfolioPage() {
               {items.map((project, index) => (
                 <li
                   key={project.id}
-                  className="project-card relative flex gap-5 rounded-md border border-border p-6 transition-colors hover:bg-surface-hover/50"
+                  className="project-card relative flex gap-5 rounded-md p-6 transition-colors hover:bg-surface-hover/50"
                 >
                   <span className="project-number flex size-9 shrink-0 items-center justify-center rounded-sm bg-accent-soft text-sm text-accent-text tabular-nums">
                     {String(index + 1).padStart(2, '0')}
