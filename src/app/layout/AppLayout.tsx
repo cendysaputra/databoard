@@ -1,5 +1,6 @@
-import { Outlet, useLocation } from '@tanstack/react-router';
-import { Suspense } from 'react';
+import { Outlet, useLocation, useRouter } from '@tanstack/react-router';
+import { Suspense, useEffect } from 'react';
+import { data } from '@/data';
 import { useSettings } from '@/shared/hooks/use-settings';
 import { t } from '@/shared/i18n/id';
 import { Toaster } from '@/shared/ui/Toaster';
@@ -15,6 +16,10 @@ export function AppLayout() {
   const onboarded = Boolean(settings?.profile_name.trim());
   // No shortcuts while the first-start profile form is the only thing on screen.
   useShortcuts(onboarded);
+
+  // The desktop shell can ask the open window for a page, e.g. "Event baru" in the tray menu.
+  const router = useRouter();
+  useEffect(() => data.onNavigate((path) => router.history.push(path)), [router]);
 
   // A fresh install has no profile yet: ask for it before showing the app.
   if (settings && !onboarded) return <Onboarding settings={settings} />;
