@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from '@tanstack/react-router';
+import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { Pin, Plus } from 'lucide-react';
 import { lazy, useState } from 'react';
 import { useSelection } from '@/shared/hooks/use-selection';
@@ -15,7 +15,17 @@ import { Row, Rows } from '@/shared/ui/Rows';
 import { Select } from '@/shared/ui/Select';
 import { SelectionBar } from '@/shared/ui/SelectionBar';
 import { formatDayMonth, fromIsoDay } from '@/shared/utils/date';
-import { useLabels, useNote, useNotes, useRemoveNote, useRemoveNotes, useSaveNote } from './api';
+import { toDateInput } from '@/shared/utils/datetime-input';
+import {
+  useLabels,
+  useLinkedEvent,
+  useNote,
+  useNotes,
+  useRemoveNote,
+  useRemoveNotes,
+  useSaveNote,
+} from './api';
+import type { NotePrefill } from './components/NoteForm';
 import { LabelManager } from './components/LabelManager';
 
 const text = t.notes;
@@ -164,7 +174,7 @@ function NoteList({ labels }: { labels: Tag[] }) {
   );
 }
 
-/** Notes filtered by label and status. Search and linking to events come later. */
+/** Notes filtered by label and status. */
 export function NotesPage() {
   const labels = useLabels();
 
@@ -184,7 +194,7 @@ export function NotesPage() {
   );
 }
 
-function NoteEditor({ note }: { note?: Note }) {
+function NoteEditor({ note, prefill }: { note?: Note; prefill?: NotePrefill }) {
   const navigate = useNavigate();
   const labels = useLabels();
   const save = useSaveNote(note?.id);
@@ -196,6 +206,7 @@ function NoteEditor({ note }: { note?: Note }) {
         {(allLabels) => (
           <NoteForm
             note={note}
+            prefill={prefill}
             labels={allLabels}
             saving={save.isPending}
             error={save.error ?? remove.error}
@@ -231,8 +242,21 @@ function NoteEditor({ note }: { note?: Note }) {
   );
 }
 
+/** A new note. With `?event=<id>` it starts as meeting notes for that event. */
 export function NoteNewPage() {
-  return <NoteEditor />;
+  const { event: eventId } = useSearch({ strict: false });
+  const event = useLinkedEvent(eventId ?? null);
+
+  if (!eventId) return <NoteEditor />;
+  return (
+    <QueryBoundary query={event}>
+      {(value) => (
+        <NoteEditor
+          prefill={{ title: value.title, date: toDateInput(value.start_at), eventId: value.id }}
+        />
+      )}
+    </QueryBoundary>
+  );
 }
 
 export function NoteEditPage() {
