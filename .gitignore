@@ -9,3 +9,6 @@ src-tauri/gen/
 # Updater signing keys must never be committed.
 *.key
 *.key.pub
+
+# The MCP server built for the installer (scripts/build-mcp.mjs).
+src-tauri/binaries/
