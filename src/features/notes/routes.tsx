@@ -111,7 +111,6 @@ export function NotesPage() {
     <>
       <PageHeader
         title={t.notes.title}
-        subtitle={t.notes.subtitle}
         actions={
           <Link to="/notes/new" className={buttonClass('primary')}>
             <Plus aria-hidden className="size-4" />
