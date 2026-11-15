@@ -92,6 +92,13 @@
     outline-offset: 2px;
   }
 
+  /* Text fields and selects show no focus outline; the caret marks the focus. */
+  input:not([type='checkbox'], [type='radio'], [type='color']):focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+  }
+
   button:not(:disabled),
   [role='button'] {
     cursor: pointer;
@@ -215,9 +222,10 @@
   }
 }
 
-/* App frame and sidebar. */
+/* App frame: the sidebar and the content are two cards side by side. */
 @layer components {
-  .app-frame {
+  .app-sidebar,
+  .app-panel {
     box-shadow: 0 12px 48px -30px rgb(0 0 0 / 0.08);
   }
   .app-main {
@@ -307,8 +315,7 @@
 
   /* Framed blocks of the main column. */
   .day-timeline,
-  .dashboard-panel,
-  .dashboard-charts > section {
+  .dashboard-panel {
     border: 1px solid var(--border);
     border-radius: var(--radius-card);
     background: var(--surface);
@@ -316,8 +323,7 @@
   .day-timeline {
     padding: 22px 12px 12px;
   }
-  .dashboard-panel,
-  .dashboard-charts > section {
+  .dashboard-panel {
     padding: 22px;
   }
   .recent-note {
@@ -325,23 +331,26 @@
     padding-block: 8px 16px;
   }
 
-  /* Calendar column at the right. */
+  /* Right column: the month card, then the card of coming events. */
   .calendar-column {
     display: flex;
     flex-direction: column;
     align-self: start;
     min-width: 0;
-    gap: 22px;
+    gap: 20px;
+  }
+  .calendar-widget,
+  .calendar-events {
+    min-width: 0;
     padding: 20px;
     border: 1px solid var(--border);
     border-radius: var(--radius-card);
     background: var(--surface);
   }
-  .calendar-heading {
+  .calendar-events {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
+    flex-direction: column;
+    gap: 22px;
   }
   .next-event {
     padding: 16px;
@@ -378,14 +387,6 @@
   }
   .agenda-item:hover {
     background: var(--surface-hover);
-  }
-  .agenda-marker {
-    flex-shrink: 0;
-    width: 6px;
-    height: 6px;
-    margin-top: 6px;
-    border-radius: 50%;
-    background: var(--text-muted);
   }
 }
 
@@ -466,15 +467,7 @@
   .calendar-column {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
-    padding: 22px;
-  }
-  .calendar-widget {
-    grid-row: span 2;
-  }
-  .calendar-agenda {
-    padding-top: 0;
-    border-top: 0;
+    align-items: start;
   }
 }
 
@@ -482,9 +475,18 @@
   .app-canvas {
     padding: 0;
   }
+  /* Small screens: the two cards sit flush, split by a single line. */
   .app-frame {
-    border: 0;
+    gap: 0;
+  }
+  .app-sidebar,
+  .app-panel {
+    border-width: 0;
     border-radius: 0;
+    box-shadow: none;
+  }
+  .app-sidebar {
+    border-right-width: 1px;
   }
   .app-content {
     padding: 24px;
@@ -492,7 +494,6 @@
 }
 
 @media (max-width: 700px) {
-  .dashboard-charts,
   .project-grid,
   .form-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -571,16 +572,9 @@
   .recent-notes {
     grid-template-columns: minmax(0, 1fr);
   }
-  .calendar-widget {
-    grid-row: auto;
-  }
-  .calendar-column {
-    gap: 22px;
+  .calendar-widget,
+  .calendar-events {
     padding: 16px;
-  }
-  .calendar-agenda {
-    padding-top: 18px;
-    border-top: 1px solid var(--border);
   }
   .dashboard-greeting h1 {
     font-size: 28px;
