@@ -156,7 +156,8 @@ pub fn update(conn: &Connection, id: &str, input: &EventInput) -> Result<Calenda
     get(conn, id)
 }
 
-/// Soft-deletes the event together with its reminders.
+/// Soft-deletes the event together with its reminders, and unlinks the notes written for it.
+/// A soft delete never fires the schema's `ON DELETE` rules, so both are done here.
 pub fn remove(conn: &Connection, id: &str) -> Result<()> {
     soft_delete(conn, TABLE, id)?;
     conn.execute(
@@ -164,13 +165,46 @@ pub fn remove(conn: &Connection, id: &str) -> Result<()> {
          WHERE event_id = ?2 AND deleted_at IS NULL",
         params![now(), id],
     )?;
+    conn.execute("UPDATE notes SET event_id = NULL WHERE event_id = ?1", [id])?;
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::notes::{self, NoteInput, NoteStatus};
     use crate::Db;
+
+    #[test]
+    fn removing_an_event_unlinks_its_notes() {
+        let db = Db::open_in_memory().unwrap();
+        db.with_tx(|c| {
+            let event = create(
+                c,
+                &input("Rapat", "2026-11-20T09:00:00Z", "2026-11-20T10:00:00Z"),
+            )?;
+            let note = notes::create(
+                c,
+                &NoteInput {
+                    title: "Notulen".into(),
+                    body_md: String::new(),
+                    event_id: Some(event.id.clone()),
+                    project_id: None,
+                    pinned: false,
+                    note_date: "2026-11-20".into(),
+                    status: NoteStatus::Draft,
+                    label_ids: vec![],
+                },
+            )?;
+            assert_eq!(notes::get(c, &note.id)?.event_id, Some(event.id.clone()));
+
+            remove(c, &event.id)?;
+            // The note stays; only its link to the removed event is gone.
+            assert_eq!(notes::get(c, &note.id)?.event_id, None);
+            Ok(())
+        })
+        .unwrap();
+    }
 
     fn input(title: &str, start: &str, end: &str) -> EventInput {
         EventInput {
