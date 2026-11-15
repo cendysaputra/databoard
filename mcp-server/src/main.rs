@@ -1,8 +1,5 @@
-//! MCP server for the dashboard (stdio transport).
-//!
-//! It opens the same database file as the desktop app (WAL and a busy timeout let both
-//! work on it at once) and offers the tools in `tools.rs`. Standard output carries the
-//! protocol only; anything for a human goes to standard error.
+//! MCP server for the dashboard (stdio transport), on the same database file as the app.
+//! Standard output carries the protocol only; anything for a human goes to standard error.
 
 mod tools;
 
