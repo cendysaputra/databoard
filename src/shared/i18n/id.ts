@@ -234,7 +234,7 @@ export const t = {
     },
     /** The meeting template: one heading per section, then an empty checklist. */
     template: {
-      meeting: 'Meeting',
+      meeting: 'Notulen meeting',
       sections: ['Agenda', 'Peserta', 'Catatan', 'Keputusan'],
       actionItems: 'Action Items',
     },
