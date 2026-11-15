@@ -5,7 +5,9 @@ import type { RecordingFile } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
 import { FormError } from '@/shared/ui/FormError';
 import { FormField } from '@/shared/ui/FormField';
+import { RecordIcon } from '@/shared/ui/icons';
 import { Input } from '@/shared/ui/Input';
+import { LabelChip } from '@/shared/ui/LabelChip';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { Row, Rows } from '@/shared/ui/Rows';
@@ -208,61 +210,63 @@ export function RecorderPage() {
       {!isRecordingSupported ? (
         <p className="text-muted">{text.unsupported}</p>
       ) : (
-        <div className="flex flex-col gap-8">
-          {recorder.status === 'idle' && (
-            <section className="editor-panel flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                {(
-                  [
-                    [text.options.systemAudio, systemAudio, setSystemAudio],
-                    [text.options.microphone, microphone, setMicrophone],
-                  ] as const
-                ).map(([label, checked, set]) => (
-                  <label key={label} className="flex w-fit items-center gap-2">
-                    <input
-                      type="checkbox"
-                      className="size-4 accent-(--accent)"
-                      checked={checked}
-                      onChange={(event) => set(event.target.checked)}
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-              <p className="text-sm text-muted">{text.pickHint}</p>
-              {recorder.error && (
-                <p role="alert" className="text-sm text-danger">
-                  {text.denied}
-                </p>
-              )}
-              <Button
-                variant="primary"
-                className="w-fit"
-                onClick={() => void recorder.start({ systemAudio, microphone })}
+        <div className="flex flex-col gap-10">
+          {/* The recorder takes the wide column; the Drive connection sits beside it. */}
+          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+            {recorder.status === 'done' && recorder.recording ? (
+              <Result recording={recorder.recording} onDiscard={recorder.discard} />
+            ) : (
+              <section
+                aria-live="polite"
+                className="editor-panel flex min-h-80 flex-col items-center justify-center gap-6 text-center"
               >
-                <Circle aria-hidden className="size-4 fill-current" />
-                {text.start}
-              </Button>
-            </section>
-          )}
+                {recorder.status === 'recording' ? (
+                  <>
+                    <p className="flex items-center gap-2.5 text-sm font-medium">
+                      <span className="size-2.5 animate-pulse rounded-full bg-danger" />
+                      {text.recording}
+                    </p>
+                    <p className="text-3xl leading-none font-semibold tabular-nums">
+                      {clock(recorder.seconds)}
+                    </p>
+                    <Button onClick={recorder.stop}>
+                      <Square aria-hidden className="size-4 fill-current" />
+                      {text.stop}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex size-16 items-center justify-center rounded-full bg-surface-hover text-muted">
+                      <RecordIcon className="size-7" />
+                    </span>
+                    <p className="max-w-sm text-sm text-muted">{text.pickHint}</p>
+                    <div role="group" className="flex flex-wrap justify-center gap-1.5">
+                      <LabelChip active={systemAudio} onClick={() => setSystemAudio(!systemAudio)}>
+                        {text.options.systemAudio}
+                      </LabelChip>
+                      <LabelChip active={microphone} onClick={() => setMicrophone(!microphone)}>
+                        {text.options.microphone}
+                      </LabelChip>
+                    </div>
+                    {recorder.error && (
+                      <p role="alert" className="text-sm text-danger">
+                        {text.denied}
+                      </p>
+                    )}
+                    <Button
+                      variant="primary"
+                      onClick={() => void recorder.start({ systemAudio, microphone })}
+                    >
+                      <Circle aria-hidden className="size-4 fill-current" />
+                      {text.start}
+                    </Button>
+                  </>
+                )}
+              </section>
+            )}
 
-          {recorder.status === 'recording' && (
-            <section className="editor-panel flex flex-wrap items-center gap-5" aria-live="polite">
-              <span className="size-3 animate-pulse rounded-sm bg-danger" />
-              <p className="font-medium">{text.recording}</p>
-              <p className="text-2xl font-semibold tabular-nums">{clock(recorder.seconds)}</p>
-              <Button onClick={recorder.stop}>
-                <Square aria-hidden className="size-4 fill-current" />
-                {text.stop}
-              </Button>
-            </section>
-          )}
-
-          {recorder.status === 'done' && recorder.recording && (
-            <Result recording={recorder.recording} onDiscard={recorder.discard} />
-          )}
-
-          <DrivePanel />
+            <DrivePanel />
+          </div>
 
           <SavedRecordings />
         </div>
