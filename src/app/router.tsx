@@ -98,6 +98,9 @@ const calendarEditRoute = createRoute({
 const notesNewRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/notes/new',
+  // `?event=<id>` starts the note for that event.
+  validateSearch: (search: Record<string, unknown>): { event?: string } =>
+    typeof search.event === 'string' ? { event: search.event } : {},
   component: lazyRouteComponent(() => import('@/features/notes/routes'), 'NoteNewPage'),
 });
 
