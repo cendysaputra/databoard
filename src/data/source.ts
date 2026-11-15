@@ -141,7 +141,7 @@ export interface DataSource {
    * (e.g. "Event baru" in the tray menu). Returns a function that stops listening.
    */
   onNavigate(handler: (path: string) => void): () => void;
-  /** Opens a web address in the system browser (desktop: only Google Drive links are allowed). */
+  /** Opens a web address in the system browser (desktop: only `https` addresses are allowed). */
   openUrl(url: string): Promise<void>;
   /** Shows a notification: native on desktop, Web Notification or toast in the browser. */
   notify(title: string, body: string): Promise<void>;
