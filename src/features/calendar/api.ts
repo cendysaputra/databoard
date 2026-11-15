@@ -20,6 +20,15 @@ export function useEvents(today: Date) {
   });
 }
 
+/** Events between two moments, for the month grid. */
+export function useEventsBetween(from: Date, to: Date) {
+  const range = { from: from.toISOString(), to: to.toISOString() };
+  return useQuery({
+    queryKey: ['events', 'between', range.from, range.to],
+    queryFn: () => data.events.list(range),
+  });
+}
+
 export function useEvent(id: string) {
   return useQuery({ queryKey: ['events', 'one', id], queryFn: () => data.events.get(id) });
 }

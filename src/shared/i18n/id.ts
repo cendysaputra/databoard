@@ -156,11 +156,23 @@ export const t = {
   },
   calendar: {
     title: 'Kalender',
-    subtitle: 'Event dari awal bulan ini sampai 6 bulan ke depan',
     emptyTitle: 'Belum ada event',
     emptyBody: 'Event yang kamu tambahkan akan muncul di sini.',
     allDay: 'Seharian',
     new: 'Event baru',
+    view: {
+      label: 'Tampilan',
+      list: 'Daftar',
+      month: 'Kalender',
+    },
+    group: {
+      label: 'Kelompokkan per',
+      day: 'Hari',
+      week: 'Minggu',
+      month: 'Bulan',
+    },
+    backToToday: 'Hari ini',
+    more: (n: number) => `+${n} lagi`,
     form: {
       title: 'Judul',
       start: 'Mulai',
