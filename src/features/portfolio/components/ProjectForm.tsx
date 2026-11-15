@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type FormEvent, type ReactNode } from 'react';
+import { lazy, Suspense, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { LabelChip } from '@/shared/ui/LabelChip';
 import { t } from '@/shared/i18n/id';
 import type { Project, ProjectInput, ProjectStatus } from '@/shared/types';
@@ -7,6 +7,8 @@ import { FormError } from '@/shared/ui/FormError';
 import { FormField } from '@/shared/ui/FormField';
 import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
+import { useUploadCover } from '../api';
+import { Cover } from './Cover';
 
 // The rich text engine is heavy, so it loads with the form instead of with the project list.
 const RichEditor = lazy(() =>
@@ -62,7 +64,10 @@ export function ProjectForm({
     repo_url: project?.repo_url ?? '',
     status: project?.status ?? ('draft' as ProjectStatus),
     description_md: project?.description_md ?? '',
+    cover_path: project?.cover_path ?? null,
   });
+  const upload = useUploadCover();
+  const filePicker = useRef<HTMLInputElement>(null);
   const set = (changes: Partial<typeof form>) => setForm((current) => ({ ...current, ...changes }));
 
   const kindOptions = withCurrent(kinds, form.kind ? [form.kind] : []);
@@ -86,8 +91,7 @@ export function ProjectForm({
       url: form.url,
       repo_url: form.repo_url,
       description_md: form.description_md,
-      // The cover image is desktop-only and comes with the upload feature.
-      cover_path: project?.cover_path ?? null,
+      cover_path: form.cover_path,
       status: form.status,
       // The order is not edited here: a project keeps its place, a new one goes last.
       sort_order: project?.sort_order ?? nextSortOrder,
@@ -199,6 +203,42 @@ export function ProjectForm({
             ))}
           </div>
         )}
+      </div>
+
+      <div>
+        <p className="label mb-2">{text.cover}</p>
+        <div className="max-w-md">
+          {form.cover_path ? (
+            <Cover path={form.cover_path} alt={text.coverAlt(form.title)} />
+          ) : (
+            <div className="flex aspect-video items-center justify-center rounded-sm border border-dashed border-border text-sm text-muted">
+              {text.coverNone}
+            </div>
+          )}
+        </div>
+        <input
+          ref={filePicker}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            // Cleared so picking the same file again is noticed.
+            event.target.value = '';
+            if (file) upload.mutate(file, { onSuccess: (cover_path) => set({ cover_path }) });
+          }}
+        />
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button disabled={upload.isPending} onClick={() => filePicker.current?.click()}>
+            {form.cover_path ? text.coverReplace : text.coverChoose}
+          </Button>
+          {form.cover_path && (
+            <Button variant="ghost" onClick={() => set({ cover_path: null })}>
+              {text.coverRemove}
+            </Button>
+          )}
+        </div>
+        <FormError error={upload.error} />
       </div>
 
       <div>
