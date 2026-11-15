@@ -22,6 +22,7 @@ tauri-plugin-dialog = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-opener = "2"
 tauri-plugin-single-instance = "2"
+tauri-plugin-updater = "2"
 
 # Google Drive upload: OAuth in the system browser, token in the OS credential store.
 base64 = "0.22"
