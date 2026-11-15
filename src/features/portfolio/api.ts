@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { data } from '@/data';
 import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
 import type { ProjectInput } from '@/shared/types';
+import { resizeImage } from '@/shared/utils/image';
 
 /** All projects in their manual order. */
 export function useProjects() {
@@ -60,5 +61,22 @@ export function useRemoveProjects() {
     onSuccess: () => notifyDeleted(),
     // Also after a failure, so the list shows what was really removed.
     onSettled: () => refresh(),
+  });
+}
+
+/** An address to show a stored cover with. Idle without a cover; never refetched. */
+export function useCoverUrl(path: string | null) {
+  return useQuery({
+    queryKey: ['media', path],
+    queryFn: () => data.media.url(path ?? ''),
+    enabled: path !== null,
+    staleTime: Infinity,
+  });
+}
+
+/** Shrinks a picked image and stores it; resolves to the path for `cover_path`. */
+export function useUploadCover() {
+  return useMutation({
+    mutationFn: async (file: File) => data.media.save(await resizeImage(file)),
   });
 }
