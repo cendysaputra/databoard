@@ -180,13 +180,20 @@ function Toolbar({ editor }: { editor: Editor }) {
 interface RichEditorProps {
   /** The document as markdown; read once when the editor is created. */
   initialMarkdown: string;
-  onChange(markdown: string): void;
+  onChange?(markdown: string): void;
   /** Hands the editor to the parent, which needs it for export. */
-  onReady(editor: Editor): void;
+  onReady?(editor: Editor): void;
+  /** Shows the document without a toolbar and without letting it be changed. */
+  readOnly?: boolean;
 }
 
 /** WYSIWYG editor (headings, lists, checklists, quotes, links…) that stores markdown. */
-export function RichEditor({ initialMarkdown, onChange, onReady }: RichEditorProps) {
+export function RichEditor({
+  initialMarkdown,
+  onChange,
+  onReady,
+  readOnly = false,
+}: RichEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3] }, link: { openOnClick: false } }),
@@ -197,19 +204,20 @@ export function RichEditor({ initialMarkdown, onChange, onReady }: RichEditorPro
     ],
     content: initialMarkdown,
     contentType: 'markdown',
-    editorProps: { attributes: { class: 'rich-text min-h-72 py-5' } },
-    onUpdate: ({ editor: current }) => onChange(current.getMarkdown()),
+    editable: !readOnly,
+    editorProps: { attributes: { class: readOnly ? 'rich-text' : 'rich-text min-h-72 py-5' } },
+    onUpdate: ({ editor: current }) => onChange?.(current.getMarkdown()),
   });
 
   useEffect(() => {
-    if (editor) onReady(editor);
+    if (editor) onReady?.(editor);
   }, [editor, onReady]);
 
   if (!editor) return null;
 
   return (
     <div>
-      <Toolbar editor={editor} />
+      {!readOnly && <Toolbar editor={editor} />}
       <EditorContent editor={editor} />
     </div>
   );
