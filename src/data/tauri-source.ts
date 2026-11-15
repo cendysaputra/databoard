@@ -80,6 +80,19 @@ export const tauriSource: DataSource = {
     get: () => invoke('settings_get'),
     update: (input) => invoke('settings_update', { input }),
   },
+  media: {
+    async save(image) {
+      const extension =
+        image.type === 'image/webp' ? 'webp' : image.type === 'image/png' ? 'png' : 'jpg';
+      return invoke<string>('media_save', await image.arrayBuffer(), {
+        headers: { 'x-extension': extension },
+      });
+    },
+    async url(path) {
+      const bytes = await invoke<ArrayBuffer>('media_read', { name: path });
+      return URL.createObjectURL(new Blob([bytes]));
+    },
+  },
   autostart: {
     get: () => invoke('autostart_get'),
     set: (enabled) => invoke('autostart_set', { enabled }),
