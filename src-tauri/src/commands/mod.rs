@@ -2,6 +2,7 @@
 //! Validation and business rules live in the domain functions.
 
 pub mod autostart;
+pub mod backup;
 pub mod collections;
 pub mod entries;
 pub mod events;
