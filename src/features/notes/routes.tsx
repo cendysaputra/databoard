@@ -1,17 +1,20 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { Pin, Plus } from 'lucide-react';
 import { lazy, useState } from 'react';
+import { useSelection } from '@/shared/hooks/use-selection';
 import { t } from '@/shared/i18n/id';
 import type { Note, Tag } from '@/shared/types';
 import { Button, buttonClass } from '@/shared/ui/Button';
 import { ConfirmButton } from '@/shared/ui/ConfirmButton';
 import { EmptyState } from '@/shared/ui/EmptyState';
+import { FormError } from '@/shared/ui/FormError';
 import { NotesIcon } from '@/shared/ui/icons';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { Row, Rows } from '@/shared/ui/Rows';
+import { SelectionBar } from '@/shared/ui/SelectionBar';
 import { formatDayMonth, fromIsoDay } from '@/shared/utils/date';
-import { useLabels, useNote, useNotes, useRemoveNote, useSaveNote } from './api';
+import { useLabels, useNote, useNotes, useRemoveNote, useRemoveNotes, useSaveNote } from './api';
 import { LabelChip } from './components/LabelChip';
 import { LabelManager } from './components/LabelManager';
 
@@ -28,6 +31,9 @@ function NoteList({ labels }: { labels: Tag[] }) {
   const activeLabel = labels.some((label) => label.id === labelId) ? labelId : null;
   const notes = useNotes(activeLabel);
   const nameOf = (id: string) => labels.find((label) => label.id === id)?.name;
+  // Picks follow the notes on screen, so changing the label filter narrows them too.
+  const selection = useSelection((notes.data ?? []).map((note) => note.id));
+  const remove = useRemoveNotes();
 
   return (
     <>
@@ -45,10 +51,18 @@ function NoteList({ labels }: { labels: Tag[] }) {
           </LabelChip>
         ))}
         <div className="flex-1" />
+        {(notes.data?.length ?? 0) > 0 && (
+          <SelectionBar
+            selection={selection}
+            deleting={remove.isPending}
+            onDelete={(ids) => remove.mutate(ids)}
+          />
+        )}
         <Button variant="ghost" onClick={() => setManaging(true)}>
           {t.notes.labels.manage}
         </Button>
       </div>
+      <FormError error={remove.error} />
 
       <QueryBoundary query={notes}>
         {(items) =>
@@ -63,6 +77,15 @@ function NoteList({ labels }: { labels: Tag[] }) {
               {items.map((note) => (
                 <Row
                   key={note.id}
+                  select={
+                    selection.active
+                      ? {
+                          checked: selection.isSelected(note.id),
+                          label: t.common.selectItem(note.title),
+                          onChange: () => selection.toggle(note.id),
+                        }
+                      : undefined
+                  }
                   lead={formatDayMonth(fromIsoDay(note.note_date))}
                   trail={
                     <span className="flex items-center gap-2">
