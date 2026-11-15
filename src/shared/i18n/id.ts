@@ -40,6 +40,8 @@ export const t = {
     goTo: (page: string) => `Buka ${page}`,
     toggleTheme: 'Ganti tema terang/gelap',
     toggleSidebar: 'Ciutkan/lebarkan sidebar',
+    /** Shown beside a command that has a keyboard shortcut. */
+    shortcut: (key: string) => `Ctrl+${key}`,
   },
   theme: {
     label: 'Tema',
@@ -165,6 +167,7 @@ export const t = {
     emptyBody: 'Event yang kamu tambahkan akan muncul di sini.',
     allDay: 'Seharian',
     new: 'Event baru',
+    createNote: 'Buat catatan',
     view: {
       label: 'Tampilan',
       list: 'Daftar',
@@ -215,6 +218,10 @@ export const t = {
       date: 'Tanggal',
       labels: 'Label',
       pin: 'Sematkan di atas',
+      event: 'Event',
+      eventNone: 'Tanpa event',
+      eventOpen: 'Buka event',
+      template: 'Template',
       body: 'Deskripsi',
       bodyPlaceholder: 'Tulis di sini…',
       publish: 'Terbitkan',
@@ -224,6 +231,19 @@ export const t = {
       exportPdf: 'PDF',
       exportPdfHint: 'Pilih "Simpan sebagai PDF" di dialog cetak.',
       untitled: 'catatan',
+    },
+    /** The meeting template: one heading per section, then an empty checklist. */
+    template: {
+      meeting: 'Meeting',
+      sections: ['Agenda', 'Peserta', 'Catatan', 'Keputusan'],
+      actionItems: 'Action Items',
+    },
+    actions: {
+      title: 'Action item bertanggal',
+      hint: 'Tambahkan tanggal di akhir butir centang, mis. @2026-11-20 09:00, untuk menjadikannya pengingat.',
+      remind: 'Jadikan pengingat',
+      reminded: 'Pengingat dibuat',
+      saveFirst: 'Simpan catatan dulu untuk membuat pengingat.',
     },
     labels: {
       manage: 'Kelola label',
@@ -364,5 +384,14 @@ export const t = {
     notification: 'Notifikasi',
     testNotification: 'Tes notifikasi',
     testNotificationBody: 'Notifikasi berfungsi.',
+    data: {
+      title: 'Data',
+      export: 'Ekspor',
+      exportJson: 'Semua data (JSON)',
+      exportCsv: 'Project (CSV)',
+      exportNotes: 'Catatan (Markdown)',
+      done: 'Ekspor selesai',
+      notesDone: (n: number) => `${n} catatan diekspor`,
+    },
   },
 } as const;
