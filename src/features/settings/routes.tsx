@@ -6,6 +6,7 @@ import { FormError } from '@/shared/ui/FormError';
 import { Input } from '@/shared/ui/Input';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
+import { Segmented } from '@/shared/ui/Segmented';
 import { notifySaved, showToast } from '@/shared/ui/toast';
 import { cn } from '@/shared/utils/cn';
 import {
@@ -253,18 +254,20 @@ function DataPanel() {
 }
 
 /** A block of text to paste somewhere else, with a button that copies it. */
-function Snippet({ label, code }: { label: string; code: string }) {
+function Snippet({ label, hint, code }: { label: string; hint: string; code: string }) {
   return (
     <div className="mb-6 last:mb-0">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <p className="label">{label}</p>
+      <div className="mb-2 flex items-end justify-between gap-3">
+        <div>
+          <p className="label">{label}</p>
+          <p className="mt-1 text-xs text-muted">{hint}</p>
+        </div>
         <Button
-          className="h-8 px-3 text-xs"
           onClick={() =>
-            void navigator.clipboard.writeText(code).then(() => showToast(t.settings.ai.copied))
+            void navigator.clipboard.writeText(code).then(() => showToast(t.settings.agent.copied))
           }
         >
-          {t.settings.ai.copy}
+          {t.settings.agent.copy}
         </Button>
       </div>
       <pre className="overflow-x-auto rounded-sm border border-border bg-surface-hover p-4 font-mono text-xs leading-relaxed">
@@ -274,24 +277,55 @@ function Snippet({ label, code }: { label: string; code: string }) {
   );
 }
 
-/** Ready-to-paste configuration that connects Claude to the app's MCP server. */
-function AiPanel() {
+type AgentClient = keyof typeof t.settings.agent.clients;
+const agentClients = Object.keys(t.settings.agent.clients) as AgentClient[];
+
+/** Name the app's server goes by in a client's configuration. */
+const SERVER_NAME = 'databoard';
+
+/** The configuration that registers the server at `command`, in the form each client reads. */
+const agentConfig: Record<AgentClient, (command: string) => string> = {
+  json: (command) => JSON.stringify({ mcpServers: { [SERVER_NAME]: { command } } }, null, 2),
+  vscode: (command) =>
+    JSON.stringify({ servers: { [SERVER_NAME]: { type: 'stdio', command } } }, null, 2),
+  // A TOML literal string (single quotes) keeps the backslashes of a Windows path as they are.
+  codex: (command) => `[mcp_servers.${SERVER_NAME}]\ncommand = '${command}'`,
+  claudeCode: (command) => `claude mcp add ${SERVER_NAME} -- "${command}"`,
+};
+
+/** Ready-to-paste configuration that connects an AI agent to the app's data. */
+function AgentPanel() {
   const path = useMcpServerPath();
-  const text = t.settings.ai;
+  const [client, setClient] = useState<AgentClient>('json');
+  const text = t.settings.agent;
 
   return (
     <QueryBoundary query={path}>
       {(serverPath) => {
         const command = serverPath ?? text.examplePath;
-        const desktopConfig = { mcpServers: { databoard: { command } } };
         return (
           <>
             <p className="mb-6 text-sm text-muted">
               {text.intro}
               {serverPath === null && ` ${text.browserNote}`}
             </p>
-            <Snippet label={text.desktop} code={JSON.stringify(desktopConfig, null, 2)} />
-            <Snippet label={text.code} code={`claude mcp add databoard -- "${command}"`} />
+            <div className="mb-6">
+              <Segmented<AgentClient>
+                label={text.client}
+                value={client}
+                onChange={setClient}
+                options={agentClients.map((name) => ({
+                  value: name,
+                  label: text.clients[name].label,
+                }))}
+              />
+            </div>
+            <Snippet
+              label={text.clients[client].label}
+              hint={text.clients[client].hint}
+              code={agentConfig[client](command)}
+            />
+            <Snippet label={text.program} hint={text.programHint} code={command} />
           </>
         );
       }}
@@ -346,7 +380,7 @@ function SettingsTabs({ settings }: { settings: Settings }) {
           {tab === 'appearance' && <AppearancePanel settings={settings} save={save} />}
           {tab === 'app' && <AppPanel settings={settings} save={save} />}
           {tab === 'data' && <DataPanel />}
-          {tab === 'ai' && <AiPanel />}
+          {tab === 'agent' && <AgentPanel />}
         </div>
 
         {update.isError && (
