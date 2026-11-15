@@ -9,7 +9,7 @@ import {
   type Icon,
 } from '@/shared/ui/icons';
 
-export interface NavItem {
+interface NavItem {
   to: '/' | '/calendar' | '/notes' | '/portfolio' | '/recorder' | '/settings';
   label: string;
   icon: Icon;
