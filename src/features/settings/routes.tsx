@@ -27,7 +27,7 @@ const DEFAULT_ACCENTS = { accent_color: '#111111', accent_color_secondary: '#8c8
 function Field({ label, children }: { label: string; children(id: string): ReactNode }) {
   const id = useId();
   return (
-    <div className="settings-field flex items-center justify-between gap-6 border-b border-border py-5">
+    <div className="settings-field flex items-center justify-between gap-6 border-b border-border py-5 first:pt-0 last:border-b-0 last:pb-0">
       <label htmlFor={id} className="font-medium">
         {label}
       </label>
