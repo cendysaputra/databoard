@@ -131,9 +131,8 @@ function noteFileName(note: Note, taken: Set<string>): string {
 type DirectoryPicker = (options: { mode: 'readwrite' }) => Promise<FileSystemDirectoryHandle>;
 
 /**
- * Writes every note as its own `.md` file into a folder the user picks. Where the browser
- * cannot write to folders, one combined markdown file is downloaded instead.
- * Resolves to the number of notes exported, or `null` when the folder dialog was cancelled.
+ * Writes each note as a `.md` file into a picked folder, or downloads one combined file
+ * where folders cannot be written. Resolves to the count, or `null` when cancelled.
  */
 export async function exportNotesMarkdown(): Promise<number | null> {
   const pick = (window as Window & { showDirectoryPicker?: DirectoryPicker }).showDirectoryPicker;
