@@ -92,7 +92,11 @@ export function useRemoveEvent() {
 export function useRemoveEvents() {
   const refresh = useRefresh();
   return useMutation({
-    mutationFn: (ids: string[]) => Promise.all(ids.map((id) => data.events.remove(id))),
+    // One after another: the browser store rewrites the whole list on each removal,
+    // so removals running together would undo each other.
+    mutationFn: async (ids: string[]) => {
+      for (const id of ids) await data.events.remove(id);
+    },
     onSuccess: () => notifyDeleted(),
     // Also after a failure, so the list shows what was really removed.
     onSettled: () => refresh(),
