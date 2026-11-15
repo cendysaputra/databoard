@@ -1,12 +1,17 @@
 //! MCP server for the dashboard (stdio transport).
 //!
-//! Phase 1 only settles how the database is located and proves the shared core links.
-//! The MCP tools themselves arrive in phase 5.
+//! It opens the same database file as the desktop app (WAL and a busy timeout let both
+//! work on it at once) and offers the tools in `tools.rs`. Standard output carries the
+//! protocol only; anything for a human goes to standard error.
+
+mod tools;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
 
 use dashboard_core::{Db, DB_FILE};
+use rmcp::transport::stdio;
+use rmcp::ServiceExt;
 
 /// Must match `identifier` in `src-tauri/tauri.conf.json`.
 const APP_IDENTIFIER: &str = "com.cendi.databoard";
@@ -25,7 +30,8 @@ fn db_path() -> Option<PathBuf> {
     std::env::var_os("APPDATA").map(|dir| PathBuf::from(dir).join(APP_IDENTIFIER).join(DB_FILE))
 }
 
-fn main() -> ExitCode {
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> ExitCode {
     let Some(path) = db_path() else {
         eprintln!("mcp-server: no database path; pass --db <path> or set DASHBOARD_DB");
         return ExitCode::FAILURE;
@@ -34,16 +40,25 @@ fn main() -> ExitCode {
         eprintln!("mcp-server: invalid database path {}", path.display());
         return ExitCode::FAILURE;
     };
-    match Db::open(data_dir, env!("CARGO_PKG_VERSION")) {
-        Ok(_) => {
-            eprintln!(
-                "mcp-server: database ready at {}; MCP tools arrive in phase 5",
-                path.display()
-            );
-            ExitCode::SUCCESS
-        }
+    let db = match Db::open(data_dir, env!("CARGO_PKG_VERSION")) {
+        Ok(db) => db,
         Err(err) => {
             eprintln!("mcp-server: cannot open database: {err}");
+            return ExitCode::FAILURE;
+        }
+    };
+    let service = match tools::Dashboard::new(db).serve(stdio()).await {
+        Ok(service) => service,
+        Err(err) => {
+            eprintln!("mcp-server: cannot start: {err}");
+            return ExitCode::FAILURE;
+        }
+    };
+    // Runs until the client closes the connection.
+    match service.waiting().await {
+        Ok(_) => ExitCode::SUCCESS,
+        Err(err) => {
+            eprintln!("mcp-server: stopped: {err}");
             ExitCode::FAILURE
         }
     }
