@@ -198,10 +198,16 @@ export const t = {
     title: 'Catatan',
     emptyTitle: 'Belum ada catatan',
     emptyBody: 'Catatan yang kamu tulis akan muncul di sini.',
-    emptyFiltered: 'Tidak ada catatan dengan label ini.',
+    emptyFiltered: 'Tidak ada catatan yang cocok dengan filter ini.',
     pinned: 'Disematkan',
     new: 'Catatan baru',
-    allLabels: 'Semua',
+    filter: {
+      label: 'Label',
+      status: 'Status',
+      allLabels: 'Semua label',
+      allStatuses: 'Semua status',
+      reset: 'Reset filter',
+    },
     status: { draft: 'Draf', published: 'Terbit' },
     form: {
       title: 'Judul',
