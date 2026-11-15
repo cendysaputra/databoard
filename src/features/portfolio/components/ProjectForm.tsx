@@ -1,4 +1,5 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { lazy, Suspense, useState, type FormEvent, type ReactNode } from 'react';
+import { LabelChip } from '@/features/notes/components/LabelChip';
 import { t } from '@/shared/i18n/id';
 import type { Project, ProjectInput, ProjectStatus } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
@@ -6,16 +7,26 @@ import { FormError } from '@/shared/ui/FormError';
 import { FormField } from '@/shared/ui/FormField';
 import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
-import { Textarea } from '@/shared/ui/Textarea';
+
+// The rich text engine is heavy, so it loads with the form instead of with the project list.
+const RichEditor = lazy(() =>
+  import('@/features/notes/components/RichEditor').then((module) => ({
+    default: module.RichEditor,
+  })),
+);
 
 const text = t.portfolio.form;
 const statuses = Object.keys(t.portfolio.status) as ProjectStatus[];
+const noop = () => {};
 
 interface ProjectFormProps {
   /** The project being edited; leave out to create a new one. */
   project?: Project;
   /** Position given to a new project, normally after the last one. */
   nextSortOrder: number;
+  /** The kinds and tools on offer, from the settings. */
+  kinds: string[];
+  tools: string[];
   saving: boolean;
   error: unknown;
   onSubmit(input: ProjectInput): void;
@@ -23,9 +34,17 @@ interface ProjectFormProps {
   extra?: ReactNode;
 }
 
+/** `names` plus the values a project already has, so a value taken off the list stays visible. */
+const withCurrent = (names: string[], current: string[]) => [
+  ...names,
+  ...current.filter((name) => !names.includes(name)),
+];
+
 export function ProjectForm({
   project,
   nextSortOrder,
+  kinds,
+  tools,
   saving,
   error,
   onSubmit,
@@ -37,14 +56,23 @@ export function ProjectForm({
     client: project?.client ?? '',
     year: project?.year?.toString() ?? '',
     role: project?.role ?? '',
-    stack: project?.stack.join(', ') ?? '',
+    kind: project?.kind ?? '',
+    stack: project?.stack ?? [],
     url: project?.url ?? '',
     repo_url: project?.repo_url ?? '',
     status: project?.status ?? ('draft' as ProjectStatus),
-    sort_order: String(project?.sort_order ?? nextSortOrder),
     description_md: project?.description_md ?? '',
   });
   const set = (changes: Partial<typeof form>) => setForm((current) => ({ ...current, ...changes }));
+
+  const kindOptions = withCurrent(kinds, form.kind ? [form.kind] : []);
+  const toolOptions = withCurrent(tools, form.stack);
+  const toggleTool = (tool: string) =>
+    set({
+      stack: form.stack.includes(tool)
+        ? form.stack.filter((name) => name !== tool)
+        : [...form.stack, tool],
+    });
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -53,17 +81,16 @@ export function ProjectForm({
       client: form.client,
       year: form.year === '' ? null : Number(form.year),
       role: form.role,
-      stack: form.stack
-        .split(',')
-        .map((name) => name.trim())
-        .filter(Boolean),
+      kind: form.kind || null,
+      stack: form.stack,
       url: form.url,
       repo_url: form.repo_url,
       description_md: form.description_md,
       // The cover image is desktop-only and comes with the upload feature.
       cover_path: project?.cover_path ?? null,
       status: form.status,
-      sort_order: Number(form.sort_order) || 0,
+      // The order is not edited here: a project keeps its place, a new one goes last.
+      sort_order: project?.sort_order ?? nextSortOrder,
     });
   };
 
@@ -92,6 +119,18 @@ export function ProjectForm({
             <Input id={id} value={form.role} onChange={(e) => set({ role: e.target.value })} />
           )}
         </FormField>
+        <FormField label={text.kind}>
+          {(id) => (
+            <Select id={id} value={form.kind} onChange={(e) => set({ kind: e.target.value })}>
+              <option value="">{text.kindNone}</option>
+              {kindOptions.map((kind) => (
+                <option key={kind} value={kind}>
+                  {kind}
+                </option>
+              ))}
+            </Select>
+          )}
+        </FormField>
         <FormField label={text.year}>
           {(id) => (
             <Input
@@ -108,7 +147,6 @@ export function ProjectForm({
           {(id) => (
             <Select
               id={id}
-              className="w-full"
               value={form.status}
               onChange={(e) => set({ status: e.target.value as ProjectStatus })}
             >
@@ -142,34 +180,39 @@ export function ProjectForm({
             />
           )}
         </FormField>
-        <FormField label={text.stack}>
-          {(id) => (
-            <Input id={id} value={form.stack} onChange={(e) => set({ stack: e.target.value })} />
-          )}
-        </FormField>
-        <FormField label={text.sortOrder}>
-          {(id) => (
-            <Input
-              id={id}
-              type="number"
-              value={form.sort_order}
-              onChange={(e) => set({ sort_order: e.target.value })}
-            />
-          )}
-        </FormField>
       </div>
 
-      <FormField label={text.description}>
-        {(id) => (
-          <Textarea
-            id={id}
-            rows={8}
-            className="font-mono"
-            value={form.description_md}
-            onChange={(e) => set({ description_md: e.target.value })}
-          />
+      <div>
+        <p className="label mb-2">{text.tools}</p>
+        {toolOptions.length === 0 ? (
+          <p className="text-sm text-muted">{text.toolsNone}</p>
+        ) : (
+          <div role="group" aria-label={text.tools} className="flex flex-wrap gap-1.5">
+            {toolOptions.map((tool) => (
+              <LabelChip
+                key={tool}
+                active={form.stack.includes(tool)}
+                onClick={() => toggleTool(tool)}
+              >
+                {tool}
+              </LabelChip>
+            ))}
+          </div>
         )}
-      </FormField>
+      </div>
+
+      <div>
+        <p className="label mb-2">{text.description}</p>
+        <div className="min-h-56 rounded-sm border border-border bg-surface p-4">
+          <Suspense fallback={<p className="text-sm text-muted">{t.common.loading}</p>}>
+            <RichEditor
+              initialMarkdown={project?.description_md ?? ''}
+              onChange={(description_md) => set({ description_md })}
+              onReady={noop}
+            />
+          </Suspense>
+        </div>
+      </div>
 
       <FormError error={error} />
 
