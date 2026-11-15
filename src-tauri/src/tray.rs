@@ -1,8 +1,5 @@
-//! Tray icon and the main window's life cycle.
-//!
-//! Closing the window destroys it together with its WebView, which is what keeps memory low
-//! while the app sits in the tray. The process stays alive for the reminder scheduler, and
-//! the window is built again from the config when it is asked for.
+//! Tray icon and the main window's life cycle. Closing the window destroys it with its
+//! WebView (low memory in the tray); it is rebuilt from the config when asked for.
 
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
