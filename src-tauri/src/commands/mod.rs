@@ -15,3 +15,4 @@ pub mod recordings;
 pub mod reminders;
 pub mod settings;
 pub mod tags;
+pub mod update;
