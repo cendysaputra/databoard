@@ -93,6 +93,7 @@ export const tauriSource: DataSource = {
       return URL.createObjectURL(new Blob([bytes]));
     },
   },
+  mcp: { serverPath: () => invoke('mcp_server_path') },
   autostart: {
     get: () => invoke('autostart_get'),
     set: (enabled) => invoke('autostart_set', { enabled }),
