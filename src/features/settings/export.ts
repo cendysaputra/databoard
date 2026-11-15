@@ -32,11 +32,6 @@ async function allNotes(): Promise<Note[]> {
 
 /** Downloads everything in the app as one JSON file. */
 export async function exportJson(): Promise<void> {
-  const collections = await data.collections.list();
-  const entries = [];
-  for (const collection of collections) {
-    entries.push(...(await allPages((page) => data.entries.list(collection.id, page))));
-  }
   const content = {
     exported_at: new Date().toISOString(),
     settings: await data.settings.get(),
@@ -45,8 +40,6 @@ export async function exportJson(): Promise<void> {
     notes: await allNotes(),
     labels: await data.tags.list(),
     projects: await data.projects.list(null),
-    collections,
-    entries,
   };
   downloadText(JSON.stringify(content, null, 2), `databoard-${today()}.json`, 'application/json');
 }
