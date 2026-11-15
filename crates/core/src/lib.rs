@@ -1,7 +1,5 @@
 //! Shared core of the dashboard: SQLite access and all business logic.
-//!
-//! Both the Tauri app and the MCP server call into `domain`, so a rule
-//! implemented here behaves the same no matter who triggers it.
+//! The Tauri app and the MCP server both call into `domain`, so rules behave the same in each.
 
 pub mod db;
 pub mod domain;
