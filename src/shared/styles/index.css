@@ -253,7 +253,7 @@
   }
 }
 
-/* Home dashboard. */
+/* Home dashboard. Cards have no outline; the white surface on the canvas sets them apart. */
 @layer components {
   .dashboard-grid {
     display: grid;
@@ -275,19 +275,16 @@
     flex-direction: column;
     justify-content: space-between;
     height: 148px;
-    border: 1px solid var(--border);
     border-radius: var(--radius-card);
     padding: 20px;
     background: var(--surface);
     color: var(--text);
     transition:
-      border-color 220ms ease,
       box-shadow 220ms ease,
       translate 220ms ease;
   }
   /* Hover lifts the card slightly instead of repainting it. */
   .category-card:hover {
-    border-color: color-mix(in oklab, var(--text-muted) 45%, var(--border));
     box-shadow: 0 10px 24px -16px rgb(0 0 0 / 0.22);
     translate: 0 -1px;
   }
@@ -313,7 +310,6 @@
   /* Framed blocks of the main column. */
   .day-timeline,
   .dashboard-panel {
-    border: 1px solid var(--border);
     border-radius: var(--radius-card);
     background: var(--surface);
   }
@@ -350,7 +346,6 @@
   .calendar-events {
     min-width: 0;
     padding: 20px;
-    border: 1px solid var(--border);
     border-radius: var(--radius-card);
     background: var(--surface);
   }
@@ -361,7 +356,6 @@
   }
   .next-event {
     padding: 16px;
-    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--canvas);
   }
@@ -433,7 +427,6 @@
   .settings-panel,
   .editor-panel,
   .note-editor-panel {
-    border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: 28px;
     background: var(--surface);
