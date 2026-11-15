@@ -13,8 +13,8 @@ export function DrivePanel() {
   const disconnect = useDisconnectDrive();
 
   return (
-    <section>
-      <h2 className="mb-5 text-xl font-semibold">{text.title}</h2>
+    <section className="editor-panel">
+      <h2 className="mb-3 text-xl font-semibold">{text.title}</h2>
       {!isDesktop ? (
         <p className="text-sm text-muted">{text.desktopOnly}</p>
       ) : (
