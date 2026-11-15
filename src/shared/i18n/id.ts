@@ -386,7 +386,7 @@ export const t = {
       appearance: 'Tampilan',
       app: 'Aplikasi',
       data: 'Data',
-      ai: 'AI (MCP)',
+      agent: 'Agent',
     },
     profile: {
       name: 'Nama',
@@ -413,11 +413,23 @@ export const t = {
     notification: 'Notifikasi',
     testNotification: 'Tes notifikasi',
     testNotificationBody: 'Notifikasi berfungsi.',
-    ai: {
+    agent: {
       intro:
-        'MCP server memberi Claude akses ke kalender, pengingat, catatan, dan portfolio di app ini. Tambahkan salah satu konfigurasi berikut.',
-      desktop: 'Claude Desktop (claude_desktop_config.json)',
-      code: 'Claude Code (jalankan di terminal)',
+        'Agent AI seperti Claude, ChatGPT (Codex), Gemini, Cursor, atau VS Code bisa membaca dan mengubah kalender, pengingat, catatan, dan portfolio di app ini lewat protokol MCP. Pilih aplikasinya, lalu salin konfigurasinya.',
+      client: 'Aplikasi AI',
+      /** One per way of configuring a client; the hint says where the snippet goes. */
+      clients: {
+        json: {
+          label: 'Umum (JSON)',
+          hint: 'Claude Desktop, Cursor, Windsurf, Gemini CLI: tempel ke file konfigurasi MCP.',
+        },
+        vscode: { label: 'VS Code', hint: 'Tempel ke file mcp.json.' },
+        codex: { label: 'Codex', hint: 'Tempel ke file config.toml.' },
+        claudeCode: { label: 'Claude Code', hint: 'Jalankan di terminal.' },
+      },
+      program: 'Program agent',
+      programHint:
+        'Untuk aplikasi lain yang mendukung MCP: daftarkan program ini sebagai server stdio.',
       copy: 'Salin',
       copied: 'Disalin',
       browserNote: 'Path di bawah hanya contoh; path yang benar tampil di app desktop.',
