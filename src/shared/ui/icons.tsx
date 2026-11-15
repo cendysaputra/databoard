@@ -43,14 +43,6 @@ export function HomeIcon(props: IconProps) {
   );
 }
 
-export function CollectionIcon(props: IconProps) {
-  return (
-    <Outline {...props}>
-      <path d="M18 9.5V5.7a1.7 1.7 0 0 0-1.7-1.7H5.7A1.7 1.7 0 0 0 4 5.7v10.6A1.7 1.7 0 0 0 5.7 18h3.8 M8 7h4 M11.5 10h7a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5h-7a1.5 1.5 0 0 1-1.5-1.5v-5" />
-    </Outline>
-  );
-}
-
 export function CalendarIcon(props: IconProps) {
   return (
     <Outline {...props}>
