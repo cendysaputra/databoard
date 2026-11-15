@@ -32,6 +32,11 @@ export const t = {
     browserMode: 'Mode browser: data contoh disimpan di browser ini.',
     browserBadge: 'Pratinjau',
   },
+  update: {
+    available: (version: string) => `Versi ${version} tersedia`,
+    install: 'Perbarui sekarang',
+    installing: 'Mengunduh pembaruan…',
+  },
   palette: {
     open: 'Cari atau jalankan perintah',
     button: 'Cari',
