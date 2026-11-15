@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import { Plus } from 'lucide-react';
+import { CalendarDays, List, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { CalendarEvent } from '@/shared/types';
@@ -9,62 +9,73 @@ import { EmptyState } from '@/shared/ui/EmptyState';
 import { CalendarIcon } from '@/shared/ui/icons';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
-import { Row, Rows } from '@/shared/ui/Rows';
-import { formatDayMonth, formatTime, formatWeekday } from '@/shared/utils/date';
+import { Segmented } from '@/shared/ui/Segmented';
 import { useEvent, useEvents, useRemoveEvent, useSaveEvent, useSettings } from './api';
 import { EventForm } from './components/EventForm';
+import { GroupedEvents } from './components/EventList';
+import { MonthView } from './components/MonthView';
+import { useCalendarView } from './view-store';
 
-/** Lists upcoming events. Month and week views come later; adding and editing work now. */
+const text = t.calendar;
+
+/** Events as a list grouped by day, week or month, or as a month grid. */
 export function CalendarPage() {
   const [today] = useState(() => new Date());
   const events = useEvents(today);
+  const { view, grouping, setView, setGrouping } = useCalendarView();
 
   return (
     <>
       <PageHeader
-        title={t.calendar.title}
-        subtitle={t.calendar.subtitle}
+        title={text.title}
         actions={
           <Link to="/calendar/new" className={buttonClass('primary')}>
             <Plus aria-hidden className="size-4" />
-            {t.calendar.new}
+            {text.new}
           </Link>
         }
       />
-      <QueryBoundary query={events}>
-        {(items) =>
-          items.length === 0 ? (
-            <EmptyState
-              icon={CalendarIcon}
-              title={t.calendar.emptyTitle}
-              body={t.calendar.emptyBody}
+
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <Segmented
+          label={text.view.label}
+          value={view}
+          onChange={setView}
+          options={[
+            { value: 'list', label: text.view.list, icon: List },
+            { value: 'month', label: text.view.month, icon: CalendarDays },
+          ]}
+        />
+        {view === 'list' && (
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted">{text.group.label}</span>
+            <Segmented
+              label={text.group.label}
+              value={grouping}
+              onChange={setGrouping}
+              options={[
+                { value: 'day', label: text.group.day },
+                { value: 'week', label: text.group.week },
+                { value: 'month', label: text.group.month },
+              ]}
             />
-          ) : (
-            <Rows>
-              {items.map((event) => (
-                <Row
-                  key={event.id}
-                  lead={`${formatWeekday(event.start_at)} ${formatDayMonth(event.start_at)}`}
-                  trail={
-                    event.all_day
-                      ? t.calendar.allDay
-                      : `${formatTime(event.start_at)}–${formatTime(event.end_at)}`
-                  }
-                >
-                  <Link
-                    to="/calendar/$eventId"
-                    params={{ eventId: event.id }}
-                    className="font-medium after:absolute after:inset-0"
-                  >
-                    {event.title}
-                  </Link>
-                  {event.location && <span className="text-muted"> · {event.location}</span>}
-                </Row>
-              ))}
-            </Rows>
-          )
-        }
-      </QueryBoundary>
+          </div>
+        )}
+      </div>
+
+      {view === 'month' ? (
+        <MonthView today={today} />
+      ) : (
+        <QueryBoundary query={events}>
+          {(items) =>
+            items.length === 0 ? (
+              <EmptyState icon={CalendarIcon} title={text.emptyTitle} body={text.emptyBody} />
+            ) : (
+              <GroupedEvents events={items} grouping={grouping} />
+            )
+          }
+        </QueryBoundary>
+      )}
     </>
   );
 }
