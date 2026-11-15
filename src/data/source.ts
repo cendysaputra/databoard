@@ -123,6 +123,13 @@ export interface DataSource {
     get(): Promise<Settings>;
     update(input: Settings): Promise<Settings>;
   };
+  /** Image files kept by the app, such as project covers. */
+  media: {
+    /** Stores an image and resolves to the path to keep in the record (e.g. `cover_path`). */
+    save(image: Blob): Promise<string>;
+    /** An address an `<img>` can show for a stored path. */
+    url(path: string): Promise<string>;
+  };
   /** Starting the app when the user signs in to Windows. Desktop only. */
   autostart: {
     get(): Promise<boolean>;
