@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState, type FormEvent, type ReactNode } from 'react';
-import { LabelChip } from '@/features/notes/components/LabelChip';
+import { LabelChip } from '@/shared/ui/LabelChip';
 import { t } from '@/shared/i18n/id';
 import type { Project, ProjectInput, ProjectStatus } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
@@ -10,7 +10,7 @@ import { Select } from '@/shared/ui/Select';
 
 // The rich text engine is heavy, so it loads with the form instead of with the project list.
 const RichEditor = lazy(() =>
-  import('@/features/notes/components/RichEditor').then((module) => ({
+  import('@/shared/ui/RichEditor').then((module) => ({
     default: module.RichEditor,
   })),
 );
