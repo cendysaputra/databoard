@@ -61,19 +61,6 @@ pub fn optional(value: Option<&str>) -> Option<String> {
         .map(str::to_owned)
 }
 
-/// Turns any text into a URL-style slug: lowercase letters and digits joined by single dashes.
-pub fn slugify(value: &str) -> String {
-    let mut slug = String::new();
-    for ch in value.trim().chars() {
-        if ch.is_ascii_alphanumeric() {
-            slug.push(ch.to_ascii_lowercase());
-        } else if !slug.is_empty() && !slug.ends_with('-') {
-            slug.push('-');
-        }
-    }
-    slug.trim_end_matches('-').to_owned()
-}
-
 /// Soft-deletes one row. `table` is always a constant from this crate, never user input.
 pub fn soft_delete(conn: &Connection, table: &'static str, id: &str) -> Result<()> {
     let now = now();
@@ -95,12 +82,6 @@ mod tests {
         let ts = normalize_ts("start_at", "2026-11-20T09:00:00+07:00").unwrap();
         assert_eq!(ts, "2026-11-20T02:00:00.000Z");
         assert!(normalize_ts("start_at", "tomorrow").is_err());
-    }
-
-    #[test]
-    fn slugifies() {
-        assert_eq!(slugify("  Blog Posts! 2026 "), "blog-posts-2026");
-        assert_eq!(slugify("***"), "");
     }
 
     #[test]
