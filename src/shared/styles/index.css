@@ -244,7 +244,8 @@
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: var(--text);
+    /* Follows the main accent chosen in Pengaturan. */
+    background: var(--accent);
     opacity: 0;
     pointer-events: none;
   }
