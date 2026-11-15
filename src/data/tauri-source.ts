@@ -42,20 +42,6 @@ export const tauriSource: DataSource = {
     update: (id, input) => invoke('projects_update', { id, input }),
     remove: (id) => invoke('projects_remove', { id }),
   },
-  collections: {
-    list: () => invoke('collections_list'),
-    get: (id) => invoke('collections_get', { id }),
-    create: (input) => invoke('collections_create', { input }),
-    update: (id, input) => invoke('collections_update', { id, input }),
-    remove: (id) => invoke('collections_remove', { id }),
-  },
-  entries: {
-    list: (collectionId, page) => invoke('entries_list', { collectionId, page }),
-    get: (id) => invoke('entries_get', { id }),
-    create: (collectionId, input) => invoke('entries_create', { collectionId, input }),
-    update: (id, input) => invoke('entries_update', { id, input }),
-    remove: (id) => invoke('entries_remove', { id }),
-  },
   recordings: {
     async save(name, extension, blob) {
       const file = await invoke<RecordingFile>('recordings_begin', { name, extension });
