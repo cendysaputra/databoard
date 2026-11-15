@@ -18,7 +18,6 @@
 @theme inline {
   --color-*: initial;
   --color-canvas: var(--canvas);
-  --color-canvas-2: var(--canvas-2);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);
@@ -33,16 +32,7 @@
   --color-accent-2-contrast: var(--accent-2-contrast);
   --color-danger: var(--danger);
   --color-overlay: var(--overlay);
-  --color-art-yellow: var(--art-yellow);
-  --color-art-orange: var(--art-orange);
-  --color-art-pink: var(--art-pink);
-  --color-art-purple: var(--art-purple);
-  --color-art-sky: var(--art-sky);
-  --color-art-navy: var(--art-navy);
-  --color-tint-sky: var(--tint-sky);
-  --color-tint-pink: var(--tint-pink);
   --color-tint-yellow: var(--tint-yellow);
-  --color-tint-mint: var(--tint-mint);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
@@ -56,6 +46,7 @@
 
   --spacing: var(--space-unit);
   --radius-sm: var(--radius-sm);
+  --radius-card: var(--radius-card);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
 
@@ -224,19 +215,17 @@
   }
 }
 
-/* Shared chrome, kept independent of the data and navigation layers. */
+/* App frame and sidebar. */
 @layer components {
   .app-frame {
     box-shadow: 0 12px 48px -30px rgb(0 0 0 / 0.08);
   }
+  .app-main {
+    background: var(--canvas);
+    scrollbar-gutter: stable;
+  }
   .app-sidebar {
-    background: color-mix(in oklab, var(--surface-hover) 55%, var(--bg));
-  }
-  .nav-item {
-    background: transparent;
-  }
-  .nav-item[aria-current='page'] {
-    color: var(--text);
+    background: var(--surface);
   }
   .nav-active-dot {
     position: absolute;
@@ -252,95 +241,22 @@
   .nav-item[aria-current='page'] .nav-active-dot {
     opacity: 1;
   }
-  .palette-trigger kbd {
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    padding: 2px 5px;
-  }
-  .app-main {
-    scrollbar-gutter: stable;
-  }
 }
 
-@media (max-width: 900px) {
-  .app-canvas {
-    padding: 0;
-  }
-  .app-frame {
-    border: 0;
-    border-radius: 0;
-  }
-  .app-content {
-    padding: 24px;
-  }
-  .app-topbar {
-    height: 80px;
-    padding-inline: 24px;
-  }
-  .sidebar-brand {
-    height: 80px;
-  }
-}
-
-@media (max-width: 600px) {
-  .app-sidebar {
-    width: 64px;
-  }
-  .sidebar-brand {
-    padding-inline: 16px;
-  }
-  .sidebar-brand > span,
-  .sidebar-nav .nav-label,
-  .sidebar-nav > div {
-    display: none;
-  }
-  .sidebar-nav {
-    padding-inline: 9px;
-    align-items: center;
-  }
-  .sidebar-nav .nav-item {
-    width: 44px;
-    padding-inline: 12px;
-  }
-  .sidebar-footer {
-    padding-inline: 9px;
-  }
-  .app-content {
-    padding: 22px 16px 40px;
-  }
-  .app-topbar {
-    height: 72px;
-    padding-inline: 16px;
-  }
-  .palette-trigger {
-    width: auto;
-    flex: 1;
-    padding-inline: 12px;
-  }
-  .palette-trigger kbd,
-  .app-topbar > div.flex-1 {
-    display: none;
-  }
-  .app-topbar > span {
-    display: none;
-  }
-}
-
+/* Home dashboard. */
 @layer components {
   .dashboard-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 310px;
     gap: 36px;
   }
-  .dashboard-greeting {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 104px;
+  /* The main column is the reference for how many cards fit side by side. */
+  .dashboard-primary {
+    container-type: inline-size;
   }
   .category-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
   }
   .category-card {
@@ -350,7 +266,7 @@
     justify-content: space-between;
     height: 148px;
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: var(--radius-card);
     padding: 20px;
     background: var(--surface);
     color: var(--text);
@@ -388,6 +304,28 @@
     height: 16px;
     color: var(--text-muted);
   }
+
+  /* Framed blocks of the main column. */
+  .day-timeline,
+  .dashboard-panel,
+  .dashboard-charts > section {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+  .day-timeline {
+    padding: 22px 12px 12px;
+  }
+  .dashboard-panel,
+  .dashboard-charts > section {
+    padding: 22px;
+  }
+  .recent-note {
+    border-bottom: 1px solid var(--border);
+    padding-block: 8px 16px;
+  }
+
+  /* Calendar column at the right. */
   .calendar-column {
     display: flex;
     flex-direction: column;
@@ -396,7 +334,7 @@
     gap: 22px;
     padding: 20px;
     border: 1px solid var(--border);
-    border-radius: 18px;
+    border-radius: var(--radius-card);
     background: var(--surface);
   }
   .calendar-heading {
@@ -405,13 +343,10 @@
     justify-content: space-between;
     margin-bottom: 20px;
   }
-  .mini-calendar {
-    padding: 0;
-  }
   .next-event {
     padding: 16px;
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
     background: var(--canvas);
   }
   .event-countdown {
@@ -452,86 +387,9 @@
     border-radius: 50%;
     background: var(--text-muted);
   }
-  .day-timeline {
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 22px 12px 12px;
-  }
-  .recent-note {
-    border-bottom: 1px solid var(--border);
-    padding-block: 8px 16px;
-  }
-  .note-glyph {
-    background: var(--accent-soft);
-    color: var(--accent-text);
-  }
-  .dashboard-charts > section {
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 22px;
-  }
 }
 
-@media (min-width: 1600px) {
-  .category-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@media (max-width: 1180px) {
-  .dashboard-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .calendar-column {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
-    padding: 22px;
-  }
-  .calendar-widget {
-    grid-row: span 2;
-  }
-  .calendar-agenda {
-    padding-top: 0;
-    border-top: 0;
-  }
-}
-@media (max-width: 700px) {
-  .dashboard-charts {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .category-card {
-    height: 148px;
-    padding: 18px;
-  }
-}
-@media (max-width: 520px) {
-  .category-grid,
-  .calendar-column,
-  .recent-notes {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .calendar-widget {
-    grid-row: auto;
-  }
-  .calendar-column {
-    gap: 22px;
-    padding: 16px;
-  }
-  .calendar-agenda {
-    padding-top: 18px;
-    border-top: 1px solid var(--border);
-  }
-  .category-card {
-    height: 148px;
-  }
-  .dashboard-greeting h1 {
-    font-size: 28px;
-  }
-  .dashboard-section h2 {
-    font-size: 18px;
-  }
-}
-
+/* Module pages: header, lists, cards and form panels. */
 @layer components {
   .page-header {
     position: relative;
@@ -552,39 +410,31 @@
     flex-direction: column;
     gap: 10px;
   }
+  .data-row,
+  .project-card {
+    background: var(--surface);
+  }
   .data-row {
-    border-radius: 14px;
-    align-items: center;
+    border-radius: var(--radius-sm);
   }
   .row-lead {
-    font-size: 12px;
     font-weight: 500;
   }
   .row-trail {
     border-radius: 7px;
     background: var(--surface-hover);
     padding: 5px 9px;
-    font-size: 11px;
   }
   .project-card {
     min-height: 160px;
-  }
-  .project-card:hover {
-    border-color: color-mix(in oklab, var(--accent) 30%, var(--border));
-  }
-  .project-card:nth-child(3n + 2) .project-number {
-    color: var(--text);
-    background: color-mix(in oklab, var(--accent-2) 18%, transparent);
   }
   .settings-panel,
   .editor-panel,
   .note-editor-panel {
     border: 1px solid var(--border);
-    border-radius: 22px;
+    border-radius: var(--radius-md);
     padding: 28px;
-  }
-  .settings-field:last-child {
-    border-bottom: 0;
+    background: var(--surface);
   }
   .note-editor-panel {
     min-height: 580px;
@@ -595,9 +445,66 @@
   }
 }
 
-@media (max-width: 700px) {
-  .project-grid {
+/*
+ * Responsive overrides, widest first. They sit outside the layers on purpose:
+ * unlayered rules win over Tailwind utilities, so they can adjust spacing and
+ * columns that components set with utility classes.
+ */
+@container (max-width: 560px) {
+  .category-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .category-card {
+    height: 120px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .calendar-column {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    padding: 22px;
+  }
+  .calendar-widget {
+    grid-row: span 2;
+  }
+  .calendar-agenda {
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-canvas {
+    padding: 0;
+  }
+  .app-frame {
+    border: 0;
+    border-radius: 0;
+  }
+  .app-content {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-charts,
+  .project-grid,
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .form-grid > .col-span-2 {
+    grid-column: auto;
+  }
+  .blueprint-field-grid {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+  .blueprint-field-grid > :nth-child(n + 3) {
+    grid-column: 2;
   }
   .page-actions {
     margin-left: 0;
@@ -617,6 +524,10 @@
     max-width: 100%;
     white-space: normal;
   }
+  .project-card {
+    gap: 14px;
+    padding: 20px;
+  }
   .settings-panel,
   .editor-panel,
   .note-editor-panel {
@@ -630,11 +541,55 @@
   .settings-field > div {
     width: 100%;
   }
-  .project-card {
-    gap: 14px;
-    padding: 20px;
+}
+
+/* Phones: the sidebar is always an icon rail, so its toggle is hidden. */
+@media (max-width: 600px) {
+  .app-sidebar {
+    width: 64px;
+  }
+  .sidebar-brand > span,
+  .sidebar-nav .nav-label,
+  .sidebar-footer {
+    display: none;
+  }
+  .sidebar-nav {
+    padding-inline: 9px;
+    align-items: center;
+  }
+  .sidebar-nav .nav-item {
+    width: 44px;
+    padding-inline: 12px;
+  }
+  .app-content {
+    padding: 22px 16px 40px;
   }
 }
+
+@media (max-width: 520px) {
+  .calendar-column,
+  .recent-notes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .calendar-widget {
+    grid-row: auto;
+  }
+  .calendar-column {
+    gap: 22px;
+    padding: 16px;
+  }
+  .calendar-agenda {
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .dashboard-greeting h1 {
+    font-size: 28px;
+  }
+  .dashboard-section h2 {
+    font-size: 18px;
+  }
+}
+
 @media (max-width: 420px) {
   .app-content {
     padding-inline: 12px;
@@ -642,54 +597,12 @@
   .page-header h1 {
     font-size: 26px;
   }
+  .settings-panel,
   .editor-panel,
-  .note-editor-panel,
-  .settings-panel {
+  .note-editor-panel {
     padding: 16px;
   }
   .note-editor-panel > div:first-child {
     gap: 8px;
-  }
-}
-
-@media (max-width: 700px) {
-  .form-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .form-grid > .col-span-2 {
-    grid-column: auto;
-  }
-  .blueprint-field-grid {
-    grid-template-columns: 24px minmax(0, 1fr);
-  }
-  .blueprint-field-grid > :nth-child(n + 3) {
-    grid-column: 2;
-  }
-}
-
-@layer components {
-  .app-main {
-    background: var(--canvas);
-  }
-  .app-sidebar,
-  .app-topbar {
-    background: var(--surface);
-  }
-  .day-timeline,
-  .dashboard-charts > section,
-  .settings-panel,
-  .editor-panel,
-  .note-editor-panel {
-    background: var(--surface);
-  }
-  .data-row,
-  .project-card {
-    background: var(--surface);
-  }
-}
-
-@layer components {
-  .palette-trigger {
-    min-width: 0;
   }
 }
