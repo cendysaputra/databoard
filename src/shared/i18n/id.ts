@@ -360,7 +360,7 @@ export const t = {
   },
   settings: {
     title: 'Pengaturan',
-    tabs: { profile: 'Profil', appearance: 'Tampilan', app: 'Aplikasi' },
+    tabs: { profile: 'Profil', appearance: 'Tampilan', app: 'Aplikasi', data: 'Data' },
     profile: {
       name: 'Nama',
       namePlaceholder: 'Nama lengkapmu',
@@ -385,7 +385,6 @@ export const t = {
     testNotification: 'Tes notifikasi',
     testNotificationBody: 'Notifikasi berfungsi.',
     data: {
-      title: 'Data',
       export: 'Ekspor',
       exportJson: 'Semua data (JSON)',
       exportCsv: 'Project (CSV)',
