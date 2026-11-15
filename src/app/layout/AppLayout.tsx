@@ -8,7 +8,7 @@ import { CommandPalette } from './CommandPalette';
 import { Onboarding } from './Onboarding';
 import { Sidebar } from './Sidebar';
 
-/** App frame: two rounded cards on the canvas, the sidebar rail and the content. */
+/** App frame: the sidebar card at the left, the borderless content column beside it. */
 export function AppLayout() {
   const { pathname } = useLocation();
   const wide = pathname === '/';
@@ -21,7 +21,7 @@ export function AppLayout() {
     <div className="app-canvas h-full bg-canvas p-4">
       <div className="app-frame relative flex h-full gap-5">
         <Sidebar />
-        <div className="app-panel relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-border">
+        <div className="app-panel relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg">
           <main className="app-main flex-1 overflow-y-auto">
             {/* The key restarts the fade whenever the route changes. */}
             <div
