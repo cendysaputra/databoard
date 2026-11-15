@@ -88,6 +88,8 @@ export const t = {
     summary: 'Ringkasan',
     schedule: {
       title: 'Jadwal 14 hari ke depan',
+      /** Read by screen readers as the name of the chart; not shown on screen. */
+      caption: 'Jumlah event per hari',
       today: 'Hari ini',
       count: (n: number) => `${n} event`,
     },
