@@ -34,3 +34,6 @@ export function useSetAutostart() {
 export function useMcpServerPath() {
   return useQuery({ queryKey: ['mcp', 'path'], queryFn: () => data.mcp.serverPath() });
 }
+
+/** Backups of the database; the dialogs for folders and files are opened by the desktop app. */
+export const backup = data.backup;
