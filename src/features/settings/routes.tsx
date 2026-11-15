@@ -8,7 +8,14 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { notifySaved, showToast } from '@/shared/ui/toast';
 import { cn } from '@/shared/utils/cn';
-import { sendTestNotification, useSettings, useUpdateSettings } from './api';
+import {
+  isDesktop,
+  sendTestNotification,
+  useAutostart,
+  useSetAutostart,
+  useSettings,
+  useUpdateSettings,
+} from './api';
 import { ProfileForm } from './components/ProfileForm';
 import { exportJson, exportNotesMarkdown, exportProjectsCsv } from './export';
 
@@ -45,6 +52,9 @@ interface PanelProps {
 
 /** App name, reminders and notifications. */
 function AppPanel({ settings, save }: PanelProps) {
+  const autostart = useAutostart();
+  const setAutostart = useSetAutostart();
+
   return (
     <>
       <Field label={t.settings.appName}>
@@ -85,6 +95,29 @@ function AppPanel({ settings, save }: PanelProps) {
           />
         )}
       </Field>
+
+      <Field label={t.settings.autostart}>
+        {(id) =>
+          isDesktop ? (
+            <label className="flex h-10 w-fit items-center gap-2 text-sm">
+              <input
+                id={id}
+                type="checkbox"
+                className="size-4 accent-(--accent)"
+                checked={autostart.data ?? false}
+                disabled={autostart.isPending || setAutostart.isPending}
+                onChange={(event) => setAutostart.mutate(event.target.checked)}
+              />
+              {t.settings.autostartOn}
+            </label>
+          ) : (
+            <p id={id} className="flex h-10 items-center text-sm text-muted">
+              {t.common.desktopOnly}
+            </p>
+          )
+        }
+      </Field>
+      {setAutostart.isError && <FormError error={setAutostart.error} />}
 
       <Field label={t.settings.notification}>
         {(id) => (
