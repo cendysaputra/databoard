@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { Pin, Plus } from 'lucide-react';
-import { lazy, useState } from 'react';
+import { lazy, useDeferredValue, useState } from 'react';
 import { useSelection } from '@/shared/hooks/use-selection';
 import { t } from '@/shared/i18n/id';
 import type { Note, NoteStatus, Tag } from '@/shared/types';
@@ -8,6 +8,7 @@ import { Button, buttonClass } from '@/shared/ui/Button';
 import { ConfirmButton } from '@/shared/ui/ConfirmButton';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { FormError } from '@/shared/ui/FormError';
+import { Input } from '@/shared/ui/Input';
 import { NotesIcon } from '@/shared/ui/icons';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
@@ -44,19 +45,30 @@ function NoteList({ labels }: { labels: Tag[] }) {
   const [managing, setManaging] = useState(false);
   // A label deleted while selected no longer filters.
   const activeLabel = labels.some((label) => label.id === labelId) ? labelId : null;
-  const notes = useNotes(activeLabel);
+  const [search, setSearch] = useState('');
+  const notes = useNotes(activeLabel, useDeferredValue(search.trim()));
   const nameOf = (id: string) => labels.find((label) => label.id === id)?.name;
   // The label is filtered by the query; the status is filtered here, on what came back.
   const shown = (notes.data ?? []).filter((note) => !status || note.status === status);
   // Picks follow the notes on screen, so changing a filter narrows them too.
   const selection = useSelection(shown.map((note) => note.id));
   const remove = useRemoveNotes();
-  const filtered = Boolean(activeLabel || status);
+  const filtered = Boolean(activeLabel || status || search.trim());
 
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center gap-2">
-        {/* Each select fills its box, so the box sets the width. */}
+        {/* Each control fills its box, so the box sets the width. */}
+        <div className="w-56">
+          <Input
+            type="search"
+            aria-label={text.filter.search}
+            placeholder={text.filter.searchPlaceholder}
+            className="h-10"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </div>
         <div className="w-44">
           <Select
             aria-label={text.filter.label}
@@ -91,6 +103,7 @@ function NoteList({ labels }: { labels: Tag[] }) {
           <Button
             variant="ghost"
             onClick={() => {
+              setSearch('');
               setLabelId('');
               setStatus('');
             }}
