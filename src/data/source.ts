@@ -130,6 +130,13 @@ export interface DataSource {
     /** An address an `<img>` can show for a stored path. */
     url(path: string): Promise<string>;
   };
+  /** Updates of the app itself. Desktop only; nothing is installed without being asked. */
+  updates: {
+    /** The version of a newer release, or `null` when the app is up to date. */
+    check(): Promise<string | null>;
+    /** Downloads and installs the newer release, then restarts the app. */
+    install(): Promise<void>;
+  };
   /** Backups of the whole database. Desktop only. */
   backup: {
     /** Asks for a folder to keep backups in; `null` when the dialog was cancelled. */
