@@ -187,7 +187,7 @@ export function NoteForm({ note, labels, saving, error, onSubmit, extra }: NoteF
             <button
               type="button"
               onClick={() => setManaging(true)}
-              className="rounded-sm px-2 py-1 text-xs text-muted underline-offset-2 transition-colors hover:text-text hover:underline"
+              className="rounded-sm px-2 py-1 text-xs text-muted transition-colors hover:text-text"
             >
               {t.notes.labels.manage}
             </button>
