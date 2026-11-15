@@ -549,7 +549,7 @@
   .app-sidebar {
     width: 64px;
   }
-  .sidebar-brand > span,
+  .sidebar-brand > a,
   .sidebar-nav .nav-label,
   .sidebar-footer {
     display: none;
