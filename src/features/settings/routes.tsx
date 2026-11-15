@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useId, useState, type ReactNode } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Settings, Theme } from '@/shared/types';
@@ -19,6 +20,7 @@ import {
   useUpdateSettings,
 } from './api';
 import { ProfileForm } from './components/ProfileForm';
+import { backup } from './api';
 import { exportJson, exportNotesMarkdown, exportProjectsCsv } from './export';
 
 const themes: Array<{ value: Theme; label: string }> = [
@@ -217,28 +219,110 @@ const exportsOffered: Array<{ label: string; run(): Promise<string | null> }> = 
   },
 ];
 
-/** Exports of the app's content as files. */
-function DataPanel() {
+/** Backups of the database and exports of the app's content as files. */
+function DataPanel({ settings, save }: PanelProps) {
+  const client = useQueryClient();
   const [running, setRunning] = useState<string | null>(null);
   const [error, setError] = useState<unknown>(null);
+  const text = t.settings.data;
+
+  /** Runs one job at a time; a message it resolves to is shown as confirmation. */
+  const start = (name: string, job: () => Promise<string | null>) => {
+    setRunning(name);
+    setError(null);
+    job()
+      .then((message) => message && showToast(message))
+      .catch(setError)
+      .finally(() => setRunning(null));
+  };
 
   return (
     <>
+      {isDesktop ? (
+        <>
+          <Field label={text.backupDir}>
+            {(id) => (
+              <div className="flex flex-col items-start gap-2">
+                <p className="text-sm break-all text-muted">
+                  {settings.backup_dir ?? text.backupDirDefault}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    id={id}
+                    disabled={running !== null}
+                    onClick={() =>
+                      start('dir', async () => {
+                        const backup_dir = await backup.pickDir();
+                        if (backup_dir) save({ backup_dir });
+                        return null;
+                      })
+                    }
+                  >
+                    {text.backupDirChoose}
+                  </Button>
+                  {settings.backup_dir && (
+                    <Button variant="ghost" onClick={() => save({ backup_dir: null })}>
+                      {text.backupDirReset}
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted">{text.backupAuto}</p>
+              </div>
+            )}
+          </Field>
+          <Field label={text.backupNow}>
+            {(id) => (
+              <Button
+                id={id}
+                disabled={running !== null}
+                onClick={() =>
+                  start('backup', async () => {
+                    const file = await backup.run();
+                    showToast(text.backupDone, file);
+                    return null;
+                  })
+                }
+              >
+                {text.backupRun}
+              </Button>
+            )}
+          </Field>
+          <Field label={text.restore}>
+            {(id) => (
+              <div className="flex flex-col items-start gap-2">
+                <Button
+                  id={id}
+                  disabled={running !== null}
+                  onClick={() =>
+                    start('restore', async () => {
+                      if (!(await backup.restore())) return null;
+                      // Everything on screen came from the replaced data.
+                      await client.invalidateQueries();
+                      return text.restoreDone;
+                    })
+                  }
+                >
+                  {text.restoreRun}
+                </Button>
+                <p className="text-xs text-muted">{text.restoreHint}</p>
+              </div>
+            )}
+          </Field>
+        </>
+      ) : (
+        <Field label={text.backupNow}>
+          {(id) => (
+            <p id={id} className="flex h-10 items-center text-sm text-muted">
+              {t.common.desktopOnly}
+            </p>
+          )}
+        </Field>
+      )}
+
       {exportsOffered.map(({ label, run }) => (
         <Field key={label} label={label}>
           {(id) => (
-            <Button
-              id={id}
-              disabled={running !== null}
-              onClick={() => {
-                setRunning(label);
-                setError(null);
-                run()
-                  .then((message) => message && showToast(message))
-                  .catch(setError)
-                  .finally(() => setRunning(null));
-              }}
-            >
+            <Button id={id} disabled={running !== null} onClick={() => start(label, run)}>
               {t.settings.data.export}
             </Button>
           )}
@@ -379,7 +463,7 @@ function SettingsTabs({ settings }: { settings: Settings }) {
           )}
           {tab === 'appearance' && <AppearancePanel settings={settings} save={save} />}
           {tab === 'app' && <AppPanel settings={settings} save={save} />}
-          {tab === 'data' && <DataPanel />}
+          {tab === 'data' && <DataPanel settings={settings} save={save} />}
           {tab === 'agent' && <AgentPanel />}
         </div>
 
