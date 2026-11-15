@@ -285,6 +285,14 @@ export const t = {
     emptyBody: 'Project yang kamu tambahkan akan muncul di sini.',
     status: { draft: 'Draf', published: 'Terbit', archived: 'Arsip' },
     new: 'Project baru',
+    edit: 'Edit',
+    reorderHint: 'Seret kartu untuk mengubah urutan.',
+    detail: {
+      links: 'Tautan',
+      site: 'Situs',
+      repo: 'Repo',
+      noDescription: 'Belum ada deskripsi.',
+    },
     filter: {
       kind: 'Jenis',
       year: 'Tahun',
