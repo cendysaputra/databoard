@@ -231,6 +231,25 @@ export const browserSource: DataSource = {
         .slice(offset, offset + limit)
         .map(({ body_md, ...note }) => ({ ...note, excerpt: excerpt(body_md) }));
     },
+    async search(query, page) {
+      const words = query
+        .toLowerCase()
+        .split(/[^p{L}p{N}]+/u)
+        .filter(Boolean);
+      if (words.length === 0) return [];
+      const notes = await load('notes');
+      // Every word must start a word of the title or body, as the desktop full-text search does.
+      const hits = new Set(
+        notes
+          .filter((note) => {
+            const text = `${note.title} ${note.body_md}`.toLowerCase().split(/[^p{L}p{N}]+/u);
+            return words.every((word) => text.some((token) => token.startsWith(word)));
+          })
+          .map((note) => note.id),
+      );
+      const all = await browserSource.notes.list({ limit: notes.length || 1, offset: 0 });
+      return all.filter((note) => hits.has(note.id)).slice(page.offset, page.offset + page.limit);
+    },
     get: (id) => find('notes', id),
     async create(input) {
       requireText('title', input.title);
@@ -397,6 +416,12 @@ export const browserSource: DataSource = {
       return input;
     },
   },
+  autostart: {
+    get: async () => false,
+    set: async () => fail('desktop_only', 'autostart needs the desktop app'),
+  },
+  // Nothing outside the page asks it to navigate.
+  onNavigate: () => () => {},
   async openUrl(url) {
     window.open(url, '_blank', 'noopener');
   },
