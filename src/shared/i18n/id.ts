@@ -59,7 +59,6 @@ export const t = {
       empty: 'Belum ada notifikasi.',
       done: 'Tandai selesai',
     },
-    browse: 'Jelajahi',
     today: 'Hari ini',
     day: {
       allDay: 'Seharian',
@@ -89,7 +88,6 @@ export const t = {
     summary: 'Ringkasan',
     schedule: {
       title: 'Jadwal 14 hari ke depan',
-      caption: 'Jumlah event per hari',
       today: 'Hari ini',
       count: (n: number) => `${n} event`,
     },
