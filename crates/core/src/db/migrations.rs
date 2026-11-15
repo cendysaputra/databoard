@@ -17,6 +17,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../../migrations/002_collections.sql"),
     include_str!("../../migrations/003_note_fields.sql"),
     include_str!("../../migrations/004_project_kind.sql"),
+    include_str!("../../migrations/005_reminder_notified.sql"),
 ];
 
 /// Brings the schema to the latest version. If an existing database is behind, it is first
@@ -86,6 +87,8 @@ mod tests {
             )
             .unwrap();
         assert_eq!(tables, 1);
+        // Windows does not delete a file that is still open, and pruning below removes this one.
+        drop(copy);
 
         run_all(&mut conn, &[first, second], Some(&backups), "0.2.0").unwrap();
         assert_eq!(
