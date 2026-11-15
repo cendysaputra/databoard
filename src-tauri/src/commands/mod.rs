@@ -5,6 +5,7 @@ pub mod autostart;
 pub mod collections;
 pub mod entries;
 pub mod events;
+pub mod media;
 pub mod notes;
 pub mod overview;
 pub mod projects;
