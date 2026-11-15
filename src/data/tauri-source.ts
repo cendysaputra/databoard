@@ -93,6 +93,10 @@ export const tauriSource: DataSource = {
       return URL.createObjectURL(new Blob([bytes]));
     },
   },
+  updates: {
+    check: () => invoke('update_check'),
+    install: () => invoke('update_install'),
+  },
   backup: {
     pickDir: () => invoke('backup_pick_dir'),
     run: () => invoke('backup_run'),
