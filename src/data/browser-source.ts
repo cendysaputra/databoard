@@ -154,6 +154,12 @@ export const browserSource: DataSource = {
         key('reminders'),
         reminders.filter((r) => r.event_id !== id),
       );
+      // Notes written for the event stay, without their link to it.
+      const notes = await load('notes');
+      await set(
+        key('notes'),
+        notes.map((note) => (note.event_id === id ? { ...note, event_id: null } : note)),
+      );
     },
   },
   reminders: {
