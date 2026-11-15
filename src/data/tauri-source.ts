@@ -93,6 +93,11 @@ export const tauriSource: DataSource = {
       return URL.createObjectURL(new Blob([bytes]));
     },
   },
+  backup: {
+    pickDir: () => invoke('backup_pick_dir'),
+    run: () => invoke('backup_run'),
+    restore: () => invoke('backup_restore'),
+  },
   mcp: { serverPath: () => invoke('mcp_server_path') },
   autostart: {
     get: () => invoke('autostart_get'),
