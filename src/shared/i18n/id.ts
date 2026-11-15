@@ -49,6 +49,15 @@ export const t = {
       afternoon: 'Selamat sore',
       night: 'Selamat malam',
     },
+    /** One is picked at random each time Beranda opens; none depends on the time of day. */
+    greetings: [
+      'Halo',
+      'Hai',
+      'Selamat datang kembali',
+      'Senang bertemu lagi',
+      'Semangat hari ini',
+      'Siap berkarya',
+    ],
     add: 'Tambah',
     browse: 'Jelajahi',
     today: 'Hari ini',
