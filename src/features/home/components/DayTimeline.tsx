@@ -10,6 +10,8 @@ const text = t.home.day;
 const DEFAULT_START = 7;
 const DEFAULT_END = 20;
 const ROW_HEIGHT_REM = 3.5;
+/** The plot is at least this tall, so a day with few events does not look cramped. */
+const MIN_PLOT_REM = 11;
 /** A chip is at least this share of the axis wide, so short events stay readable. */
 const MIN_CHIP_SHARE = 0.28;
 
@@ -55,6 +57,9 @@ export function DayTimeline({ day, events, now }: DayTimelineProps) {
     return { event, start, row };
   });
   const rows = Math.max(rowEnds.length, 1);
+  const plotHeight = Math.max(rows * ROW_HEIGHT_REM + 1, MIN_PLOT_REM);
+  // Rows of chips sit in the vertical middle of the plot.
+  const rowsTop = (plotHeight - rows * ROW_HEIGHT_REM) / 2;
 
   const isToday = isSameDay(day, now);
   const nowHour = hourOf(now);
@@ -114,7 +119,7 @@ export function DayTimeline({ day, events, now }: DayTimelineProps) {
         </div>
 
         {/* Plot: hour lines, the "now" line and the event chips */}
-        <div className="relative" style={{ height: `${rows * ROW_HEIGHT_REM + 1}rem` }}>
+        <div className="relative" style={{ height: `${plotHeight}rem` }}>
           {hours.map((hour) => (
             <span
               key={hour}
@@ -145,7 +150,7 @@ export function DayTimeline({ day, events, now }: DayTimelineProps) {
                 style={{
                   // Keep chips that start late in the day inside the plot.
                   left: `min(${share(start)}%, calc(100% - 11rem))`,
-                  top: `${row * ROW_HEIGHT_REM + 0.75}rem`,
+                  top: `${rowsTop + row * ROW_HEIGHT_REM + 0.25}rem`,
                 }}
                 className={cn(
                   'absolute max-w-56 rounded-sm px-4 py-1.5 shadow-[0_6px_16px_-8px_rgb(23_21_43/0.35)]',
