@@ -6,6 +6,7 @@ import { t } from '@/shared/i18n/id';
 import type { Overview } from '@/shared/types';
 import { NotesIcon } from '@/shared/ui/icons';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
+import { cn } from '@/shared/utils/cn';
 import {
   formatDayMonth,
   formatDayMonthYear,
@@ -41,14 +42,17 @@ function useGreetingName(): string {
 function Section({
   title,
   aside,
+  framed = false,
   children,
 }: {
   title: ReactNode;
   aside?: ReactNode;
+  /** Draws the section as a bordered panel, heading included. */
+  framed?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section className="dashboard-section">
+    <section className={cn('dashboard-section', framed && 'dashboard-panel')}>
       <div className="mb-5 flex flex-wrap items-baseline justify-between gap-4">
         <h2 className="text-xl font-semibold">{title}</h2>
         {aside}
@@ -224,13 +228,11 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
     <div className="dashboard-grid">
       <div className="dashboard-primary flex min-w-0 flex-col gap-9">
         <div className="dashboard-greeting">
-          <div>
-            <h1 className="text-3xl leading-tight font-semibold">
-              {greeting(now)}
-              {name && `, ${name}`}
-            </h1>
-            <p className="mt-2 text-muted">{formatLongDate(now)}</p>
-          </div>
+          <h1 className="text-3xl leading-tight font-semibold">
+            {greeting(now)}
+            {name && `, ${name}`}
+          </h1>
+          <p className="mt-2 text-muted">{formatLongDate(now)}</p>
         </div>
 
         <Section title={text.browse}>
@@ -262,6 +264,7 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
         </Section>
 
         <Section
+          framed
           title={text.schedule.title}
           aside={<p className="text-xs text-muted">{text.schedule.caption}</p>}
         >
