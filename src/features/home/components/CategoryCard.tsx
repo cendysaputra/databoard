@@ -1,7 +1,7 @@
 import { Link, type LinkProps } from '@tanstack/react-router';
-import { CalendarIcon, CollectionIcon, NotesIcon, PortfolioIcon } from '@/shared/ui/icons';
+import { CalendarIcon, NotesIcon, PortfolioIcon } from '@/shared/ui/icons';
 
-const icons = [CalendarIcon, NotesIcon, PortfolioIcon, CollectionIcon];
+const icons = [CalendarIcon, NotesIcon, PortfolioIcon];
 
 interface CategoryCardProps {
   art: number;
@@ -13,7 +13,7 @@ interface CategoryCardProps {
 
 /** Neutral module summaries; labels and counts remain live HTML. */
 export function CategoryCard({ art, name, stat, caption, link }: CategoryCardProps) {
-  const Icon = icons[Math.min(art, 3)] ?? CollectionIcon;
+  const Icon = icons[art] ?? CalendarIcon;
   return (
     <Link {...link} className="category-card">
       <span className="flex items-center gap-3">
