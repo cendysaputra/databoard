@@ -6,7 +6,7 @@ export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTex
     <textarea
       className={cn(
         'block w-full resize-y rounded-sm border border-border bg-surface px-3 py-3 text-sm',
-        'transition-colors placeholder:text-muted hover:border-muted',
+        'placeholder:text-muted',
         className,
       )}
       {...props}
