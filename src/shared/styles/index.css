@@ -286,14 +286,16 @@
    * The resting shadow has the same shape, only invisible, so it fades in evenly.
    */
   .category-card,
-  .data-row {
+  .data-row,
+  .project-card {
     box-shadow:
       0 1px 2px rgb(0 0 0 / 0),
       0 12px 32px -8px rgb(0 0 0 / 0);
     transition: box-shadow 360ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
   .category-card:hover,
-  .data-row:hover {
+  .data-row:hover,
+  .project-card:hover {
     box-shadow:
       0 1px 2px rgb(0 0 0 / 0.03),
       0 12px 32px -8px rgb(0 0 0 / 0.08);
