@@ -239,7 +239,7 @@ function EntryEditor({ collection, entry }: { collection: Collection; entry?: En
 
   return (
     <>
-      <p className="label mb-6">
+      <p className="mb-5 text-sm text-muted">
         <Link
           to="/collections/$collectionId"
           params={{ collectionId: collection.id }}
