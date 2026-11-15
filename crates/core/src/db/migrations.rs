@@ -16,6 +16,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../../migrations/001_init.sql"),
     include_str!("../../migrations/002_collections.sql"),
     include_str!("../../migrations/003_note_fields.sql"),
+    include_str!("../../migrations/004_project_kind.sql"),
 ];
 
 /// Brings the schema to the latest version. If an existing database is behind, it is first

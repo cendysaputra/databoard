@@ -37,6 +37,10 @@ pub struct Settings {
     pub profile_nickname: String,
     /// The user's role or job, free text.
     pub profile_role: String,
+    /// Kinds of work offered for a project, e.g. "Website"; edited on the portfolio page.
+    pub project_kinds: Vec<String>,
+    /// Tools offered for a project's stack, e.g. "Figma"; edited on the portfolio page.
+    pub project_tools: Vec<String>,
 }
 
 impl Default for Settings {
@@ -51,6 +55,13 @@ impl Default for Settings {
             profile_name: String::new(),
             profile_nickname: String::new(),
             profile_role: String::new(),
+            project_kinds: vec!["Website".into(), "Mobile".into()],
+            project_tools: vec![
+                "WordPress".into(),
+                "Laravel".into(),
+                "Figma".into(),
+                "Photoshop".into(),
+            ],
         }
     }
 }
@@ -64,6 +75,18 @@ fn profile_text(field: &str, value: &str) -> Result<String> {
         return Err(AppError::validation(format!("{field} is too long")));
     }
     Ok(value.to_owned())
+}
+
+/// Trims the names of a pick list and drops empty and repeated ones, keeping the order.
+fn option_list(names: &[String]) -> Vec<String> {
+    let mut cleaned: Vec<String> = Vec::new();
+    for name in names {
+        let name = name.trim();
+        if !name.is_empty() && !cleaned.iter().any(|kept| kept == name) {
+            cleaned.push(name.to_owned());
+        }
+    }
+    cleaned
 }
 
 fn is_hex_color(value: &str) -> bool {
@@ -108,6 +131,8 @@ pub fn update(conn: &Connection, input: &Settings) -> Result<Settings> {
         profile_name: profile_text("profile_name", &input.profile_name)?,
         profile_nickname: profile_text("profile_nickname", &input.profile_nickname)?,
         profile_role: profile_text("profile_role", &input.profile_role)?,
+        project_kinds: option_list(&input.project_kinds),
+        project_tools: option_list(&input.project_tools),
         ..input.clone()
     };
 
@@ -145,8 +170,11 @@ mod tests {
                 profile_name: "  Cendi Saputra ".into(),
                 profile_nickname: "Cendi".into(),
                 profile_role: String::new(),
+                project_kinds: vec![" Website ".into(), "Website".into(), String::new()],
+                project_tools: vec!["Figma".into()],
             };
             let saved = update(c, &wanted)?;
+            assert_eq!(saved.project_kinds, ["Website"]);
             assert_eq!(saved.app_name, "Meja Kerja");
             assert_eq!(saved.profile_name, "Cendi Saputra");
             let long = Settings {

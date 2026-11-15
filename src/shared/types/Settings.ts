@@ -30,4 +30,12 @@ profile_nickname: string,
 /**
  * The user's role or job, free text.
  */
-profile_role: string, };
+profile_role: string, 
+/**
+ * Kinds of work offered for a project, e.g. "Website"; edited on the portfolio page.
+ */
+project_kinds: Array<string>, 
+/**
+ * Tools offered for a project's stack, e.g. "Figma"; edited on the portfolio page.
+ */
+project_tools: Array<string>, };

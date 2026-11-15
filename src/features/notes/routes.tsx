@@ -1,19 +1,24 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { Pin, Plus } from 'lucide-react';
 import { lazy, useState } from 'react';
+import { useSelection } from '@/shared/hooks/use-selection';
 import { t } from '@/shared/i18n/id';
-import type { Note, Tag } from '@/shared/types';
+import type { Note, NoteStatus, Tag } from '@/shared/types';
 import { Button, buttonClass } from '@/shared/ui/Button';
 import { ConfirmButton } from '@/shared/ui/ConfirmButton';
 import { EmptyState } from '@/shared/ui/EmptyState';
+import { FormError } from '@/shared/ui/FormError';
 import { NotesIcon } from '@/shared/ui/icons';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { Row, Rows } from '@/shared/ui/Rows';
+import { Select } from '@/shared/ui/Select';
+import { SelectionBar } from '@/shared/ui/SelectionBar';
 import { formatDayMonth, fromIsoDay } from '@/shared/utils/date';
-import { useLabels, useNote, useNotes, useRemoveNote, useSaveNote } from './api';
-import { LabelChip } from './components/LabelChip';
+import { useLabels, useNote, useNotes, useRemoveNote, useRemoveNotes, useSaveNote } from './api';
 import { LabelManager } from './components/LabelManager';
+
+const text = t.notes;
 
 // The editor is heavy (rich text engine), so it loads only when a note is opened,
 // not with the list.
@@ -21,55 +26,111 @@ const NoteForm = lazy(() =>
   import('./components/NoteForm').then((module) => ({ default: module.NoteForm })),
 );
 
+const statuses = Object.keys(t.notes.status) as NoteStatus[];
+
 function NoteList({ labels }: { labels: Tag[] }) {
-  const [labelId, setLabelId] = useState<string | null>(null);
+  const [labelId, setLabelId] = useState('');
+  const [status, setStatus] = useState<NoteStatus | ''>('');
   const [managing, setManaging] = useState(false);
   // A label deleted while selected no longer filters.
   const activeLabel = labels.some((label) => label.id === labelId) ? labelId : null;
   const notes = useNotes(activeLabel);
   const nameOf = (id: string) => labels.find((label) => label.id === id)?.name;
+  // The label is filtered by the query; the status is filtered here, on what came back.
+  const shown = (notes.data ?? []).filter((note) => !status || note.status === status);
+  // Picks follow the notes on screen, so changing a filter narrows them too.
+  const selection = useSelection(shown.map((note) => note.id));
+  const remove = useRemoveNotes();
+  const filtered = Boolean(activeLabel || status);
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-center gap-1.5">
-        <LabelChip active={activeLabel === null} onClick={() => setLabelId(null)}>
-          {t.notes.allLabels}
-        </LabelChip>
-        {labels.map((label) => (
-          <LabelChip
-            key={label.id}
-            active={activeLabel === label.id}
-            onClick={() => setLabelId(label.id)}
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        {/* Each select fills its box, so the box sets the width. */}
+        <div className="w-44">
+          <Select
+            aria-label={text.filter.label}
+            className="h-10"
+            value={activeLabel ?? ''}
+            onChange={(event) => setLabelId(event.target.value)}
           >
-            {label.name}
-          </LabelChip>
-        ))}
+            <option value="">{text.filter.allLabels}</option>
+            {labels.map((label) => (
+              <option key={label.id} value={label.id}>
+                {label.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="w-44">
+          <Select
+            aria-label={text.filter.status}
+            className="h-10"
+            value={status}
+            onChange={(event) => setStatus(event.target.value as NoteStatus | '')}
+          >
+            <option value="">{text.filter.allStatuses}</option>
+            {statuses.map((name) => (
+              <option key={name} value={name}>
+                {text.status[name]}
+              </option>
+            ))}
+          </Select>
+        </div>
+        {filtered && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setLabelId('');
+              setStatus('');
+            }}
+          >
+            {text.filter.reset}
+          </Button>
+        )}
         <div className="flex-1" />
+        {shown.length > 0 && (
+          <SelectionBar
+            selection={selection}
+            deleting={remove.isPending}
+            onDelete={(ids) => remove.mutate(ids)}
+          />
+        )}
         <Button variant="ghost" onClick={() => setManaging(true)}>
-          {t.notes.labels.manage}
+          {text.labels.manage}
         </Button>
       </div>
+      <FormError error={remove.error} />
 
       <QueryBoundary query={notes}>
-        {(items) =>
-          items.length === 0 ? (
+        {() =>
+          shown.length === 0 ? (
             <EmptyState
               icon={NotesIcon}
-              title={t.notes.emptyTitle}
-              body={activeLabel ? t.notes.emptyFiltered : t.notes.emptyBody}
+              title={text.emptyTitle}
+              body={filtered ? text.emptyFiltered : text.emptyBody}
             />
           ) : (
             <Rows>
-              {items.map((note) => (
+              {shown.map((note) => (
                 <Row
                   key={note.id}
+                  select={
+                    selection.active
+                      ? {
+                          checked: selection.isSelected(note.id),
+                          label: t.common.selectItem(note.title),
+                          onChange: () => selection.toggle(note.id),
+                        }
+                      : undefined
+                  }
                   lead={formatDayMonth(fromIsoDay(note.note_date))}
                   trail={
                     <span className="flex items-center gap-2">
                       {note.pinned && (
-                        <Pin aria-label={t.notes.pinned} className="size-3.5 text-accent-2" />
+                        <Pin aria-label={text.pinned} className="size-3.5 text-accent-2" />
                       )}
-                      {t.notes.status[note.status]}
+                      {text.status[note.status]}
                     </span>
                   }
                 >
@@ -103,7 +164,7 @@ function NoteList({ labels }: { labels: Tag[] }) {
   );
 }
 
-/** Notes with a label filter. Search and linking to events come later. */
+/** Notes filtered by label and status. Search and linking to events come later. */
 export function NotesPage() {
   const labels = useLabels();
 
@@ -131,11 +192,6 @@ function NoteEditor({ note }: { note?: Note }) {
 
   return (
     <>
-      <p className="mb-5 text-sm text-muted">
-        <Link to="/notes" className="transition-colors hover:text-text">
-          ← {t.notes.back}
-        </Link>
-      </p>
       <QueryBoundary query={labels}>
         {(allLabels) => (
           <NoteForm

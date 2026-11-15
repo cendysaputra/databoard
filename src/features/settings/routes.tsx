@@ -169,8 +169,13 @@ function SettingsTabs({ settings }: { settings: Settings }) {
   const [tab, setTab] = useState<Tab>('profile');
 
   return (
-    <div>
-      <div role="tablist" className="mb-8 flex gap-1 border-b border-border">
+    // Sections are listed at the left on wide screens and in a row above on narrow ones.
+    <div className="grid items-start gap-5 lg:grid-cols-[13rem_minmax(0,1fr)]">
+      <div
+        role="tablist"
+        aria-orientation="vertical"
+        className="flex gap-1 overflow-x-auto lg:sticky lg:top-8 lg:flex-col"
+      >
         {tabs.map((name) => (
           <button
             key={name}
@@ -179,10 +184,8 @@ function SettingsTabs({ settings }: { settings: Settings }) {
             aria-selected={tab === name}
             onClick={() => setTab(name)}
             className={cn(
-              '-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors',
-              tab === name
-                ? 'border-accent text-text'
-                : 'border-transparent text-muted hover:text-text',
+              'h-10 shrink-0 rounded-sm px-3.5 text-left text-sm font-medium transition-colors',
+              tab === name ? 'bg-surface text-text' : 'text-muted hover:text-text',
             )}
           >
             {t.settings.tabs[name]}
@@ -190,27 +193,30 @@ function SettingsTabs({ settings }: { settings: Settings }) {
         ))}
       </div>
 
-      <div role="tabpanel" className="settings-panel">
-        {tab === 'profile' && (
-          <div className="max-w-md">
-            <ProfileForm
-              // Remount when the saved profile changes, so the fields show what is stored.
-              key={`${settings.profile_name}|${settings.profile_nickname}|${settings.profile_role}`}
-              settings={settings}
-              submitLabel={t.common.save}
-              onSaved={notifySaved}
-            />
-          </div>
-        )}
-        {tab === 'appearance' && <AppearancePanel settings={settings} save={save} />}
-        {tab === 'app' && <AppPanel settings={settings} save={save} />}
-      </div>
+      <div>
+        <div role="tabpanel" className="settings-panel max-w-3xl">
+          <h2 className="mb-6 text-lg font-semibold">{t.settings.tabs[tab]}</h2>
+          {tab === 'profile' && (
+            <div className="max-w-md">
+              <ProfileForm
+                // Remount when the saved profile changes, so the fields show what is stored.
+                key={`${settings.profile_name}|${settings.profile_nickname}|${settings.profile_role}`}
+                settings={settings}
+                submitLabel={t.common.save}
+                onSaved={notifySaved}
+              />
+            </div>
+          )}
+          {tab === 'appearance' && <AppearancePanel settings={settings} save={save} />}
+          {tab === 'app' && <AppPanel settings={settings} save={save} />}
+        </div>
 
-      {update.isError && (
-        <p role="alert" className="mt-4 text-danger">
-          {t.common.error}: {(update.error as { message?: string }).message}
-        </p>
-      )}
+        {update.isError && (
+          <p role="alert" className="mt-4 text-danger">
+            {t.common.error}: {(update.error as { message?: string }).message}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

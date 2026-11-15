@@ -154,6 +154,7 @@ mod tests {
                     client: None,
                     year: None,
                     role: None,
+                    kind: None,
                     stack: vec![],
                     url: None,
                     repo_url: None,
