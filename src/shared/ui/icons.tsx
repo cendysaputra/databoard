@@ -1,6 +1,6 @@
 import type { SVGProps } from 'react';
 
-export type IconProps = SVGProps<SVGSVGElement>;
+type IconProps = SVGProps<SVGSVGElement>;
 export type Icon = (props: IconProps) => React.JSX.Element;
 
 /** Light line drawings with open contours and consistent optical weight. */
