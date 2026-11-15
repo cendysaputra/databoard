@@ -71,6 +71,8 @@ pub fn run() {
             commands::projects::projects_update,
             commands::projects::projects_remove,
             commands::overview::overview_get,
+            commands::media::media_save,
+            commands::media::media_read,
             commands::recordings::recordings_begin,
             commands::recordings::recordings_append,
             commands::recordings::recordings_list,
