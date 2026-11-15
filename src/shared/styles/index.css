@@ -588,3 +588,93 @@
     gap: 8px;
   }
 }
+
+/*
+ * Dropdowns (<select>). Browsers that support customizable selects (Chromium, which is also
+ * what the desktop app runs on) draw the arrow and the opened list in the app's own style.
+ * Other browsers keep their native list.
+ */
+@supports (appearance: base-select) {
+  select,
+  select::picker(select) {
+    appearance: base-select;
+  }
+
+  select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  /* The arrow: a chevron in the muted text color that turns over while the list is open. */
+  select::picker-icon {
+    content: '';
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-left: auto;
+    background: var(--text-muted);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    transition: rotate var(--duration);
+  }
+  select:open::picker-icon {
+    rotate: 180deg;
+  }
+
+  /* The opened list: a floating card like the other menus, fading in. */
+  select::picker(select) {
+    margin-block: 6px;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 16px 40px -16px rgb(0 0 0 / 0.25);
+    opacity: 0;
+    transition:
+      opacity var(--duration),
+      overlay var(--duration) allow-discrete,
+      display var(--duration) allow-discrete;
+  }
+  select::picker(select):popover-open {
+    opacity: 1;
+  }
+  @starting-style {
+    select::picker(select):popover-open {
+      opacity: 0;
+    }
+  }
+
+  select option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: background-color var(--duration);
+  }
+  select option:hover,
+  select option:focus-visible {
+    background: var(--surface-hover);
+    outline: none;
+  }
+  select option:checked {
+    font-weight: 500;
+  }
+  /* The tick of the chosen option sits at the right end. */
+  select option::checkmark {
+    content: '';
+    order: 1;
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin-left: auto;
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+}
