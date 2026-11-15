@@ -381,7 +381,13 @@ export const t = {
   },
   settings: {
     title: 'Pengaturan',
-    tabs: { profile: 'Profil', appearance: 'Tampilan', app: 'Aplikasi', data: 'Data' },
+    tabs: {
+      profile: 'Profil',
+      appearance: 'Tampilan',
+      app: 'Aplikasi',
+      data: 'Data',
+      ai: 'AI (MCP)',
+    },
     profile: {
       name: 'Nama',
       namePlaceholder: 'Nama lengkapmu',
@@ -407,6 +413,17 @@ export const t = {
     notification: 'Notifikasi',
     testNotification: 'Tes notifikasi',
     testNotificationBody: 'Notifikasi berfungsi.',
+    ai: {
+      intro:
+        'MCP server memberi Claude akses ke kalender, pengingat, catatan, dan portfolio di app ini. Tambahkan salah satu konfigurasi berikut.',
+      desktop: 'Claude Desktop (claude_desktop_config.json)',
+      code: 'Claude Code (jalankan di terminal)',
+      copy: 'Salin',
+      copied: 'Disalin',
+      browserNote: 'Path di bawah hanya contoh; path yang benar tampil di app desktop.',
+      /** Stands in for the real path in the browser preview. */
+      examplePath: 'C:\\Program Files\\DataBoard\\mcp-server.exe',
+    },
     data: {
       export: 'Ekspor',
       exportJson: 'Semua data (JSON)',
