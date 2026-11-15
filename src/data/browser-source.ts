@@ -416,6 +416,17 @@ export const browserSource: DataSource = {
       return input;
     },
   },
+  media: {
+    // The preview has no files: the image itself is the stored path, as a data URL.
+    save: (image) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(image);
+      }),
+    url: async (path) => path,
+  },
   autostart: {
     get: async () => false,
     set: async () => fail('desktop_only', 'autostart needs the desktop app'),
