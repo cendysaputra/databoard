@@ -47,19 +47,17 @@ export function CalendarPage() {
           ]}
         />
         {view === 'list' && (
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-muted">{text.group.label}</span>
-            <Segmented
-              label={text.group.label}
-              value={grouping}
-              onChange={setGrouping}
-              options={[
-                { value: 'day', label: text.group.day },
-                { value: 'week', label: text.group.week },
-                { value: 'month', label: text.group.month },
-              ]}
-            />
-          </div>
+          // The group has no visible caption; its name is still read by screen readers.
+          <Segmented
+            label={text.group.label}
+            value={grouping}
+            onChange={setGrouping}
+            options={[
+              { value: 'day', label: text.group.day },
+              { value: 'week', label: text.group.week },
+              { value: 'month', label: text.group.month },
+            ]}
+          />
         )}
       </div>
 

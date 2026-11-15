@@ -203,7 +203,7 @@ export function RecorderPage() {
 
   return (
     <>
-      <PageHeader title={text.title} subtitle={text.subtitle} />
+      <PageHeader title={text.title} />
 
       {!isRecordingSupported ? (
         <p className="text-muted">{text.unsupported}</p>

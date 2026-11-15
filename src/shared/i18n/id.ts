@@ -105,7 +105,6 @@ export const t = {
   },
   collections: {
     title: 'Koleksi',
-    subtitle: 'Jenis konten buatanmu sendiri, lengkap dengan field-nya',
     new: 'Koleksi baru',
     newShort: 'Baru',
     emptyTitle: 'Belum ada koleksi',
@@ -191,7 +190,6 @@ export const t = {
   },
   notes: {
     title: 'Catatan',
-    subtitle: 'Catatan meeting, ide, dan lainnya',
     emptyTitle: 'Belum ada catatan',
     emptyBody: 'Catatan yang kamu tulis akan muncul di sini.',
     emptyFiltered: 'Tidak ada catatan dengan label ini.',
@@ -245,7 +243,6 @@ export const t = {
   },
   portfolio: {
     title: 'Portfolio',
-    subtitle: 'Karya dan project',
     emptyTitle: 'Belum ada project',
     emptyBody: 'Project yang kamu tambahkan akan muncul di sini.',
     status: { draft: 'Draf', published: 'Terbit', archived: 'Arsip' },
@@ -265,7 +262,6 @@ export const t = {
   },
   recorder: {
     title: 'Rekam layar',
-    subtitle: 'Rekam monitor, jendela, atau tab, lalu simpan ke komputer',
     unsupported: 'Perekaman layar tidak didukung di sini.',
     options: {
       systemAudio: 'Rekam suara komputer',
@@ -310,7 +306,6 @@ export const t = {
   },
   settings: {
     title: 'Pengaturan',
-    subtitle: 'Profil, tampilan, dan preferensi aplikasi',
     tabs: { profile: 'Profil', appearance: 'Tampilan', app: 'Aplikasi' },
     profile: {
       name: 'Nama',

@@ -280,14 +280,17 @@
     padding: 20px;
     background: var(--surface);
     color: var(--text);
-    transition:
-      box-shadow 220ms ease,
-      translate 220ms ease;
+    /* The resting shadow has the same shape as the hover one, only invisible, so it fades in evenly. */
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0),
+      0 12px 32px -8px rgb(0 0 0 / 0);
+    transition: box-shadow 360ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
-  /* Hover lifts the card slightly instead of repainting it. */
+  /* Hover adds a wide, faint shadow; the card itself does not move or change color. */
   .category-card:hover {
-    box-shadow: 0 10px 24px -16px rgb(0 0 0 / 0.22);
-    translate: 0 -1px;
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.03),
+      0 12px 32px -8px rgb(0 0 0 / 0.08);
   }
   .category-icon {
     display: flex;
@@ -368,16 +371,9 @@
     font-weight: 500;
     color: var(--text-muted);
   }
-  .calendar-agenda {
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-  }
   .agenda-list {
     display: flex;
     flex-direction: column;
-  }
-  .agenda-list > li + li {
-    border-top: 1px solid var(--border);
   }
   .agenda-item {
     display: block;

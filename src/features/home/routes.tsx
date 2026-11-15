@@ -241,10 +241,7 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
         <Section
           title={
             <>
-              <span className="text-muted">
-                {isToday ? text.today : formatWeekdayLong(selected)},
-              </span>{' '}
-              {formatDayMonthYear(selected)}
+              {isToday ? text.today : formatWeekdayLong(selected)}, {formatDayMonthYear(selected)}
             </>
           }
         >
