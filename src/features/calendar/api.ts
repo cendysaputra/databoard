@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addMonths, startOfMonth } from 'date-fns';
 import { data } from '@/data';
 import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
-import type { EventInput } from '@/shared/types';
+import type { EventInput, ReminderInput } from '@/shared/types';
 
 export { useSettings } from '@/shared/hooks/use-settings';
 
@@ -51,12 +51,38 @@ export interface EventSave {
   reminderMessage: string;
 }
 
+/**
+ * Moves the open reminders of an event along with its start, so "10 minutes before" stays
+ * 10 minutes before. A moved reminder is a new one, so it is shown again at its new time.
+ */
+async function shiftReminders(eventId: string, shiftMs: number) {
+  if (shiftMs === 0) return;
+  const reminders = await data.reminders.list(true);
+  for (const reminder of reminders.filter((r) => r.event_id === eventId)) {
+    await data.reminders.create({
+      event_id: eventId,
+      note_id: reminder.note_id,
+      remind_at: new Date(new Date(reminder.remind_at).getTime() + shiftMs).toISOString(),
+      message: reminder.message,
+    });
+    await data.reminders.remove(reminder.id);
+  }
+}
+
 /** Creates an event (optionally with one reminder), or updates the one with `id`. */
 export function useSaveEvent(id?: string) {
   const refresh = useRefresh();
   return useMutation({
     mutationFn: async ({ input, remindMinutes, reminderMessage }: EventSave) => {
-      if (id) return data.events.update(id, input);
+      if (id) {
+        const before = await data.events.get(id);
+        const event = await data.events.update(id, input);
+        await shiftReminders(
+          id,
+          new Date(event.start_at).getTime() - new Date(before.start_at).getTime(),
+        );
+        return event;
+      }
       const event = await data.events.create(input);
       if (remindMinutes !== null) {
         const remindAt = new Date(new Date(event.start_at).getTime() - remindMinutes * 60_000);
@@ -100,5 +126,35 @@ export function useRemoveEvents() {
     onSuccess: () => notifyDeleted(),
     // Also after a failure, so the list shows what was really removed.
     onSettled: () => refresh(),
+  });
+}
+
+/** The reminders of one event, done or not, by time. */
+export function useEventReminders(eventId: string) {
+  return useQuery({
+    queryKey: ['reminders', 'event', eventId],
+    queryFn: async () => (await data.reminders.list(false)).filter((r) => r.event_id === eventId),
+  });
+}
+
+export function useAddReminder() {
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: (input: ReminderInput) => data.reminders.create(input),
+    onSuccess: () => {
+      notifySaved();
+      return refresh();
+    },
+  });
+}
+
+export function useRemoveReminder() {
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: (id: string) => data.reminders.remove(id),
+    onSuccess: () => {
+      notifyDeleted();
+      return refresh();
+    },
   });
 }
