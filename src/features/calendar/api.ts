@@ -87,3 +87,14 @@ export function useRemoveEvent() {
     },
   });
 }
+
+/** Removes several events at once; one confirmation is shown for the whole batch. */
+export function useRemoveEvents() {
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: (ids: string[]) => Promise.all(ids.map((id) => data.events.remove(id))),
+    onSuccess: () => notifyDeleted(),
+    // Also after a failure, so the list shows what was really removed.
+    onSettled: () => refresh(),
+  });
+}
