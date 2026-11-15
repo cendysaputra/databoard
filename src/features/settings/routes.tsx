@@ -12,6 +12,7 @@ import {
   isDesktop,
   sendTestNotification,
   useAutostart,
+  useMcpServerPath,
   useSetAutostart,
   useSettings,
   useUpdateSettings,
@@ -251,6 +252,53 @@ function DataPanel() {
   );
 }
 
+/** A block of text to paste somewhere else, with a button that copies it. */
+function Snippet({ label, code }: { label: string; code: string }) {
+  return (
+    <div className="mb-6 last:mb-0">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <p className="label">{label}</p>
+        <Button
+          className="h-8 px-3 text-xs"
+          onClick={() =>
+            void navigator.clipboard.writeText(code).then(() => showToast(t.settings.ai.copied))
+          }
+        >
+          {t.settings.ai.copy}
+        </Button>
+      </div>
+      <pre className="overflow-x-auto rounded-sm border border-border bg-surface-hover p-4 font-mono text-xs leading-relaxed">
+        {code}
+      </pre>
+    </div>
+  );
+}
+
+/** Ready-to-paste configuration that connects Claude to the app's MCP server. */
+function AiPanel() {
+  const path = useMcpServerPath();
+  const text = t.settings.ai;
+
+  return (
+    <QueryBoundary query={path}>
+      {(serverPath) => {
+        const command = serverPath ?? text.examplePath;
+        const desktopConfig = { mcpServers: { databoard: { command } } };
+        return (
+          <>
+            <p className="mb-6 text-sm text-muted">
+              {text.intro}
+              {serverPath === null && ` ${text.browserNote}`}
+            </p>
+            <Snippet label={text.desktop} code={JSON.stringify(desktopConfig, null, 2)} />
+            <Snippet label={text.code} code={`claude mcp add databoard -- "${command}"`} />
+          </>
+        );
+      }}
+    </QueryBoundary>
+  );
+}
+
 function SettingsTabs({ settings }: { settings: Settings }) {
   const update = useUpdateSettings();
   const save = (changes: Partial<Settings>) => update.mutate({ ...settings, ...changes });
@@ -298,6 +346,7 @@ function SettingsTabs({ settings }: { settings: Settings }) {
           {tab === 'appearance' && <AppearancePanel settings={settings} save={save} />}
           {tab === 'app' && <AppPanel settings={settings} save={save} />}
           {tab === 'data' && <DataPanel />}
+          {tab === 'ai' && <AiPanel />}
         </div>
 
         {update.isError && (
