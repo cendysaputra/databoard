@@ -7,6 +7,7 @@ import { Toaster } from '@/shared/ui/Toaster';
 import { CommandPalette } from './CommandPalette';
 import { Onboarding } from './Onboarding';
 import { Sidebar } from './Sidebar';
+import { UpdateBanner } from './UpdateBanner';
 import { useShortcuts } from './use-shortcuts';
 
 /** App frame: the sidebar card stays at the left while the window scrolls the content. */
@@ -34,6 +35,7 @@ export function AppLayout() {
             key={pathname}
             className="app-content mx-auto max-w-(--content-max-width) animate-fade px-10 pt-12 pb-14"
           >
+            <UpdateBanner />
             <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
               <Outlet />
             </Suspense>
