@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addMonths, startOfMonth } from 'date-fns';
 import { data } from '@/data';
+import { useRemoveMany } from '@/shared/hooks/use-remove-many';
 import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
 import type { EventInput, ReminderInput } from '@/shared/types';
 
@@ -116,17 +117,7 @@ export function useRemoveEvent() {
 
 /** Removes several events at once; one confirmation is shown for the whole batch. */
 export function useRemoveEvents() {
-  const refresh = useRefresh();
-  return useMutation({
-    // One after another: the browser store rewrites the whole list on each removal,
-    // so removals running together would undo each other.
-    mutationFn: async (ids: string[]) => {
-      for (const id of ids) await data.events.remove(id);
-    },
-    onSuccess: () => notifyDeleted(),
-    // Also after a failure, so the list shows what was really removed.
-    onSettled: () => refresh(),
-  });
+  return useRemoveMany((id) => data.events.remove(id), useRefresh());
 }
 
 /** The reminders of one event, done or not, by time. */
