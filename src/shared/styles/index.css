@@ -280,14 +280,20 @@
     padding: 20px;
     background: var(--surface);
     color: var(--text);
-    /* The resting shadow has the same shape as the hover one, only invisible, so it fades in evenly. */
+  }
+  /*
+   * Hover adds a wide, faint shadow to cards and list rows; they do not move or change color.
+   * The resting shadow has the same shape, only invisible, so it fades in evenly.
+   */
+  .category-card,
+  .data-row {
     box-shadow:
       0 1px 2px rgb(0 0 0 / 0),
       0 12px 32px -8px rgb(0 0 0 / 0);
     transition: box-shadow 360ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
-  /* Hover adds a wide, faint shadow; the card itself does not move or change color. */
-  .category-card:hover {
+  .category-card:hover,
+  .data-row:hover {
     box-shadow:
       0 1px 2px rgb(0 0 0 / 0.03),
       0 12px 32px -8px rgb(0 0 0 / 0.08);
@@ -391,9 +397,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 24px;
-    padding-block: 8px 28px;
+    padding-top: 8px;
     margin-bottom: 28px;
-    border-bottom: 1px solid var(--border);
   }
   .page-actions {
     margin-left: auto;
