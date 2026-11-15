@@ -47,3 +47,18 @@ export function useRemoveProject() {
     },
   });
 }
+
+/** Removes several projects at once; one confirmation is shown for the whole batch. */
+export function useRemoveProjects() {
+  const refresh = useRefresh();
+  return useMutation({
+    // One after another: the browser store rewrites the whole list on each removal,
+    // so removals running together would undo each other.
+    mutationFn: async (ids: string[]) => {
+      for (const id of ids) await data.projects.remove(id);
+    },
+    onSuccess: () => notifyDeleted(),
+    // Also after a failure, so the list shows what was really removed.
+    onSettled: () => refresh(),
+  });
+}
