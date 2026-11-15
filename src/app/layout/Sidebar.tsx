@@ -13,6 +13,7 @@ const itemClass = cn(
 
 /**
  * Left rail: the app name, the module menu centered vertically, and the menu button.
+ * It stays in view while the window scrolls the content.
  * Collapsed, it shows icons only and the name is written vertically.
  */
 export function Sidebar() {
@@ -24,7 +25,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'app-sidebar relative flex shrink-0 flex-col overflow-hidden rounded-lg border border-border transition-[width]',
+        'app-sidebar sticky top-4 flex h-[calc(100dvh-2rem)] shrink-0 flex-col overflow-hidden rounded-lg border border-border transition-[width]',
         collapsed ? 'w-(--sidebar-width-collapsed)' : 'w-(--sidebar-width)',
       )}
     >
