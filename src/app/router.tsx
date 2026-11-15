@@ -140,7 +140,12 @@ const routeTree = rootRoute.addChildren([
   settingsRoute,
 ]);
 
-export const router = createRouter({ routeTree, defaultPreload: 'intent' });
+// The window scrolls the page, so each new page opens at the top and Back returns to where it was.
+export const router = createRouter({
+  routeTree,
+  defaultPreload: 'intent',
+  scrollRestoration: true,
+});
 
 declare module '@tanstack/react-router' {
   interface Register {
