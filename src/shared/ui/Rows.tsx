@@ -16,12 +16,12 @@ interface RowProps {
 
 export function Row({ lead, children, trail }: RowProps) {
   return (
-    <li className="data-row relative flex items-baseline gap-5 border border-border px-5 py-5 transition-colors hover:bg-surface-hover/50">
+    <li className="data-row relative flex items-center gap-5 border border-border px-5 py-5 transition-colors hover:bg-surface-hover/50">
       {lead !== undefined && (
-        <div className="row-lead w-24 shrink-0 text-sm text-muted tabular-nums">{lead}</div>
+        <div className="row-lead w-24 shrink-0 text-xs text-muted tabular-nums">{lead}</div>
       )}
       <div className="min-w-0 flex-1">{children}</div>
-      {trail !== undefined && <div className="row-trail shrink-0 text-sm text-muted">{trail}</div>}
+      {trail !== undefined && <div className="row-trail shrink-0 text-xs text-muted">{trail}</div>}
     </li>
   );
 }
