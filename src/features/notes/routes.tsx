@@ -154,11 +154,6 @@ function NoteEditor({ note }: { note?: Note }) {
 
   return (
     <>
-      <p className="mb-5 text-sm text-muted">
-        <Link to="/notes" className="transition-colors hover:text-text">
-          ← {t.notes.back}
-        </Link>
-      </p>
       <QueryBoundary query={labels}>
         {(allLabels) => (
           <NoteForm
