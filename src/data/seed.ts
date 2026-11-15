@@ -20,6 +20,8 @@ export const defaultSettings: Settings = {
   profile_name: '',
   profile_nickname: '',
   profile_role: '',
+  project_kinds: ['Website', 'Mobile'],
+  project_tools: ['WordPress', 'Laravel', 'Figma', 'Photoshop'],
 };
 
 export interface SeedData {
@@ -78,20 +80,40 @@ const noteRows: Array<[string, string, number, boolean, string | null]> = [
 ];
 
 /** [title, client, years ago, role, stack, status] */
-const projectRows: Array<[string, string | null, number, string, string[], Project['status']]> = [
+/** [title, client, years ago, role, kind, stack, status] */
+const projectRows: Array<
+  [string, string | null, number, string, string, string[], Project['status']]
+> = [
   [
     'Website Kedai Kopi',
     'Kopi Senja',
     0,
     'Fullstack Developer',
-    ['React', 'Tailwind CSS'],
+    'Website',
+    ['Laravel', 'Figma'],
     'published',
   ],
-  ['Aplikasi Kasir', null, 1, 'Frontend Developer', ['Rust', 'Tauri'], 'draft'],
-  ['Company Profile Arsitek', 'Studio Ruang', 0, 'Web Designer', ['Astro'], 'published'],
-  ['Dashboard Penjualan', 'Toko Maju', 1, 'Fullstack Developer', ['React', 'SQLite'], 'published'],
-  ['Katalog Batik', 'Batik Lestari', 2, 'Frontend Developer', ['Vue'], 'archived'],
-  ['Landing Page Kursus', null, 0, 'Web Designer', ['Astro', 'Tailwind CSS'], 'draft'],
+  ['Aplikasi Kasir', null, 1, 'Frontend Developer', 'Mobile', ['Figma'], 'draft'],
+  [
+    'Company Profile Arsitek',
+    'Studio Ruang',
+    0,
+    'Web Designer',
+    'Website',
+    ['WordPress', 'Photoshop'],
+    'published',
+  ],
+  [
+    'Dashboard Penjualan',
+    'Toko Maju',
+    1,
+    'Fullstack Developer',
+    'Website',
+    ['Laravel'],
+    'published',
+  ],
+  ['Katalog Batik', 'Batik Lestari', 2, 'Frontend Developer', 'Mobile', ['Figma'], 'archived'],
+  ['Landing Page Kursus', null, 0, 'Web Designer', 'Website', ['WordPress', 'Figma'], 'draft'],
 ];
 
 /** Example content for the browser preview, dated around today so it is always visible. */
@@ -131,12 +153,13 @@ export function createSeed(now = new Date()): SeedData {
   });
 
   const projects: Project[] = projectRows.map(
-    ([title, client, yearsAgo, role, stack, status], i) => ({
+    ([title, client, yearsAgo, role, kind, stack, status], i) => ({
       id: `seed-project-${i + 1}`,
       title,
       client,
       year: now.getFullYear() - yearsAgo,
       role,
+      kind,
       stack,
       url: null,
       repo_url: null,
