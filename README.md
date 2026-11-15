@@ -31,6 +31,35 @@ portfolio, dan MCP server. Rencana kerja lengkap ada di [PLAN.md](PLAN.md).
   `crates/core/src/db/migrations.rs`. Migration yang sudah rilis tidak boleh diedit.
 - Tipe data: ubah struct Rust di `crates/core/src/domain/`, lalu `npm run gen:types`.
 
+## Rilis dan pembaruan
+
+Versi app ada di satu tempat: `version` di `Cargo.toml` (workspace). Alur rilis:
+
+1. Ubah `version` di `Cargo.toml`, commit.
+2. `git tag vX.Y.Z` lalu `git push --tags`.
+3. Workflow `.github/workflows/release.yml` membangun MSI (berisi app dan `mcp-server.exe`),
+   menandatangani pembaruan, dan mengunggahnya ke GitHub Release bersama `latest.json`.
+
+App yang terpasang mengecek `latest.json` saat dibuka dan sekali sehari, lalu menampilkan
+banner "Versi baru tersedia". Pembaruan baru dipasang setelah tombolnya ditekan.
+
+GitHub Secrets yang dibutuhkan workflow:
+
+| Secret                               | Isi                                                     |
+| ------------------------------------ | ------------------------------------------------------- |
+| `TAURI_SIGNING_PRIVATE_KEY`          | Isi file private key updater (jangan pernah di-commit)  |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Password key itu; kosong bila key dibuat tanpa password |
+| `DATABOARD_GOOGLE_CLIENT_ID`         | Opsional, untuk unggah ke Google Drive                  |
+| `DATABOARD_GOOGLE_CLIENT_SECRET`     | Opsional, untuk unggah ke Google Drive                  |
+
+Public key pasangannya ada di `src-tauri/tauri.conf.json` (`plugins.updater.pubkey`). Kalau
+key diganti (`npx tauri signer generate -w <file>`), app yang sudah terpasang dengan key lama
+tidak bisa lagi menerima pembaruan, jadi ganti hanya sebelum rilis pertama.
+
+Build installer di komputer sendiri: set `TAURI_SIGNING_PRIVATE_KEY` (dan password-nya), lalu
+`npm run build:app`. MSI belum ditandatangani dengan sertifikat code signing, sehingga Windows
+SmartScreen menampilkan "Unknown publisher"; lihat catatan di awal file workflow.
+
 ## Google Drive (unggah rekaman)
 
 Unggah rekaman ke Google Drive hanya ada di app desktop dan butuh OAuth client milik
