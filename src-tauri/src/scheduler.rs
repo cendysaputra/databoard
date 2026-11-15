@@ -38,20 +38,22 @@ pub fn start(app: AppHandle) {
     });
 }
 
-/// Shows every due reminder once. One that could not be shown is tried again on the next pass.
+/// Shows every due reminder once. It is recorded as shown before the notification goes out:
+/// if recording fails it is tried again on the next pass, and a notification that fails
+/// after that is not repeated (the reminder still waits in the app's notification menu).
 fn notify_due(app: &AppHandle) -> Result<()> {
     let db = app.state::<Db>();
     let title = &app.package_info().name;
     for reminder in db.with(reminders::due)? {
+        db.with(|conn| reminders::mark_notified(conn, &reminder.id))?;
         let shown = app
             .notification()
             .builder()
             .title(title)
             .body(&reminder.message)
             .show();
-        match shown {
-            Ok(()) => db.with(|conn| reminders::mark_notified(conn, &reminder.id))?,
-            Err(err) => eprintln!("scheduler: notification failed: {err}"),
+        if let Err(err) = shown {
+            eprintln!("scheduler: notification failed: {err}");
         }
     }
     Ok(())
