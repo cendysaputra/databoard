@@ -1,10 +1,6 @@
 import type {
   CalendarEvent,
-  Collection,
-  CollectionInput,
   DriveStatus,
-  Entry,
-  EntryInput,
   EventInput,
   EventRange,
   Note,
@@ -81,21 +77,6 @@ export interface DataSource {
     get(id: string): Promise<Project>;
     create(input: ProjectInput): Promise<Project>;
     update(id: string, input: ProjectInput): Promise<Project>;
-    remove(id: string): Promise<void>;
-  };
-  collections: {
-    list(): Promise<Collection[]>;
-    get(id: string): Promise<Collection>;
-    create(input: CollectionInput): Promise<Collection>;
-    update(id: string, input: CollectionInput): Promise<Collection>;
-    /** Also removes the collection's entries. */
-    remove(id: string): Promise<void>;
-  };
-  entries: {
-    list(collectionId: string, page: Page): Promise<Entry[]>;
-    get(id: string): Promise<Entry>;
-    create(collectionId: string, input: EntryInput): Promise<Entry>;
-    update(id: string, input: EntryInput): Promise<Entry>;
     remove(id: string): Promise<void>;
   };
   recordings: {
