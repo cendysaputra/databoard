@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export interface RecorderOptions {
+interface RecorderOptions {
   systemAudio: boolean;
   microphone: boolean;
 }
