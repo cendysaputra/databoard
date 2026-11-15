@@ -29,8 +29,6 @@ export const t = {
     done: 'Selesai',
     back: 'Kembali',
     desktopOnly: 'Khusus desktop',
-    browserMode: 'Mode browser: data contoh disimpan di browser ini.',
-    browserBadge: 'Pratinjau',
   },
   update: {
     available: (version: string) => `Versi ${version} tersedia`,
@@ -112,14 +110,12 @@ export const t = {
       next: 'Bulan berikutnya',
       weekdays: ['Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb', 'Mg'],
       upcoming: 'Berikutnya',
-      emptyDay: 'Tidak ada event di hari ini.',
       emptyUpcoming: 'Tidak ada event mendatang.',
     },
   },
   collections: {
     title: 'Koleksi',
     new: 'Koleksi baru',
-    newShort: 'Baru',
     emptyTitle: 'Belum ada koleksi',
     emptyBody: 'Buat koleksi, misalnya Posts, lalu tentukan field yang dibutuhkan.',
     entryCount: (n: number) => `${n} entri`,
