@@ -218,7 +218,7 @@ impl Dashboard {
 
     #[tool(description = "Delete a calendar event (soft delete)")]
     fn delete_event(&self, Parameters(args): Parameters<IdArgs>) -> CallToolResult {
-        reply(self.db.with(|conn| events::remove(conn, &args.id)))
+        reply(self.db.with_tx(|conn| events::remove(conn, &args.id)))
     }
 
     #[tool(description = "List reminders by time; by default only those not done yet")]
