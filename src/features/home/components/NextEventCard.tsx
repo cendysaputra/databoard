@@ -46,7 +46,7 @@ export function NextEventCard({ event, now }: { event: CalendarEvent | undefined
           <Link
             to="/calendar/$eventId"
             params={{ eventId: event.id }}
-            className="mt-4 inline-block text-xs font-medium underline-offset-4 hover:underline"
+            className="mt-4 inline-block text-xs font-medium transition-opacity hover:opacity-60"
           >
             {text.details}
           </Link>
