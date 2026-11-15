@@ -6,10 +6,11 @@ import { Button } from '@/shared/ui/Button';
 import { FormError } from '@/shared/ui/FormError';
 import { FormField } from '@/shared/ui/FormField';
 import { Input } from '@/shared/ui/Input';
-import { Select } from '@/shared/ui/Select';
 import { Textarea } from '@/shared/ui/Textarea';
 import { fromInput, toDateTimeInput } from '@/shared/utils/datetime-input';
 import type { EventSave } from '../api';
+import { EventReminders } from './EventReminders';
+import { ReminderPicker } from './ReminderPicker';
 
 const text = t.calendar.form;
 const narrow = { maxWidth: '16rem' };
@@ -49,16 +50,10 @@ export function EventForm({
   const [end, setEnd] = useState(toDateTimeInput(initial.end));
   const [location, setLocation] = useState(event?.location ?? '');
   const [description, setDescription] = useState(event?.description ?? '');
-  const [remind, setRemind] = useState(String(defaultReminderMinutes));
+  const [remind, setRemind] = useState<number | null>(
+    defaultReminderMinutes > 0 ? defaultReminderMinutes : null,
+  );
   const [rangeError, setRangeError] = useState(false);
-
-  const reminderChoices = [...new Set([defaultReminderMinutes, 10, 60, 1440])]
-    .filter((minutes) => minutes > 0)
-    .sort((a, b) => a - b);
-  const reminderLabel = (minutes: number) =>
-    text.reminderBefore(
-      minutes === 60 ? text.hour : minutes === 1440 ? text.day : text.minutes(minutes),
-    );
 
   const submit = (formEvent: FormEvent) => {
     formEvent.preventDefault();
@@ -80,7 +75,7 @@ export function EventForm({
         all_day: allDay,
         color: event?.color ?? null,
       },
-      remindMinutes: remind === '' ? null : Number(remind),
+      remindMinutes: remind,
       reminderMessage: text.reminderMessage(title.trim()),
     });
   };
@@ -153,22 +148,18 @@ export function EventForm({
         )}
       </FormField>
 
-      {!event && (
+      {event ? (
+        <EventReminders event={event} defaultMinutes={defaultReminderMinutes} />
+      ) : (
         <FormField label={text.reminder}>
           {(id) => (
-            <Select
+            <ReminderPicker
               id={id}
-              style={narrow}
+              allowNone
+              defaultMinutes={defaultReminderMinutes}
               value={remind}
-              onChange={(e) => setRemind(e.target.value)}
-            >
-              <option value="">{text.reminderNone}</option>
-              {reminderChoices.map((minutes) => (
-                <option key={minutes} value={minutes}>
-                  {reminderLabel(minutes)}
-                </option>
-              ))}
-            </Select>
+              onChange={setRemind}
+            />
           )}
         </FormField>
       )}
