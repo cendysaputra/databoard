@@ -50,29 +50,35 @@ export function MonthView({ today }: { today: Date }) {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <h2 className="mr-auto text-xl font-semibold capitalize">{formatMonthYear(month)}</h2>
-        <Button
-          onClick={() => {
-            setMonth(today);
-            setSelected(today);
-          }}
-        >
-          {text.backToToday}
-        </Button>
-        <Button
-          icon
-          aria-label={t.home.calendar.previous}
-          onClick={() => setMonth(addMonths(month, -1))}
-        >
-          <ChevronLeft aria-hidden className="size-4" />
-        </Button>
-        <Button
-          icon
-          aria-label={t.home.calendar.next}
-          onClick={() => setMonth(addMonths(month, 1))}
-        >
-          <ChevronRight aria-hidden className="size-4" />
-        </Button>
+        <h2 className="mr-auto text-lg font-semibold capitalize sm:text-xl">
+          {formatMonthYear(month)}
+        </h2>
+        {/* One group, so the three controls stay together when the row wraps. */}
+        <div className="flex gap-1.5">
+          <Button
+            className="px-3"
+            onClick={() => {
+              setMonth(today);
+              setSelected(today);
+            }}
+          >
+            {text.backToToday}
+          </Button>
+          <Button
+            icon
+            aria-label={t.home.calendar.previous}
+            onClick={() => setMonth(addMonths(month, -1))}
+          >
+            <ChevronLeft aria-hidden className="size-4" />
+          </Button>
+          <Button
+            icon
+            aria-label={t.home.calendar.next}
+            onClick={() => setMonth(addMonths(month, 1))}
+          >
+            <ChevronRight aria-hidden className="size-4" />
+          </Button>
+        </div>
       </div>
 
       {/* The 1px gaps show the border color behind the cells, which draws the grid lines. */}
