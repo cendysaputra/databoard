@@ -156,7 +156,6 @@ export const t = {
   },
   calendar: {
     title: 'Kalender',
-    subtitle: 'Event dari awal bulan ini sampai 6 bulan ke depan',
     emptyTitle: 'Belum ada event',
     emptyBody: 'Event yang kamu tambahkan akan muncul di sini.',
     allDay: 'Seharian',
