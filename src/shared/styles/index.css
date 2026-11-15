@@ -61,10 +61,19 @@
 }
 
 @layer base {
-  html,
-  body,
+  /* The window scrolls the page: a thin scrollbar, and smooth jumps to anchors. */
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    scrollbar-gutter: stable;
+  }
+
+  /* The app fills at least the window; a grid lets its child stretch to that height. */
   #root {
-    height: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 100dvh;
   }
 
   body {
@@ -222,27 +231,11 @@
   }
 }
 
-/* App frame: the sidebar is a card; the content sits beside it on the canvas. */
+/* App frame: the sidebar is a card that stays put; the content scrolls with the window. */
 @layer components {
   .app-sidebar {
     background: var(--surface);
     box-shadow: 0 12px 48px -30px rgb(0 0 0 / 0.08);
-  }
-  .app-main {
-    background: var(--canvas);
-    scrollbar-gutter: stable;
-    /* Jumps made by links and the keyboard glide instead of snapping. */
-    scroll-behavior: smooth;
-    /* Reaching the end does not tug at the page behind. */
-    overscroll-behavior: contain;
-    /* A thin, quiet scrollbar that only darkens while the content is hovered. */
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-    transition: scrollbar-color var(--duration);
-  }
-  .app-main:hover,
-  .app-main:focus-within {
-    scrollbar-color: var(--border) transparent;
   }
   .nav-active-dot {
     position: absolute;
@@ -288,12 +281,15 @@
     background: var(--surface);
     color: var(--text);
     transition:
-      border-color var(--duration),
-      background-color var(--duration);
+      border-color 220ms ease,
+      box-shadow 220ms ease,
+      translate 220ms ease;
   }
+  /* Hover lifts the card slightly instead of repainting it. */
   .category-card:hover {
-    border-color: var(--text-muted);
-    background: var(--surface-hover);
+    border-color: color-mix(in oklab, var(--text-muted) 45%, var(--border));
+    box-shadow: 0 10px 24px -16px rgb(0 0 0 / 0.22);
+    translate: 0 -1px;
   }
   .category-icon {
     display: flex;
@@ -313,14 +309,6 @@
   .category-count {
     padding-top: 16px;
   }
-  .category-arrow {
-    position: absolute;
-    top: 24px;
-    right: 20px;
-    width: 16px;
-    height: 16px;
-    color: var(--text-muted);
-  }
 
   /* Framed blocks of the main column. */
   .day-timeline,
@@ -335,9 +323,19 @@
   .dashboard-panel {
     padding: 22px;
   }
+  /* List items get a soft wash that reaches a little past their text. */
+  .recent-note,
+  .agenda-item {
+    border-radius: var(--radius-sm);
+    transition: background-color 220ms ease;
+  }
+  .recent-note:hover,
+  .agenda-item:hover {
+    background: color-mix(in oklab, var(--text) 5%, transparent);
+  }
   .recent-note {
-    border-bottom: 1px solid var(--border);
-    padding-block: 8px 16px;
+    margin: -10px;
+    padding: 10px;
   }
 
   /* Right column: the month card, then the card of coming events. */
@@ -387,15 +385,9 @@
     border-top: 1px solid var(--border);
   }
   .agenda-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding-block: 16px;
-    border-radius: 4px;
-    transition: background-color var(--duration);
-  }
-  .agenda-item:hover {
-    background: var(--surface-hover);
+    display: block;
+    margin: 4px -10px;
+    padding: 12px 10px;
   }
 }
 
@@ -489,12 +481,10 @@
     gap: 0;
   }
   .app-sidebar {
-    border-width: 0 1px 0 0;
+    top: 0;
+    height: 100dvh;
     border-radius: 0;
     box-shadow: none;
-  }
-  .app-panel {
-    border-radius: 0;
   }
   .app-content {
     padding: 24px;

@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowUpRight, Clock, MapPin } from 'lucide-react';
+import { Clock, MapPin } from 'lucide-react';
 import { t } from '@/shared/i18n/id';
 import type { CalendarEvent } from '@/shared/types';
 import { buttonClass } from '@/shared/ui/Button';
@@ -46,10 +46,9 @@ export function NextEventCard({ event, now }: { event: CalendarEvent | undefined
           <Link
             to="/calendar/$eventId"
             params={{ eventId: event.id }}
-            className="mt-4 inline-flex items-center gap-2 text-xs font-medium underline-offset-4 hover:underline"
+            className="mt-4 inline-block text-xs font-medium underline-offset-4 hover:underline"
           >
             {text.details}
-            <ArrowUpRight aria-hidden className="size-3.5" />
           </Link>
         </>
       ) : (

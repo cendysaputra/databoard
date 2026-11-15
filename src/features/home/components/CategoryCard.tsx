@@ -1,5 +1,4 @@
 import { Link, type LinkProps } from '@tanstack/react-router';
-import { ArrowUpRight } from 'lucide-react';
 import { CalendarIcon, CollectionIcon, NotesIcon, PortfolioIcon } from '@/shared/ui/icons';
 
 const icons = [CalendarIcon, NotesIcon, PortfolioIcon, CollectionIcon];
@@ -23,7 +22,6 @@ export function CategoryCard({ art, name, stat, caption, link }: CategoryCardPro
         </span>
         <span className="category-name">{name}</span>
       </span>
-      <ArrowUpRight aria-hidden className="category-arrow" />
       <span className="category-count flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
         <span className="text-3xl leading-none font-semibold tabular-nums">{stat}</span>
         <span className="text-xs text-muted">{caption}</span>

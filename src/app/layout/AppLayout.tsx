@@ -8,7 +8,7 @@ import { CommandPalette } from './CommandPalette';
 import { Onboarding } from './Onboarding';
 import { Sidebar } from './Sidebar';
 
-/** App frame: the sidebar card at the left, the borderless content column beside it. */
+/** App frame: the sidebar card stays at the left while the window scrolls the content. */
 export function AppLayout() {
   const { pathname } = useLocation();
   const wide = pathname === '/';
@@ -18,25 +18,23 @@ export function AppLayout() {
   if (settings && !settings.profile_name.trim()) return <Onboarding settings={settings} />;
 
   return (
-    <div className="app-canvas h-full bg-canvas p-4">
-      <div className="app-frame relative flex h-full gap-5">
+    <div className="app-canvas min-h-full bg-canvas p-4">
+      <div className="app-frame relative flex items-start gap-5">
         <Sidebar />
-        <div className="app-panel relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg">
-          <main className="app-main flex-1 overflow-y-auto">
-            {/* The key restarts the fade whenever the route changes. */}
-            <div
-              key={pathname}
-              className={cn(
-                'app-content mx-auto animate-fade px-10 pt-12 pb-14',
-                wide ? 'max-w-(--content-max-width-wide)' : 'max-w-(--content-max-width)',
-              )}
-            >
-              <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
-                <Outlet />
-              </Suspense>
-            </div>
-          </main>
-        </div>
+        <main className="app-panel min-w-0 flex-1">
+          {/* The key restarts the fade whenever the route changes. */}
+          <div
+            key={pathname}
+            className={cn(
+              'app-content mx-auto animate-fade px-10 pt-12 pb-14',
+              wide ? 'max-w-(--content-max-width-wide)' : 'max-w-(--content-max-width)',
+            )}
+          >
+            <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
+              <Outlet />
+            </Suspense>
+          </div>
+        </main>
       </div>
       <CommandPalette />
       <Toaster />

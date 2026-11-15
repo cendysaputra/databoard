@@ -13,6 +13,7 @@ const itemClass = cn(
 
 /**
  * Left rail: the app name, the module menu centered vertically, and the menu button.
+ * It stays in view while the window scrolls the content.
  * Collapsed, it shows icons only and the name is written vertically.
  */
 export function Sidebar() {
@@ -24,14 +25,14 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'app-sidebar relative flex shrink-0 flex-col overflow-hidden rounded-lg border border-border transition-[width]',
+        'app-sidebar sticky top-4 flex h-[calc(100dvh-2rem)] shrink-0 flex-col overflow-hidden rounded-card transition-[width]',
         collapsed ? 'w-(--sidebar-width-collapsed)' : 'w-(--sidebar-width)',
       )}
     >
       <div
         className={cn(
-          'sidebar-brand flex shrink-0 px-6 pt-8',
-          collapsed ? 'justify-center' : 'h-24 items-start',
+          'sidebar-brand flex shrink-0 pt-8',
+          collapsed ? 'justify-center' : 'h-24 items-start px-6',
         )}
       >
         {/* The app name leads back to Beranda; it is a label, so it cannot be selected. */}
@@ -49,8 +50,8 @@ export function Sidebar() {
 
       <nav
         className={cn(
-          'sidebar-nav flex flex-1 flex-col justify-center gap-2 overflow-y-auto px-4',
-          collapsed && 'items-center',
+          'sidebar-nav flex flex-1 flex-col justify-center gap-2 overflow-y-auto',
+          collapsed ? 'items-center px-2' : 'px-4',
         )}
       >
         {navItems.map(({ to, label, icon: Icon }) => (
@@ -64,7 +65,7 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className={cn('sidebar-footer flex px-4 py-5', collapsed && 'justify-center')}>
+      <div className={cn('sidebar-footer flex py-5', collapsed ? 'justify-center px-2' : 'px-4')}>
         <button
           type="button"
           onClick={toggle}

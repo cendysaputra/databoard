@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addDays, addWeeks, startOfDay, startOfWeek } from 'date-fns';
 import { data } from '@/data';
 
@@ -46,5 +46,25 @@ export function useRecentNotes() {
   return useQuery({
     queryKey: ['notes', 'recent'],
     queryFn: () => data.notes.list({ limit: RECENT_NOTES, offset: 0 }),
+  });
+}
+
+/** Reminders that are not done yet, soonest first; shown as notifications. */
+export function usePendingReminders() {
+  return useQuery({
+    queryKey: ['reminders', 'pending'],
+    queryFn: () => data.reminders.list(true),
+  });
+}
+
+/** Marks a reminder as done, which removes it from the notifications. */
+export function useCompleteReminder() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => data.reminders.complete(id),
+    onSuccess: () =>
+      Promise.all(
+        ['reminders', 'overview'].map((key) => client.invalidateQueries({ queryKey: [key] })),
+      ),
   });
 }
