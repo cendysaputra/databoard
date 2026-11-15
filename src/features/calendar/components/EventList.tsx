@@ -79,9 +79,9 @@ export function GroupedEvents({ events, grouping }: GroupedEventsProps) {
     <div className="flex flex-col gap-8">
       {groups.map((group) => (
         <section key={group.start.toISOString()}>
-          <h2 className="mb-3 flex items-baseline gap-2 text-sm font-semibold capitalize">
+          <h2 className="mb-3 flex items-center gap-2.5 text-sm font-semibold capitalize">
             {groupLabel(grouping, group.start)}
-            <span className="text-xs font-normal text-muted normal-case">
+            <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-normal text-muted normal-case">
               {t.home.schedule.count(group.events.length)}
             </span>
           </h2>
