@@ -8,7 +8,7 @@ use crate::util::{new_id, now, optional, required, soft_delete};
 
 const TABLE: &str = "projects";
 const COLUMNS: &str = "id, title, client, year, role, stack, url, repo_url, description_md, \
-                       cover_path, status, sort_order, created_at, updated_at";
+                       cover_path, status, sort_order, created_at, updated_at, kind";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "lowercase")]
@@ -54,6 +54,8 @@ pub struct Project {
     pub client: Option<String>,
     pub year: Option<i32>,
     pub role: Option<String>,
+    /// What sort of work it is, e.g. "Website" or "Mobile".
+    pub kind: Option<String>,
     pub stack: Vec<String>,
     pub url: Option<String>,
     pub repo_url: Option<String>,
@@ -73,6 +75,8 @@ pub struct ProjectInput {
     pub client: Option<String>,
     pub year: Option<i32>,
     pub role: Option<String>,
+    /// What sort of work it is, e.g. "Website" or "Mobile".
+    pub kind: Option<String>,
     pub stack: Vec<String>,
     pub url: Option<String>,
     pub repo_url: Option<String>,
@@ -90,6 +94,7 @@ fn from_row(row: &Row<'_>) -> rusqlite::Result<Project> {
         client: row.get(2)?,
         year: row.get(3)?,
         role: row.get(4)?,
+        kind: row.get(14)?,
         stack: serde_json::from_str(&stack).unwrap_or_default(),
         url: row.get(6)?,
         repo_url: row.get(7)?,
@@ -144,8 +149,8 @@ pub fn create(conn: &Connection, input: &ProjectInput) -> Result<Project> {
     conn.execute(
         "INSERT INTO projects
            (id, title, client, year, role, stack, url, repo_url, description_md, cover_path,
-            status, sort_order, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?13)",
+            status, sort_order, created_at, updated_at, kind)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?13, ?14)",
         params![
             id,
             required("title", &input.title)?,
@@ -159,7 +164,8 @@ pub fn create(conn: &Connection, input: &ProjectInput) -> Result<Project> {
             optional(input.cover_path.as_deref()),
             input.status,
             input.sort_order,
-            now
+            now,
+            optional(input.kind.as_deref())
         ],
     )?;
     get(conn, &id)
@@ -170,7 +176,8 @@ pub fn update(conn: &Connection, id: &str, input: &ProjectInput) -> Result<Proje
     let changed = conn.execute(
         "UPDATE projects
          SET title = ?2, client = ?3, year = ?4, role = ?5, stack = ?6, url = ?7, repo_url = ?8,
-             description_md = ?9, cover_path = ?10, status = ?11, sort_order = ?12, updated_at = ?13
+             description_md = ?9, cover_path = ?10, status = ?11, sort_order = ?12, updated_at = ?13,
+             kind = ?14
          WHERE id = ?1 AND deleted_at IS NULL",
         params![
             id,
@@ -185,7 +192,8 @@ pub fn update(conn: &Connection, id: &str, input: &ProjectInput) -> Result<Proje
             optional(input.cover_path.as_deref()),
             input.status,
             input.sort_order,
-            now()
+            now(),
+            optional(input.kind.as_deref())
         ],
     )?;
     if changed == 0 {
@@ -209,6 +217,7 @@ mod tests {
             client: Some("Acme".into()),
             year: Some(2026),
             role: None,
+            kind: Some("Website".into()),
             stack: vec!["Rust".into(), " ".into(), "React ".into()],
             url: None,
             repo_url: None,
@@ -226,6 +235,7 @@ mod tests {
             let second = create(c, &input("Second", ProjectStatus::Draft, 2))?;
             create(c, &input("First", ProjectStatus::Published, 1))?;
             assert_eq!(second.stack, ["Rust", "React"]);
+            assert_eq!(second.kind.as_deref(), Some("Website"));
 
             let all = list(c, None)?;
             assert_eq!(all[0].title, "First");
