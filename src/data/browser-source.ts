@@ -427,6 +427,7 @@ export const browserSource: DataSource = {
       }),
     url: async (path) => path,
   },
+  mcp: { serverPath: async () => null },
   autostart: {
     get: async () => false,
     set: async () => fail('desktop_only', 'autostart needs the desktop app'),
