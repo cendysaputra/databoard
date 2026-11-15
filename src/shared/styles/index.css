@@ -61,10 +61,19 @@
 }
 
 @layer base {
-  html,
-  body,
+  /* The window scrolls the page: a thin scrollbar, and smooth jumps to anchors. */
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    scrollbar-gutter: stable;
+  }
+
+  /* The app fills at least the window; a grid lets its child stretch to that height. */
   #root {
-    height: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 100dvh;
   }
 
   body {
@@ -222,27 +231,11 @@
   }
 }
 
-/* App frame: the sidebar is a card; the content sits beside it on the canvas. */
+/* App frame: the sidebar is a card that stays put; the content scrolls with the window. */
 @layer components {
   .app-sidebar {
     background: var(--surface);
     box-shadow: 0 12px 48px -30px rgb(0 0 0 / 0.08);
-  }
-  .app-main {
-    background: var(--canvas);
-    scrollbar-gutter: stable;
-    /* Jumps made by links and the keyboard glide instead of snapping. */
-    scroll-behavior: smooth;
-    /* Reaching the end does not tug at the page behind. */
-    overscroll-behavior: contain;
-    /* A thin, quiet scrollbar that only darkens while the content is hovered. */
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-    transition: scrollbar-color var(--duration);
-  }
-  .app-main:hover,
-  .app-main:focus-within {
-    scrollbar-color: var(--border) transparent;
   }
   .nav-active-dot {
     position: absolute;
@@ -489,12 +482,11 @@
     gap: 0;
   }
   .app-sidebar {
+    top: 0;
+    height: 100dvh;
     border-width: 0 1px 0 0;
     border-radius: 0;
     box-shadow: none;
-  }
-  .app-panel {
-    border-radius: 0;
   }
   .app-content {
     padding: 24px;
