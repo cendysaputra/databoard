@@ -136,7 +136,7 @@ pub async fn upload_file(http: &Client, access: &str, path: &Path) -> CommandRes
     }
     let folder = ensure_folder(http, access).await?;
 
-    // Step 1: announce the upload; Google answers with the address to send the bytes to.
+    // Announce the upload; Google answers with the address to send the bytes to.
     let session = checked(
         http.post(UPLOAD_URL)
             .query(&[("uploadType", "resumable"), ("fields", "id,webViewLink")])
@@ -156,7 +156,7 @@ pub async fn upload_file(http: &Client, access: &str, path: &Path) -> CommandRes
         .ok_or_else(|| AppError::external("Google Drive did not return an upload address"))?
         .to_owned();
 
-    // Step 2: send the file piece by piece.
+    // Send the file piece by piece.
     let mut sent = 0_u64;
     let mut buffer = vec![0_u8; CHUNK_BYTES];
     loop {
