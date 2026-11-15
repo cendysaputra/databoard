@@ -130,6 +130,15 @@ export interface DataSource {
     /** An address an `<img>` can show for a stored path. */
     url(path: string): Promise<string>;
   };
+  /** Backups of the whole database. Desktop only. */
+  backup: {
+    /** Asks for a folder to keep backups in; `null` when the dialog was cancelled. */
+    pickDir(): Promise<string | null>;
+    /** Writes a backup now and resolves to the path of the file. */
+    run(): Promise<string>;
+    /** Asks for a backup file and replaces all data with it; `false` when cancelled. */
+    restore(): Promise<boolean>;
+  };
   /** The agent server (MCP) that lets AI clients read and write the data. Desktop only. */
   mcp: {
     /** Full path of the server program, or `null` where there is none (the browser). */
