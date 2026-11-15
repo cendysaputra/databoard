@@ -8,11 +8,12 @@ import type { Project, Settings } from '@/shared/types';
 import { Button, buttonClass } from '@/shared/ui/Button';
 import { ConfirmButton } from '@/shared/ui/ConfirmButton';
 import { EmptyState } from '@/shared/ui/EmptyState';
+import { FilterSelect } from '@/shared/ui/FilterSelect';
 import { FormError } from '@/shared/ui/FormError';
 import { PortfolioIcon } from '@/shared/ui/icons';
+import { pillClass } from '@/shared/ui/LabelChip';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
-import { Select } from '@/shared/ui/Select';
 import { SelectionBar } from '@/shared/ui/SelectionBar';
 import { cn } from '@/shared/utils/cn';
 import {
@@ -42,34 +43,19 @@ const withUsed = (names: string[], used: Array<string | null | undefined>) => {
   return all;
 };
 
-interface FilterProps {
-  label: string;
-  /** Text of the choice that filters nothing. */
-  all: string;
-  value: string;
-  options: string[];
-  onChange(value: string): void;
-}
+/** Names as dropdown choices. */
+const asOptions = (names: string[]) => names.map((name) => ({ value: name, label: name }));
 
-/** One dropdown of the filter row; its empty value means "no filter". */
-function Filter({ label, all, value, options, onChange }: FilterProps) {
+/** The tools of a project as small pills. */
+function ToolList({ tools, className }: { tools: string[]; className?: string }) {
   return (
-    // The select fills its box, so the box sets the width.
-    <div className="w-44">
-      <Select
-        aria-label={label}
-        className="h-10"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      >
-        <option value="">{all}</option>
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </Select>
-    </div>
+    <ul className={cn('flex flex-wrap gap-1.5', className)}>
+      {tools.map((tool) => (
+        <li key={tool} className={pillClass}>
+          {tool}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -153,15 +139,7 @@ function ProjectCard({ project, select, drag }: ProjectCardProps) {
         </p>
       </div>
 
-      {project.stack.length > 0 && (
-        <ul className="mt-auto flex flex-wrap gap-1.5">
-          {project.stack.map((tool) => (
-            <li key={tool} className="rounded-sm bg-surface-hover px-2 py-0.5 text-xs text-muted">
-              {tool}
-            </li>
-          ))}
-        </ul>
-      )}
+      {project.stack.length > 0 && <ToolList tools={project.stack} className="mt-auto" />}
     </li>
   );
 }
@@ -218,25 +196,25 @@ function ProjectGrid({ projects, settings }: { projects: Project[]; settings: Se
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center gap-2">
-        <Filter
+        <FilterSelect
           label={text.filter.kind}
           all={text.filter.allKinds}
           value={kind}
-          options={kinds}
+          options={asOptions(kinds)}
           onChange={setKind}
         />
-        <Filter
+        <FilterSelect
           label={text.filter.year}
           all={text.filter.allYears}
           value={year}
-          options={years}
+          options={asOptions(years)}
           onChange={setYear}
         />
-        <Filter
+        <FilterSelect
           label={text.filter.tool}
           all={text.filter.allTools}
           value={tool}
-          options={tools}
+          options={asOptions(tools)}
           onChange={setTool}
         />
         {filtered && (
@@ -394,16 +372,7 @@ function ProjectDetail({ project }: { project: Project }) {
         {project.stack.length > 0 && (
           <div>
             <p className="label mb-2">{text.form.tools}</p>
-            <ul className="flex flex-wrap gap-1.5">
-              {project.stack.map((tool) => (
-                <li
-                  key={tool}
-                  className="rounded-sm bg-surface-hover px-2 py-0.5 text-xs text-muted"
-                >
-                  {tool}
-                </li>
-              ))}
-            </ul>
+            <ToolList tools={project.stack} />
           </div>
         )}
 
