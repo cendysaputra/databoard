@@ -23,10 +23,8 @@ interface Tip {
 }
 
 /**
- * Left rail: the app name, the module menu centered vertically, and the menu button.
- * It stays in view while the window scrolls the content.
- * Collapsed, it shows icons only and the name is written vertically; hovering an icon
- * then shows its name in a tooltip beside the rail.
+ * Left rail: app name, module menu and menu button; it stays in view while the page scrolls.
+ * Collapsed, it shows icons only, and hovering one shows its name in a tooltip.
  */
 export function Sidebar() {
   const collapsed = useUi((state) => state.sidebarCollapsed);
