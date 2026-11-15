@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Overview } from '@/shared/types';
+import { buttonClass } from '@/shared/ui/Button';
 import { NotesIcon } from '@/shared/ui/icons';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { cn } from '@/shared/utils/cn';
@@ -18,6 +19,7 @@ import { CategoryCard } from './components/CategoryCard';
 import { DayTimeline } from './components/DayTimeline';
 import { MiniCalendar } from './components/MiniCalendar';
 import { NextEventCard } from './components/NextEventCard';
+import { NotificationMenu } from './components/NotificationMenu';
 import { ScheduleChart } from './components/ScheduleChart';
 import { Timeline } from './components/Timeline';
 
@@ -58,7 +60,7 @@ function Section({
   );
 }
 
-/** Square "+" button beside the greeting; opens a small menu of things to create. */
+/** Quiet "+" button beside the greeting; opens a small menu of things to create. */
 function AddMenu() {
   const links = [
     { to: '/calendar/new', label: t.calendar.new },
@@ -67,15 +69,19 @@ function AddMenu() {
   ] as const;
 
   return (
-    <details className="group relative shrink-0">
+    // Shares its name with the notifications menu, so opening one closes the other.
+    <details name="home-menu" className="relative">
       <summary
         aria-label={text.add}
         title={text.add}
-        className="flex size-11 cursor-pointer list-none items-center justify-center rounded-sm bg-accent text-accent-contrast transition-[rotate] group-open:rotate-45 [&::-webkit-details-marker]:hidden"
+        className={cn(
+          buttonClass('secondary', true),
+          'cursor-pointer list-none bg-surface [&::-webkit-details-marker]:hidden',
+        )}
       >
-        <Plus aria-hidden className="size-5" />
+        <Plus aria-hidden className="size-4.5" />
       </summary>
-      <div className="absolute top-14 right-0 z-20 w-44 rounded-md border border-border bg-surface p-1.5 shadow-xl">
+      <div className="absolute top-12 right-0 z-20 w-44 rounded-md border border-border bg-surface p-1.5 shadow-xl">
         {links.map(({ to, label }) => (
           <Link
             key={to}
@@ -132,13 +138,10 @@ function RecentNotes() {
           <ul className="recent-notes grid grid-cols-2 gap-x-8 gap-y-5">
             {items.map((note) => (
               <li key={note.id} className="recent-note relative flex items-center gap-4">
-                <span className="note-glyph flex h-14 w-11 shrink-0 items-center justify-center rounded-sm rounded-tr-[1.1rem] bg-surface-hover text-muted">
+                <span className="note-glyph flex size-11 shrink-0 items-center justify-center rounded-sm border border-border bg-surface text-muted">
                   <NotesIcon className="size-5" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-xs text-muted">
-                    {formatDayMonth(note.updated_at)}
-                  </span>
                   <Link
                     to="/notes/$noteId"
                     params={{ noteId: note.id }}
@@ -146,6 +149,9 @@ function RecentNotes() {
                   >
                     {note.title}
                   </Link>
+                  <span className="mt-0.5 block text-xs text-muted">
+                    {formatDayMonth(note.updated_at)}
+                  </span>
                 </span>
               </li>
             ))}
@@ -175,7 +181,6 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
   return (
     <aside className="calendar-column" aria-label={text.calendar.title}>
       <div className="calendar-widget">
-        <h2 className="mb-5 text-base font-semibold">{text.calendar.title}</h2>
         <MiniCalendar
           month={month}
           gridStart={gridStart}
@@ -225,17 +230,18 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
             </h1>
             <p className="mt-2 text-muted">{formatLongDate(now)}</p>
           </div>
-          <AddMenu />
+          <div className="flex shrink-0 gap-2">
+            <NotificationMenu />
+            <AddMenu />
+          </div>
         </div>
 
-        <Section title={text.browse}>
-          <Categories overview={overview} />
-        </Section>
+        <Categories overview={overview} />
 
         <Section
           title={
             <>
-              <span className="font-normal text-muted">
+              <span className="text-muted">
                 {isToday ? text.today : formatWeekdayLong(selected)},
               </span>{' '}
               {formatDayMonthYear(selected)}
@@ -256,11 +262,7 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
           <RecentNotes />
         </Section>
 
-        <Section
-          framed
-          title={text.schedule.title}
-          aside={<p className="text-xs text-muted">{text.schedule.caption}</p>}
-        >
+        <Section framed title={text.schedule.title}>
           <ScheduleChart days={days} counts={overview.events_per_day} />
         </Section>
       </div>
