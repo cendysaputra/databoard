@@ -24,6 +24,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             // %APPDATA%\<identifier>\ on Windows: survives updates and reinstalls.
             let data_dir = app.path().app_data_dir()?;
@@ -91,6 +92,8 @@ pub fn run() {
             commands::tags::tags_remove,
             commands::settings::settings_get,
             commands::settings::settings_update,
+            commands::update::update_check,
+            commands::update::update_install,
         ])
         .build(tauri::generate_context!())
         .expect("failed to start DataBoard")
