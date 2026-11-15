@@ -427,6 +427,11 @@ export const browserSource: DataSource = {
       }),
     url: async (path) => path,
   },
+  backup: {
+    pickDir: async () => null,
+    run: async () => fail('desktop_only', 'backups need the desktop app'),
+    restore: async () => false,
+  },
   mcp: { serverPath: async () => null },
   autostart: {
     get: async () => false,
