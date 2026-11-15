@@ -3,12 +3,24 @@
 mod commands;
 mod drive;
 mod error;
+mod scheduler;
+mod tray;
 
 use dashboard_core::Db;
-use tauri::Manager;
+use tauri::{Manager, RunEvent};
 
 pub fn run() {
     tauri::Builder::default()
+        // Must be registered first: a second launch only brings the running app forward.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Err(err) = tray::show_main(app, None) {
+                eprintln!("single instance: {err}");
+            }
+        }))
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec![tray::MINIMIZED_FLAG]),
+        ))
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
@@ -16,9 +28,18 @@ pub fn run() {
             let data_dir = app.path().app_data_dir()?;
             let db = Db::open(&data_dir, &app.package_info().version.to_string())?;
             app.manage(db);
+
+            tray::init(app.handle())?;
+            scheduler::start(app.handle().clone());
+            // Started by autostart: stay in the tray until the window is asked for.
+            if !std::env::args().any(|arg| arg == tray::MINIMIZED_FLAG) {
+                tray::show_main(app.handle(), None)?;
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::autostart::autostart_get,
+            commands::autostart::autostart_set,
             commands::collections::collections_list,
             commands::collections::collections_get,
             commands::collections::collections_create,
@@ -39,6 +60,7 @@ pub fn run() {
             commands::reminders::reminders_complete,
             commands::reminders::reminders_remove,
             commands::notes::notes_list,
+            commands::notes::notes_search,
             commands::notes::notes_get,
             commands::notes::notes_create,
             commands::notes::notes_update,
@@ -63,6 +85,15 @@ pub fn run() {
             commands::settings::settings_get,
             commands::settings::settings_update,
         ])
-        .run(tauri::generate_context!())
-        .expect("failed to start DataBoard");
+        .build(tauri::generate_context!())
+        .expect("failed to start DataBoard")
+        .run(|_app, event| {
+            // Closing the last window destroys it but keeps the process (tray and scheduler)
+            // running. Only an explicit quit, which carries an exit code, ends the app.
+            if let RunEvent::ExitRequested { api, code, .. } = event {
+                if code.is_none() {
+                    api.prevent_exit();
+                }
+            }
+        });
 }
