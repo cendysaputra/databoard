@@ -41,7 +41,6 @@ export function CollectionsPage() {
     <>
       <PageHeader
         title={text.title}
-        subtitle={text.subtitle}
         actions={
           <Link to="/collections/new" className={buttonClass('primary')}>
             <Plus aria-hidden className="size-4" />
@@ -168,7 +167,6 @@ function EntryList({ collection }: { collection: Collection }) {
     <>
       <PageHeader
         title={collection.name}
-        subtitle={collection.description ?? undefined}
         actions={
           <div className="flex gap-2">
             <Link to="/collections/$collectionId/edit" params={params} className={buttonClass()}>
