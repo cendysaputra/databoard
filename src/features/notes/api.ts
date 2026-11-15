@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addMonths, startOfMonth } from 'date-fns';
 import { data } from '@/data';
 import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
@@ -10,11 +10,21 @@ const PAGE_SIZE = 100;
 const EVENT_MONTHS_BACK = 3;
 const EVENT_MONTHS_AHEAD = 6;
 
-/** Notes: pinned first, then newest date. With a label id, only notes carrying that label. */
-export function useNotes(labelId: string | null) {
+/**
+ * Notes: pinned first, then newest date. With a label id, only notes carrying that label;
+ * with search text, only notes that contain its words.
+ */
+export function useNotes(labelId: string | null, search = '') {
+  const page = { limit: PAGE_SIZE, offset: 0 };
   return useQuery({
-    queryKey: ['notes', 'list', labelId],
-    queryFn: () => data.notes.list({ limit: PAGE_SIZE, offset: 0 }, labelId),
+    queryKey: ['notes', 'list', labelId, search],
+    queryFn: async () => {
+      if (!search) return data.notes.list(page, labelId);
+      const found = await data.notes.search(search, page);
+      return labelId ? found.filter((note) => note.label_ids.includes(labelId)) : found;
+    },
+    // The list stays on screen while the next result loads, so typing does not flicker.
+    placeholderData: keepPreviousData,
   });
 }
 
