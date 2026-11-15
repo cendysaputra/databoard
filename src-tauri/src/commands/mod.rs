@@ -3,8 +3,6 @@
 
 pub mod autostart;
 pub mod backup;
-pub mod collections;
-pub mod entries;
 pub mod events;
 pub mod mcp;
 pub mod media;
