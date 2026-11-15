@@ -6,14 +6,18 @@ import { Toaster } from '@/shared/ui/Toaster';
 import { CommandPalette } from './CommandPalette';
 import { Onboarding } from './Onboarding';
 import { Sidebar } from './Sidebar';
+import { useShortcuts } from './use-shortcuts';
 
 /** App frame: the sidebar card stays at the left while the window scrolls the content. */
 export function AppLayout() {
   const { pathname } = useLocation();
   const settings = useSettings().data;
+  const onboarded = Boolean(settings?.profile_name.trim());
+  // No shortcuts while the first-start profile form is the only thing on screen.
+  useShortcuts(onboarded);
 
   // A fresh install has no profile yet: ask for it before showing the app.
-  if (settings && !settings.profile_name.trim()) return <Onboarding settings={settings} />;
+  if (settings && !onboarded) return <Onboarding settings={settings} />;
 
   return (
     <div className="app-canvas min-h-full bg-canvas p-4">
