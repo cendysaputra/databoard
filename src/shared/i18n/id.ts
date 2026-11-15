@@ -53,6 +53,12 @@ export const t = {
       'Siap berkarya',
     ],
     add: 'Tambah',
+    notifications: {
+      title: 'Notifikasi',
+      open: 'Lihat notifikasi',
+      empty: 'Belum ada notifikasi.',
+      done: 'Tandai selesai',
+    },
     browse: 'Jelajahi',
     today: 'Hari ini',
     day: {
