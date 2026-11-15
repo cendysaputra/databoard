@@ -23,6 +23,7 @@ export const tauriSource: DataSource = {
   },
   notes: {
     list: (page, labelId = null) => invoke('notes_list', { page, labelId }),
+    search: (query, page) => invoke('notes_search', { query, page }),
     get: (id) => invoke('notes_get', { id }),
     create: (input) => invoke('notes_create', { input }),
     update: (id, input) => invoke('notes_update', { id, input }),
@@ -78,6 +79,17 @@ export const tauriSource: DataSource = {
   settings: {
     get: () => invoke('settings_get'),
     update: (input) => invoke('settings_update', { input }),
+  },
+  autostart: {
+    get: () => invoke('autostart_get'),
+    set: (enabled) => invoke('autostart_set', { enabled }),
+  },
+  onNavigate(handler) {
+    // The event API is loaded on demand; stopping before it arrived still stops.
+    const listening = import('@tauri-apps/api/event').then(({ listen }) =>
+      listen<string>('navigate', (event) => handler(event.payload)),
+    );
+    return () => void listening.then((stop) => stop());
   },
   openUrl: (url) => invoke('plugin:opener|open_url', { url }),
   async notify(title, body) {
