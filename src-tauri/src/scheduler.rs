@@ -38,9 +38,8 @@ pub fn start(app: AppHandle) {
     });
 }
 
-/// Shows every due reminder once. It is recorded as shown before the notification goes out:
-/// if recording fails it is tried again on the next pass, and a notification that fails
-/// after that is not repeated (the reminder still waits in the app's notification menu).
+/// Shows every due reminder once. It is recorded as shown first, so a failure can never
+/// repeat a notification; the reminder still waits in the app's notification menu.
 fn notify_due(app: &AppHandle) -> Result<()> {
     let db = app.state::<Db>();
     let title = &app.package_info().name;
