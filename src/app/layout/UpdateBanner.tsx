@@ -9,9 +9,8 @@ const text = t.update;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Says when a newer version of the app exists and installs it on request; nothing updates
- * by itself. The check runs when the app opens and once a day after that. Outside the
- * desktop app, and whenever the check fails (e.g. offline), nothing is shown.
+ * Offers a newer version of the app and installs it only on request. Checked when the app
+ * opens and once a day; nothing is shown outside the desktop app or when the check fails.
  */
 export function UpdateBanner() {
   const version = useQuery({
