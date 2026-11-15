@@ -29,3 +29,8 @@ export function useSetAutostart() {
     onSuccess: (enabled) => client.setQueryData(autostartKey, enabled),
   });
 }
+
+/** Full path of the MCP server program; `null` in the browser preview. */
+export function useMcpServerPath() {
+  return useQuery({ queryKey: ['mcp', 'path'], queryFn: () => data.mcp.serverPath() });
+}
