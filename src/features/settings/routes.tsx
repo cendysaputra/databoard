@@ -220,7 +220,7 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHeader title={t.settings.title} subtitle={t.settings.subtitle} />
+      <PageHeader title={t.settings.title} />
       <QueryBoundary query={settings}>{(value) => <SettingsTabs settings={value} />}</QueryBoundary>
     </>
   );
