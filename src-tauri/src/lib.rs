@@ -21,6 +21,7 @@ pub fn run() {
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![tray::MINIMIZED_FLAG]),
         ))
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
@@ -40,6 +41,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::autostart::autostart_get,
             commands::autostart::autostart_set,
+            commands::backup::backup_pick_dir,
+            commands::backup::backup_run,
+            commands::backup::backup_restore,
             commands::collections::collections_list,
             commands::collections::collections_get,
             commands::collections::collections_create,
