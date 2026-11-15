@@ -222,18 +222,27 @@
   }
 }
 
-/* App frame: the sidebar and the content are two cards side by side. */
+/* App frame: the sidebar is a card; the content sits beside it on the canvas. */
 @layer components {
-  .app-sidebar,
-  .app-panel {
+  .app-sidebar {
+    background: var(--surface);
     box-shadow: 0 12px 48px -30px rgb(0 0 0 / 0.08);
   }
   .app-main {
     background: var(--canvas);
     scrollbar-gutter: stable;
+    /* Jumps made by links and the keyboard glide instead of snapping. */
+    scroll-behavior: smooth;
+    /* Reaching the end does not tug at the page behind. */
+    overscroll-behavior: contain;
+    /* A thin, quiet scrollbar that only darkens while the content is hovered. */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color var(--duration);
   }
-  .app-sidebar {
-    background: var(--surface);
+  .app-main:hover,
+  .app-main:focus-within {
+    scrollbar-color: var(--border) transparent;
   }
   .nav-active-dot {
     position: absolute;
@@ -479,14 +488,13 @@
   .app-frame {
     gap: 0;
   }
-  .app-sidebar,
-  .app-panel {
-    border-width: 0;
+  .app-sidebar {
+    border-width: 0 1px 0 0;
     border-radius: 0;
     box-shadow: none;
   }
-  .app-sidebar {
-    border-right-width: 1px;
+  .app-panel {
+    border-radius: 0;
   }
   .app-content {
     padding: 24px;
