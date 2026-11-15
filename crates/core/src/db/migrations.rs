@@ -2,10 +2,8 @@ use std::path::Path;
 
 use rusqlite::Connection;
 use rusqlite_migration::{Migrations, M};
-use time::macros::format_description;
-use time::OffsetDateTime;
 
-use super::backup::{backup_to, prune};
+use super::backup::{backup_name, backup_to, prune};
 use crate::error::Result;
 
 /// How many pre-migration backups are kept; older ones are deleted.
@@ -46,10 +44,9 @@ fn run_all(
     Ok(())
 }
 
-fn backup_name(app_version: &str) -> String {
-    let format = format_description!("[year][month][day]-[hour][minute][second]");
-    let stamp = OffsetDateTime::now_utc().format(format).unwrap_or_default();
-    format!("dashboard-{app_version}-{stamp}.db")
+/// The newest schema version this build knows.
+pub(super) fn latest() -> usize {
+    MIGRATIONS.len()
 }
 
 #[cfg(test)]
@@ -99,7 +96,7 @@ mod tests {
 
         // Only the newest backups are kept.
         for i in 0..7 {
-            std::fs::write(backups.join(format!("old-{i}.db")), b"x").unwrap();
+            std::fs::write(backups.join(format!("dashboard-old-{i}.db")), b"x").unwrap();
         }
         prune(&backups, BACKUPS_KEPT).unwrap();
         assert_eq!(std::fs::read_dir(&backups).unwrap().count(), BACKUPS_KEPT);
