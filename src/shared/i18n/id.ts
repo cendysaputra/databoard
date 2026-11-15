@@ -201,7 +201,6 @@ export const t = {
     emptyFiltered: 'Tidak ada catatan dengan label ini.',
     pinned: 'Disematkan',
     new: 'Catatan baru',
-    back: 'Catatan',
     allLabels: 'Semua',
     status: { draft: 'Draf', published: 'Terbit' },
     form: {
