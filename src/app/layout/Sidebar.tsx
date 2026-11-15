@@ -24,7 +24,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'app-sidebar relative flex shrink-0 flex-col overflow-hidden border-r border-border transition-[width]',
+        'app-sidebar relative flex shrink-0 flex-col overflow-hidden rounded-lg border border-border transition-[width]',
         collapsed ? 'w-(--sidebar-width-collapsed)' : 'w-(--sidebar-width)',
       )}
     >
@@ -34,15 +34,17 @@ export function Sidebar() {
           collapsed ? 'justify-center' : 'h-24 items-start',
         )}
       >
-        <span
+        {/* The app name leads back to Beranda; it is a label, so it cannot be selected. */}
+        <Link
+          to="/"
           className={cn(
-            'text-lg font-semibold tracking-tight whitespace-nowrap',
+            'text-lg font-semibold tracking-tight whitespace-nowrap select-none',
             // Collapsed: the name runs down the rail, read from top to bottom.
             collapsed ? '[writing-mode:vertical-rl]' : 'truncate',
           )}
         >
           {appName}
-        </span>
+        </Link>
       </div>
 
       <nav

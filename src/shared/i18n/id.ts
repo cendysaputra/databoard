@@ -43,12 +43,15 @@ export const t = {
     toggle: 'Ganti tema',
   },
   home: {
-    greeting: {
-      morning: 'Selamat pagi',
-      midday: 'Selamat siang',
-      afternoon: 'Selamat sore',
-      night: 'Selamat malam',
-    },
+    /** One is picked at random each time Beranda opens; none depends on the time of day. */
+    greetings: [
+      'Halo',
+      'Hai',
+      'Selamat datang kembali',
+      'Senang bertemu lagi',
+      'Semangat hari ini',
+      'Siap berkarya',
+    ],
     add: 'Tambah',
     browse: 'Jelajahi',
     today: 'Hari ini',
@@ -83,16 +86,6 @@ export const t = {
       caption: 'Jumlah event per hari',
       today: 'Hari ini',
       count: (n: number) => `${n} event`,
-    },
-    notes: {
-      title: 'Catatan baru',
-      caption: 'Per minggu, 8 minggu terakhir',
-      week: (date: string) => `Minggu ${date}`,
-      count: (n: number) => `${n} catatan`,
-    },
-    projects: {
-      title: 'Project menurut status',
-      count: (n: number) => `${n} project`,
     },
     calendar: {
       title: 'Kalender',

@@ -79,7 +79,7 @@ function Result({ recording, onDiscard }: { recording: Recording; onDiscard(): v
   };
 
   return (
-    <section className="flex flex-col gap-5">
+    <section className="editor-panel flex flex-col gap-5">
       <div className="flex items-baseline justify-between">
         <h2 className="text-xl font-semibold">{text.result.title}</h2>
         <p className="text-sm text-muted tabular-nums">
@@ -208,9 +208,9 @@ export function RecorderPage() {
       {!isRecordingSupported ? (
         <p className="text-muted">{text.unsupported}</p>
       ) : (
-        <div className="flex flex-col gap-12">
+        <div className="flex flex-col gap-8">
           {recorder.status === 'idle' && (
-            <section className="flex flex-col gap-5">
+            <section className="editor-panel flex flex-col gap-5">
               <div className="flex flex-col gap-2">
                 {(
                   [
@@ -247,7 +247,7 @@ export function RecorderPage() {
           )}
 
           {recorder.status === 'recording' && (
-            <section className="flex items-center gap-5" aria-live="polite">
+            <section className="editor-panel flex flex-wrap items-center gap-5" aria-live="polite">
               <span className="size-3 animate-pulse rounded-sm bg-danger" />
               <p className="font-medium">{text.recording}</p>
               <p className="text-2xl font-semibold tabular-nums">{clock(recorder.seconds)}</p>

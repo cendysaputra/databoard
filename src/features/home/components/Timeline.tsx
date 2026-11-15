@@ -19,7 +19,6 @@ export function Timeline({ events, showDate, empty }: TimelineProps) {
       {events.map((event) => (
         <li key={event.id}>
           <Link to="/calendar/$eventId" params={{ eventId: event.id }} className="agenda-item">
-            <span aria-hidden className="agenda-marker" />
             <div className="min-w-0">
               <p className="text-sm leading-snug font-medium">{event.title}</p>
               <p className="mt-1.5 flex items-start gap-1.5 text-xs leading-relaxed text-muted">

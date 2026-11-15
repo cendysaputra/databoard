@@ -1,11 +1,12 @@
 import { Link } from '@tanstack/react-router';
 import { addDays, endOfMonth, isSameDay, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { ArrowUpRight, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Overview } from '@/shared/types';
 import { NotesIcon } from '@/shared/ui/icons';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
+import { cn } from '@/shared/utils/cn';
 import {
   formatDayMonth,
   formatDayMonthYear,
@@ -17,19 +18,15 @@ import { CategoryCard } from './components/CategoryCard';
 import { DayTimeline } from './components/DayTimeline';
 import { MiniCalendar } from './components/MiniCalendar';
 import { NextEventCard } from './components/NextEventCard';
-import { NotesChart } from './components/NotesChart';
 import { ScheduleChart } from './components/ScheduleChart';
-import { StatusBars } from './components/StatusBars';
 import { Timeline } from './components/Timeline';
 
 const text = t.home;
 
-function greeting(now: Date): string {
-  const hour = now.getHours();
-  if (hour < 11) return text.greeting.morning;
-  if (hour < 15) return text.greeting.midday;
-  if (hour < 19) return text.greeting.afternoon;
-  return text.greeting.night;
+/** A greeting picked at random; it does not follow the time of day. */
+function randomGreeting(): string {
+  const options = text.greetings;
+  return options[Math.floor(Math.random() * options.length)] ?? '';
 }
 
 /** What to call the user: the nickname, else the first word of the name. */
@@ -41,14 +38,17 @@ function useGreetingName(): string {
 function Section({
   title,
   aside,
+  framed = false,
   children,
 }: {
   title: ReactNode;
   aside?: ReactNode;
+  /** Draws the section as a bordered panel, heading included. */
+  framed?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section className="dashboard-section">
+    <section className={cn('dashboard-section', framed && 'dashboard-panel')}>
       <div className="mb-5 flex flex-wrap items-baseline justify-between gap-4">
         <h2 className="text-xl font-semibold">{title}</h2>
         {aside}
@@ -58,7 +58,7 @@ function Section({
   );
 }
 
-/** Floating round "+" button in the second accent; opens a small menu of things to create. */
+/** Square "+" button beside the greeting; opens a small menu of things to create. */
 function AddMenu() {
   const links = [
     { to: '/calendar/new', label: t.calendar.new },
@@ -67,15 +67,15 @@ function AddMenu() {
   ] as const;
 
   return (
-    <details className="group relative">
+    <details className="group relative shrink-0">
       <summary
         aria-label={text.add}
         title={text.add}
-        className="flex size-13 cursor-pointer list-none items-center justify-center rounded-sm bg-accent text-accent-contrast shadow-[0_8px_18px_-10px_rgb(0_0_0/0.3)] transition-[rotate] group-open:rotate-45 [&::-webkit-details-marker]:hidden"
+        className="flex size-11 cursor-pointer list-none items-center justify-center rounded-sm bg-accent text-accent-contrast transition-[rotate] group-open:rotate-45 [&::-webkit-details-marker]:hidden"
       >
-        <Plus aria-hidden className="size-6" />
+        <Plus aria-hidden className="size-5" />
       </summary>
-      <div className="absolute right-0 bottom-16 z-10 w-44 rounded-md border border-border bg-surface p-1.5 shadow-xl">
+      <div className="absolute top-14 right-0 z-20 w-44 rounded-md border border-border bg-surface p-1.5 shadow-xl">
         {links.map(({ to, label }) => (
           <Link
             key={to}
@@ -175,16 +175,7 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
   return (
     <aside className="calendar-column" aria-label={text.calendar.title}>
       <div className="calendar-widget">
-        <div className="calendar-heading">
-          <h2 className="text-base font-semibold">{text.calendar.title}</h2>
-          <Link
-            to="/calendar"
-            aria-label={t.nav.calendar}
-            className="flex size-7 items-center justify-center rounded-sm text-muted transition-colors hover:bg-surface-hover hover:text-text"
-          >
-            <ArrowUpRight aria-hidden className="size-4" />
-          </Link>
-        </div>
+        <h2 className="mb-5 text-base font-semibold">{text.calendar.title}</h2>
         <MiniCalendar
           month={month}
           gridStart={gridStart}
@@ -196,14 +187,16 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
           onSelect={onSelect}
         />
       </div>
-      <NextEventCard event={overview.next_events[0]} now={now} />
-      <div className="calendar-agenda">
-        <p className="mb-1 text-xs font-medium text-muted">{text.calendar.upcoming}</p>
-        <Timeline
-          events={overview.next_events.slice(1)}
-          showDate
-          empty={text.calendar.emptyUpcoming}
-        />
+      <div className="calendar-events">
+        <NextEventCard event={overview.next_events[0]} now={now} />
+        <div className="calendar-agenda">
+          <p className="mb-1 text-xs font-medium text-muted">{text.calendar.upcoming}</p>
+          <Timeline
+            events={overview.next_events.slice(1)}
+            showDate
+            empty={text.calendar.emptyUpcoming}
+          />
+        </div>
       </div>
     </aside>
   );
@@ -211,7 +204,8 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
 
 function HomeView({ overview, now }: { overview: Overview; now: Date }) {
   const name = useGreetingName();
-  const { days, weeks } = overviewBuckets(now);
+  const { days } = overviewBuckets(now);
+  const [greeting] = useState(randomGreeting);
   // The day shown on the timeline; picked in the calendar, today by default.
   const [selected, setSelected] = useState(now);
   const dayStart = startOfDay(selected);
@@ -223,14 +217,15 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
   return (
     <div className="dashboard-grid">
       <div className="dashboard-primary flex min-w-0 flex-col gap-9">
-        <div className="dashboard-greeting">
-          <div>
+        <div className="dashboard-greeting flex items-start justify-between gap-4">
+          <div className="min-w-0">
             <h1 className="text-3xl leading-tight font-semibold">
-              {greeting(now)}
+              {greeting}
               {name && `, ${name}`}
             </h1>
             <p className="mt-2 text-muted">{formatLongDate(now)}</p>
           </div>
+          <AddMenu />
         </div>
 
         <Section title={text.browse}>
@@ -262,33 +257,12 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
         </Section>
 
         <Section
+          framed
           title={text.schedule.title}
           aside={<p className="text-xs text-muted">{text.schedule.caption}</p>}
         >
           <ScheduleChart days={days} counts={overview.events_per_day} />
         </Section>
-
-        <div className="dashboard-charts grid grid-cols-2 gap-6">
-          <Section title={text.notes.title}>
-            <NotesChart weeks={weeks.slice(0, -1)} counts={overview.notes_per_week} />
-          </Section>
-          <Section title={text.projects.title}>
-            <StatusBars
-              rows={[
-                { label: t.portfolio.status.published, count: overview.projects_published },
-                { label: t.portfolio.status.draft, count: overview.projects_draft },
-                { label: t.portfolio.status.archived, count: overview.projects_archived },
-              ]}
-            />
-          </Section>
-        </div>
-
-        {/* Stays at the bottom of the view while the page scrolls. */}
-        <div className="pointer-events-none sticky bottom-6 flex justify-end">
-          <div className="pointer-events-auto">
-            <AddMenu />
-          </div>
-        </div>
       </div>
 
       <CalendarColumn
