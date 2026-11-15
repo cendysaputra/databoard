@@ -82,7 +82,7 @@ export function MonthView({ today }: { today: Date }) {
       </div>
 
       {/* The 1px gaps show the border color behind the cells, which draws the grid lines. */}
-      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-card border border-border bg-border">
+      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-card bg-border">
         {t.home.calendar.weekdays.map((name) => (
           <div key={name} className="bg-surface py-2 text-center text-xs text-muted">
             {name}
