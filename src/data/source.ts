@@ -130,7 +130,7 @@ export interface DataSource {
     /** An address an `<img>` can show for a stored path. */
     url(path: string): Promise<string>;
   };
-  /** The MCP server that lets AI clients read and write the data. Desktop only. */
+  /** The agent server (MCP) that lets AI clients read and write the data. Desktop only. */
   mcp: {
     /** Full path of the server program, or `null` where there is none (the browser). */
     serverPath(): Promise<string | null>;
