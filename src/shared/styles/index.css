@@ -492,15 +492,6 @@
   .form-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-  .form-grid > .col-span-2 {
-    grid-column: auto;
-  }
-  .blueprint-field-grid {
-    grid-template-columns: 24px minmax(0, 1fr);
-  }
-  .blueprint-field-grid > :nth-child(n + 3) {
-    grid-column: 2;
-  }
   .page-actions {
     margin-left: 0;
   }
