@@ -49,7 +49,7 @@ export function NotificationMenu() {
                     <Link
                       to="/calendar/$eventId"
                       params={{ eventId: reminder.event_id }}
-                      className="block text-sm leading-snug font-medium underline-offset-4 hover:underline"
+                      className="block text-sm leading-snug font-medium transition-opacity hover:opacity-60"
                     >
                       {reminder.message}
                     </Link>
