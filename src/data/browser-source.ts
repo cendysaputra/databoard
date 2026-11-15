@@ -57,6 +57,9 @@ async function load<K extends Collection>(name: K): Promise<SeedData[K]> {
   return (await get<SeedData[K]>(key(name))) ?? [];
 }
 
+/** Whatever separates words: anything that is not a letter or a digit. */
+const NOT_WORD = /[^\p{L}\p{N}]+/u;
+
 function fail(code: string, message: string): never {
   throw { code, message } satisfies DataError;
 }
@@ -232,17 +235,14 @@ export const browserSource: DataSource = {
         .map(({ body_md, ...note }) => ({ ...note, excerpt: excerpt(body_md) }));
     },
     async search(query, page) {
-      const words = query
-        .toLowerCase()
-        .split(/[^p{L}p{N}]+/u)
-        .filter(Boolean);
+      const words = query.toLowerCase().split(NOT_WORD).filter(Boolean);
       if (words.length === 0) return [];
       const notes = await load('notes');
       // Every word must start a word of the title or body, as the desktop full-text search does.
       const hits = new Set(
         notes
           .filter((note) => {
-            const text = `${note.title} ${note.body_md}`.toLowerCase().split(/[^p{L}p{N}]+/u);
+            const text = `${note.title} ${note.body_md}`.toLowerCase().split(NOT_WORD);
             return words.every((word) => text.some((token) => token.startsWith(word)));
           })
           .map((note) => note.id),
