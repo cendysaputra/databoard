@@ -49,7 +49,7 @@ fn describe(path: &Path) -> CommandResult<RecordingFile> {
 
 /// Creates an empty file for a new recording and returns it. If the name is taken,
 /// a number is added so nothing is overwritten.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn recordings_begin(
     app: AppHandle,
     name: String,
@@ -73,7 +73,7 @@ pub fn recordings_begin(
 
 /// Appends one chunk to a recording started with `recordings_begin`.
 /// The chunk is the raw request body; the file name comes in a header.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn recordings_append(app: AppHandle, request: Request<'_>) -> CommandResult<()> {
     let name = request
         .headers()
@@ -94,7 +94,7 @@ pub fn recordings_append(app: AppHandle, request: Request<'_>) -> CommandResult<
 }
 
 /// Saved recordings, newest first.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn recordings_list(app: AppHandle) -> CommandResult<Vec<RecordingFile>> {
     let mut files: Vec<RecordingFile> = fs::read_dir(recordings_dir(&app)?)?
         .flatten()
