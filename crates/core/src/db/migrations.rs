@@ -35,8 +35,11 @@ fn run_all(
     if let Some(dir) = backup_dir {
         if current > 0 && current < migrations.len() {
             backup_to(conn, &dir.join(backup_name(app_version)))?;
-            // Old backups would otherwise pile up with every update.
-            prune(dir, BACKUPS_KEPT)?;
+            // Old backups would otherwise pile up with every update. A file that cannot be
+            // deleted must not keep the app from opening its data.
+            if let Err(err) = prune(dir, BACKUPS_KEPT) {
+                eprintln!("migrations: could not prune old backups: {err}");
+            }
         }
     }
     let steps = migrations.iter().map(|sql| M::up(sql)).collect();
