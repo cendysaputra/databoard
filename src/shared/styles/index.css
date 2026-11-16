@@ -254,37 +254,58 @@
     opacity: 1;
   }
 
-  /* Phone tab bar; hidden until the phone breakpoint at the end of this file. */
+  /* Phone tab bar: a frosted pill floating above the content; hidden until the phone
+   * breakpoint at the end of this file. */
   .bottom-nav {
     display: none;
     position: fixed;
-    inset-inline: 0;
-    bottom: 0;
+    inset-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
     z-index: 20;
+    max-width: 32rem;
+    margin-inline: auto;
     grid-auto-columns: minmax(0, 1fr);
     grid-auto-flow: column;
-    height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
-    padding: 0 max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom)
-      max(8px, env(safe-area-inset-left));
-    border-top: 1px solid var(--border);
-    background: var(--surface);
+    gap: 2px;
+    height: var(--bottom-nav-height);
+    padding: 6px;
+    border: 1px solid light-dark(rgb(255 255 255 / 0.7), rgb(255 255 255 / 0.08));
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--surface) 62%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    box-shadow:
+      0 12px 32px -12px rgb(0 0 0 / 0.28),
+      0 2px 8px -4px rgb(0 0 0 / 0.12),
+      inset 0 1px 0 light-dark(rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.06));
+  }
+  /* Without blur the see-through bar would be hard to read, so it stays solid. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .bottom-nav {
+      background: var(--surface);
+      border-color: var(--border);
+    }
   }
   .bottom-nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
     padding-inline: 2px;
+    border-radius: 999px;
     font-size: 11px;
     color: var(--text-muted);
-    transition: color var(--duration);
+    transition:
+      color var(--duration),
+      background-color var(--duration);
     -webkit-tap-highlight-color: transparent;
   }
   .bottom-nav-item[aria-current='page'] {
     font-weight: 500;
     color: var(--text);
+    background: color-mix(in oklab, var(--text) 8%, transparent);
   }
 }
 
@@ -587,7 +608,7 @@
   }
   .app-content {
     padding: max(22px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
-      calc(var(--bottom-nav-height) + 32px + env(safe-area-inset-bottom))
+      calc(var(--bottom-nav-height) + 28px + max(12px, env(safe-area-inset-bottom)))
       max(16px, env(safe-area-inset-left));
   }
   /* Filter rows: search on its own line, the dropdowns share the next one. */
