@@ -22,9 +22,7 @@ pub(crate) fn recordings_dir(app: &AppHandle) -> CommandResult<PathBuf> {
         .path()
         .video_dir()
         .or_else(|_| app.path().app_data_dir());
-    let dir = base
-        .map_err(|err| AppError::validation(err.to_string()))?
-        .join(FOLDER);
+    let dir = base.map_err(AppError::external)?.join(FOLDER);
     fs::create_dir_all(&dir)?;
     Ok(dir)
 }
