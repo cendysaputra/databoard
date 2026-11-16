@@ -14,7 +14,7 @@ interface FilterSelectProps {
 export function FilterSelect({ label, all, value, options, onChange }: FilterSelectProps) {
   return (
     // The select fills its box, so the box sets the width.
-    <div className="w-44">
+    <div className="filter-select w-44">
       <Select
         aria-label={label}
         className="h-10"
