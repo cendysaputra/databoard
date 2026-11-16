@@ -2,10 +2,8 @@ use std::path::Path;
 
 use rusqlite::Connection;
 use rusqlite_migration::{Migrations, M};
-use time::macros::format_description;
-use time::OffsetDateTime;
 
-use super::backup::{backup_to, prune};
+use super::backup::{backup_name, backup_to, prune};
 use crate::error::Result;
 
 /// How many pre-migration backups are kept; older ones are deleted.
@@ -17,6 +15,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../../migrations/002_collections.sql"),
     include_str!("../../migrations/003_note_fields.sql"),
     include_str!("../../migrations/004_project_kind.sql"),
+    include_str!("../../migrations/005_reminder_notified.sql"),
 ];
 
 /// Brings the schema to the latest version. If an existing database is behind, it is first
@@ -45,10 +44,9 @@ fn run_all(
     Ok(())
 }
 
-fn backup_name(app_version: &str) -> String {
-    let format = format_description!("[year][month][day]-[hour][minute][second]");
-    let stamp = OffsetDateTime::now_utc().format(format).unwrap_or_default();
-    format!("dashboard-{app_version}-{stamp}.db")
+/// The newest schema version this build knows.
+pub(super) fn latest() -> usize {
+    MIGRATIONS.len()
 }
 
 #[cfg(test)]
@@ -86,6 +84,8 @@ mod tests {
             )
             .unwrap();
         assert_eq!(tables, 1);
+        // Windows does not delete a file that is still open, and pruning below removes this one.
+        drop(copy);
 
         run_all(&mut conn, &[first, second], Some(&backups), "0.2.0").unwrap();
         assert_eq!(
@@ -96,7 +96,7 @@ mod tests {
 
         // Only the newest backups are kept.
         for i in 0..7 {
-            std::fs::write(backups.join(format!("old-{i}.db")), b"x").unwrap();
+            std::fs::write(backups.join(format!("dashboard-old-{i}.db")), b"x").unwrap();
         }
         prune(&backups, BACKUPS_KEPT).unwrap();
         assert_eq!(std::fs::read_dir(&backups).unwrap().count(), BACKUPS_KEPT);

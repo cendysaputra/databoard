@@ -1,10 +1,6 @@
 import type {
   CalendarEvent,
-  Collection,
-  CollectionInput,
   DriveStatus,
-  Entry,
-  EntryInput,
   EventInput,
   EventRange,
   Note,
@@ -61,6 +57,8 @@ export interface DataSource {
   notes: {
     /** With `labelId`, only notes carrying that label. */
     list(page: Page, labelId?: string | null): Promise<NoteSummary[]>;
+    /** Notes whose title or body contain every word of `query`; a word may be cut short. */
+    search(query: string, page: Page): Promise<NoteSummary[]>;
     get(id: string): Promise<Note>;
     create(input: NoteInput): Promise<Note>;
     update(id: string, input: NoteInput): Promise<Note>;
@@ -79,21 +77,6 @@ export interface DataSource {
     get(id: string): Promise<Project>;
     create(input: ProjectInput): Promise<Project>;
     update(id: string, input: ProjectInput): Promise<Project>;
-    remove(id: string): Promise<void>;
-  };
-  collections: {
-    list(): Promise<Collection[]>;
-    get(id: string): Promise<Collection>;
-    create(input: CollectionInput): Promise<Collection>;
-    update(id: string, input: CollectionInput): Promise<Collection>;
-    /** Also removes the collection's entries. */
-    remove(id: string): Promise<void>;
-  };
-  entries: {
-    list(collectionId: string, page: Page): Promise<Entry[]>;
-    get(id: string): Promise<Entry>;
-    create(collectionId: string, input: EntryInput): Promise<Entry>;
-    update(id: string, input: EntryInput): Promise<Entry>;
     remove(id: string): Promise<void>;
   };
   recordings: {
@@ -121,7 +104,46 @@ export interface DataSource {
     get(): Promise<Settings>;
     update(input: Settings): Promise<Settings>;
   };
-  /** Opens a web address in the system browser (desktop: only Google Drive links are allowed). */
+  /** Image files kept by the app, such as project covers. */
+  media: {
+    /** Stores an image and resolves to the path to keep in the record (e.g. `cover_path`). */
+    save(image: Blob): Promise<string>;
+    /** An address an `<img>` can show for a stored path. */
+    url(path: string): Promise<string>;
+  };
+  /** Updates of the app itself. Desktop only; nothing is installed without being asked. */
+  updates: {
+    /** The version of a newer release, or `null` when the app is up to date. */
+    check(): Promise<string | null>;
+    /** Downloads and installs the newer release, then restarts the app. */
+    install(): Promise<void>;
+  };
+  /** Backups of the whole database. Desktop only. */
+  backup: {
+    /** Asks for a folder to keep backups in; `null` when the dialog was cancelled. */
+    pickDir(): Promise<string | null>;
+    /** Writes a backup now and resolves to the path of the file. */
+    run(): Promise<string>;
+    /** Asks for a backup file and replaces all data with it; `false` when cancelled. */
+    restore(): Promise<boolean>;
+  };
+  /** The agent server (MCP) that lets AI clients read and write the data. Desktop only. */
+  mcp: {
+    /** Full path of the server program, or `null` where there is none (the browser). */
+    serverPath(): Promise<string | null>;
+  };
+  /** Starting the app when the user signs in to Windows. Desktop only. */
+  autostart: {
+    get(): Promise<boolean>;
+    /** Resolves to the new state. */
+    set(enabled: boolean): Promise<boolean>;
+  };
+  /**
+   * Calls `handler` with a path when the desktop shell asks the open window to show a page
+   * (e.g. "Event baru" in the tray menu). Returns a function that stops listening.
+   */
+  onNavigate(handler: (path: string) => void): () => void;
+  /** Opens a web address in the system browser (desktop: only `https` addresses are allowed). */
   openUrl(url: string): Promise<void>;
   /** Shows a notification: native on desktop, Web Notification or toast in the browser. */
   notify(title: string, body: string): Promise<void>;

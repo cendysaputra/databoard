@@ -146,27 +146,59 @@ fn from_row(row: &Row<'_>) -> rusqlite::Result<Note> {
     })
 }
 
-/// Pinned notes first, then newest date. With `label_id`, only notes carrying that label.
-/// Returns summaries: only the start of each body is read from the database.
-pub fn list(conn: &Connection, page: Page, label_id: Option<&str>) -> Result<Vec<NoteSummary>> {
-    let mut stmt = conn.prepare_cached(
+/// Note summaries that pass `filter` (SQL on `notes`, with `value` bound as `?3`): pinned
+/// first, then newest date. Only the start of each body is read from the database.
+fn summaries(
+    conn: &Connection,
+    filter: &str,
+    value: Option<&str>,
+    page: Page,
+) -> Result<Vec<NoteSummary>> {
+    let sql = format!(
         "SELECT id, title, substr(body_md, 1, ?4), pinned, note_date, status,
             (SELECT json_group_array(t.tag_id) FROM taggables t
                JOIN tags g ON g.id = t.tag_id AND g.deleted_at IS NULL
               WHERE t.entity_type = 'note' AND t.entity_id = notes.id AND t.deleted_at IS NULL),
             created_at, updated_at
          FROM notes
-         WHERE deleted_at IS NULL
-           AND (?3 IS NULL OR id IN (SELECT entity_id FROM taggables
-                                     WHERE tag_id = ?3 AND entity_type = 'note'
-                                       AND deleted_at IS NULL))
-         ORDER BY pinned DESC, note_date DESC, updated_at DESC LIMIT ?1 OFFSET ?2",
-    )?;
+         WHERE deleted_at IS NULL AND {filter}
+         ORDER BY pinned DESC, note_date DESC, updated_at DESC LIMIT ?1 OFFSET ?2"
+    );
+    let mut stmt = conn.prepare_cached(&sql)?;
     let rows = stmt.query_map(
-        params![page.limit(), page.offset, label_id, EXCERPT_SOURCE_CHARS],
+        params![page.limit(), page.offset, value, EXCERPT_SOURCE_CHARS],
         summary_from_row,
     )?;
     Ok(rows.collect::<rusqlite::Result<_>>()?)
+}
+
+/// All notes, or with `label_id` only the notes carrying that label.
+pub fn list(conn: &Connection, page: Page, label_id: Option<&str>) -> Result<Vec<NoteSummary>> {
+    let filter = "(?3 IS NULL OR id IN (SELECT entity_id FROM taggables
+                                        WHERE tag_id = ?3 AND entity_type = 'note'
+                                          AND deleted_at IS NULL))";
+    summaries(conn, filter, label_id, page)
+}
+
+/// Turns what the user typed into an FTS5 query: every word must appear, the last letters
+/// of each may still be missing ("angg" finds "anggaran"). `None` when there is no word.
+fn fts_query(text: &str) -> Option<String> {
+    let words: Vec<String> = text
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|word| !word.is_empty())
+        .map(|word| format!("\"{word}\"*"))
+        .collect();
+    (!words.is_empty()).then(|| words.join(" "))
+}
+
+/// Notes whose title or body contain every word of `text`, in the same order as [`list`].
+/// Searching for nothing finds nothing.
+pub fn search(conn: &Connection, text: &str, page: Page) -> Result<Vec<NoteSummary>> {
+    let Some(query) = fts_query(text) else {
+        return Ok(Vec::new());
+    };
+    let filter = "id IN (SELECT note_id FROM notes_fts WHERE notes_fts MATCH ?3)";
+    summaries(conn, filter, Some(&query), page)
 }
 
 pub fn get(conn: &Connection, id: &str) -> Result<Note> {
@@ -299,6 +331,34 @@ mod tests {
 
             remove(c, &note.id)?;
             assert_eq!(fts_hits(c, "jadwal"), 0);
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn search_matches_all_words_by_prefix() {
+        let db = Db::open_in_memory().unwrap();
+        db.with_tx(|c| {
+            create(c, &input("Rapat anggaran", "Bahas jadwal rilis", false))?;
+            create(c, &input("Ide konten", "Studi kasus portfolio", false))?;
+            let page = Page {
+                limit: 50,
+                offset: 0,
+            };
+            let titles = |text: &str| -> Result<Vec<String>> {
+                Ok(search(c, text, page)?
+                    .into_iter()
+                    .map(|n| n.title)
+                    .collect())
+            };
+
+            assert_eq!(titles("angg")?, ["Rapat anggaran"]);
+            assert_eq!(titles("rilis RAPAT")?, ["Rapat anggaran"]);
+            assert!(titles("anggaran portfolio")?.is_empty());
+            // Punctuation is not FTS syntax here, and an empty search finds nothing.
+            assert_eq!(titles("\"studi* (kasus")?, ["Ide konten"]);
+            assert!(titles("  ")?.is_empty());
             Ok(())
         })
         .unwrap();

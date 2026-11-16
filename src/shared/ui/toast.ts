@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { t } from '@/shared/i18n/id';
 
-export interface Toast {
+interface Toast {
   id: number;
   title: string;
   body?: string;

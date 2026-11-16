@@ -1,9 +1,23 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::time::{Duration, SystemTime};
 
 use rusqlite::backup::Progress;
-use rusqlite::{Connection, MAIN_DB};
+use rusqlite::{Connection, OpenFlags, MAIN_DB};
+use time::macros::format_description;
+use time::OffsetDateTime;
 
-use crate::error::Result;
+use crate::error::{AppError, Result};
+
+/// Every backup file starts with this, so pruning never touches other files in the folder.
+const PREFIX: &str = "dashboard-";
+const EXTENSION: &str = "db";
+
+/// `dashboard-<label>-<date>-<time>.db`; the label says what made the backup, e.g. a version.
+pub(super) fn backup_name(label: &str) -> String {
+    let format = format_description!("[year][month][day]-[hour][minute][second]");
+    let stamp = OffsetDateTime::now_utc().format(format).unwrap_or_default();
+    format!("{PREFIX}{label}-{stamp}.{EXTENSION}")
+}
 
 /// Writes a consistent copy of the open database to `target` using SQLite's online backup,
 /// which is safe in WAL mode (a plain file copy could miss pages still in the WAL).
@@ -15,21 +29,80 @@ pub fn backup_to(conn: &Connection, target: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Deletes the oldest `.db` files in `dir` so that at most `keep` remain.
-pub fn prune(dir: &Path, keep: usize) -> Result<()> {
-    let mut backups: Vec<_> = std::fs::read_dir(dir)?
+/// The backup files in `dir`, oldest first. A folder that does not exist has none.
+fn backups_in(dir: &Path) -> Vec<(PathBuf, SystemTime)> {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return Vec::new();
+    };
+    let mut backups: Vec<_> = entries
         .flatten()
         .map(|entry| entry.path())
-        .filter(|path| path.extension().is_some_and(|ext| ext == "db"))
+        .filter(|path| {
+            path.extension().is_some_and(|ext| ext == EXTENSION)
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name.starts_with(PREFIX))
+        })
+        .filter_map(|path| {
+            let modified = std::fs::metadata(&path).and_then(|meta| meta.modified());
+            modified.ok().map(|at| (path, at))
+        })
         .collect();
-    backups.sort_by_key(|path| {
-        std::fs::metadata(path)
-            .and_then(|meta| meta.modified())
-            .ok()
-    });
+    backups.sort_by_key(|(_, modified)| *modified);
+    backups
+}
+
+/// Deletes the oldest backup files in `dir` so that at most `keep` remain.
+/// Only files this app names are counted or deleted.
+pub fn prune(dir: &Path, keep: usize) -> Result<()> {
+    let backups = backups_in(dir);
     let excess = backups.len().saturating_sub(keep);
-    for path in backups.into_iter().take(excess) {
+    for (path, _) in backups.into_iter().take(excess) {
         std::fs::remove_file(path)?;
     }
+    Ok(())
+}
+
+/// True when `dir` holds no backup newer than `max_age`.
+pub fn is_due(dir: &Path, max_age: Duration) -> bool {
+    backups_in(dir)
+        .last()
+        .and_then(|(_, modified)| modified.elapsed().ok())
+        .is_none_or(|age| age >= max_age)
+}
+
+/// Makes sure `source` is a database of this app that this version can read, before it
+/// replaces the live data. `latest` is the newest schema version this build knows.
+pub(super) fn check(source: &Path, latest: usize) -> Result<()> {
+    let not_ours = || AppError::validation("this file is not a DataBoard backup");
+    let conn = Connection::open_with_flags(source, OpenFlags::SQLITE_OPEN_READ_ONLY)
+        .map_err(|_| not_ours())?;
+    let version: u32 = conn
+        .query_row("PRAGMA user_version", [], |row| row.get(0))
+        .map_err(|_| not_ours())?;
+    let has_settings: bool = conn
+        .query_row(
+            "SELECT count(*) > 0 FROM sqlite_master WHERE type = 'table' AND name = 'settings'",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|_| not_ours())?;
+    if version == 0 || !has_settings {
+        return Err(not_ours());
+    }
+    if version as usize > latest {
+        return Err(AppError::validation(
+            "this backup was made by a newer version of the app",
+        ));
+    }
+    Ok(())
+}
+
+/// Replaces the content of the open database with the backup at `source`.
+pub(super) fn restore_into(conn: &mut Connection, source: &Path) -> Result<()> {
+    // Statements prepared against the old content must not outlive it.
+    conn.flush_prepared_statement_cache();
+    conn.restore(MAIN_DB, source, None::<fn(Progress)>)?;
     Ok(())
 }

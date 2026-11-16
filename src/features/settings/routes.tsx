@@ -1,14 +1,27 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useId, useState, type ReactNode } from 'react';
 import { t } from '@/shared/i18n/id';
 import type { Settings, Theme } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
+import { FormError } from '@/shared/ui/FormError';
 import { Input } from '@/shared/ui/Input';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
-import { notifySaved } from '@/shared/ui/toast';
+import { Segmented } from '@/shared/ui/Segmented';
+import { notifySaved, showToast } from '@/shared/ui/toast';
 import { cn } from '@/shared/utils/cn';
-import { sendTestNotification, useSettings, useUpdateSettings } from './api';
+import {
+  isDesktop,
+  sendTestNotification,
+  useAutostart,
+  useMcpServerPath,
+  useSetAutostart,
+  useSettings,
+  useUpdateSettings,
+} from './api';
 import { ProfileForm } from './components/ProfileForm';
+import { backup } from './api';
+import { exportJson, exportNotesMarkdown, exportProjectsCsv } from './export';
 
 const themes: Array<{ value: Theme; label: string }> = [
   { value: 'system', label: t.theme.system },
@@ -43,6 +56,9 @@ interface PanelProps {
 
 /** App name, reminders and notifications. */
 function AppPanel({ settings, save }: PanelProps) {
+  const autostart = useAutostart();
+  const setAutostart = useSetAutostart();
+
   return (
     <>
       <Field label={t.settings.appName}>
@@ -83,6 +99,29 @@ function AppPanel({ settings, save }: PanelProps) {
           />
         )}
       </Field>
+
+      <Field label={t.settings.autostart}>
+        {(id) =>
+          isDesktop ? (
+            <label className="flex h-10 w-fit items-center gap-2 text-sm">
+              <input
+                id={id}
+                type="checkbox"
+                className="size-4 accent-(--accent)"
+                checked={autostart.data ?? false}
+                disabled={autostart.isPending || setAutostart.isPending}
+                onChange={(event) => setAutostart.mutate(event.target.checked)}
+              />
+              {t.settings.autostartOn}
+            </label>
+          ) : (
+            <p id={id} className="flex h-10 items-center text-sm text-muted">
+              {t.common.desktopOnly}
+            </p>
+          )
+        }
+      </Field>
+      {setAutostart.isError && <FormError error={setAutostart.error} />}
 
       <Field label={t.settings.notification}>
         {(id) => (
@@ -163,6 +202,221 @@ function AppearancePanel({ settings, save }: PanelProps) {
   );
 }
 
+/** One export: its label and the job, which resolves to the message to confirm with. */
+const exportsOffered: Array<{ label: string; run(): Promise<string | null> }> = [
+  { label: t.settings.data.exportJson, run: () => exportJson().then(() => t.settings.data.done) },
+  {
+    label: t.settings.data.exportCsv,
+    run: () => exportProjectsCsv().then(() => t.settings.data.done),
+  },
+  {
+    label: t.settings.data.exportNotes,
+    // Nothing is confirmed when the folder dialog was cancelled.
+    run: () =>
+      exportNotesMarkdown().then((count) =>
+        count === null ? null : t.settings.data.notesDone(count),
+      ),
+  },
+];
+
+/** Backups of the database and exports of the app's content as files. */
+function DataPanel({ settings, save }: PanelProps) {
+  const client = useQueryClient();
+  const [running, setRunning] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
+  const text = t.settings.data;
+
+  /** Runs one job at a time; a message it resolves to is shown as confirmation. */
+  const start = (name: string, job: () => Promise<string | null>) => {
+    setRunning(name);
+    setError(null);
+    job()
+      .then((message) => message && showToast(message))
+      .catch(setError)
+      .finally(() => setRunning(null));
+  };
+
+  return (
+    <>
+      {isDesktop ? (
+        <>
+          <Field label={text.backupDir}>
+            {(id) => (
+              <div className="flex flex-col items-start gap-2">
+                <p className="text-sm break-all text-muted">
+                  {settings.backup_dir ?? text.backupDirDefault}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    id={id}
+                    disabled={running !== null}
+                    onClick={() =>
+                      start('dir', async () => {
+                        const backup_dir = await backup.pickDir();
+                        if (backup_dir) save({ backup_dir });
+                        return null;
+                      })
+                    }
+                  >
+                    {text.backupDirChoose}
+                  </Button>
+                  {settings.backup_dir && (
+                    <Button variant="ghost" onClick={() => save({ backup_dir: null })}>
+                      {text.backupDirReset}
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted">{text.backupAuto}</p>
+              </div>
+            )}
+          </Field>
+          <Field label={text.backupNow}>
+            {(id) => (
+              <Button
+                id={id}
+                disabled={running !== null}
+                onClick={() =>
+                  start('backup', async () => {
+                    const file = await backup.run();
+                    showToast(text.backupDone, file);
+                    return null;
+                  })
+                }
+              >
+                {text.backupRun}
+              </Button>
+            )}
+          </Field>
+          <Field label={text.restore}>
+            {(id) => (
+              <div className="flex flex-col items-start gap-2">
+                <Button
+                  id={id}
+                  disabled={running !== null}
+                  onClick={() =>
+                    start('restore', async () => {
+                      if (!(await backup.restore())) return null;
+                      // Everything on screen came from the replaced data.
+                      await client.invalidateQueries();
+                      return text.restoreDone;
+                    })
+                  }
+                >
+                  {text.restoreRun}
+                </Button>
+                <p className="text-xs text-muted">{text.restoreHint}</p>
+              </div>
+            )}
+          </Field>
+        </>
+      ) : (
+        <Field label={text.backupNow}>
+          {(id) => (
+            <p id={id} className="flex h-10 items-center text-sm text-muted">
+              {t.common.desktopOnly}
+            </p>
+          )}
+        </Field>
+      )}
+
+      {exportsOffered.map(({ label, run }) => (
+        <Field key={label} label={label}>
+          {(id) => (
+            <Button id={id} disabled={running !== null} onClick={() => start(label, run)}>
+              {t.settings.data.export}
+            </Button>
+          )}
+        </Field>
+      ))}
+      {error !== null && (
+        <div className="mt-5">
+          <FormError error={error} />
+        </div>
+      )}
+    </>
+  );
+}
+
+/** A block of text to paste somewhere else, with a button that copies it. */
+function Snippet({ label, hint, code }: { label: string; hint: string; code: string }) {
+  return (
+    <div className="mb-6 last:mb-0">
+      <div className="mb-2 flex items-end justify-between gap-3">
+        <div>
+          <p className="label">{label}</p>
+          <p className="mt-1 text-xs text-muted">{hint}</p>
+        </div>
+        <Button
+          onClick={() =>
+            void navigator.clipboard.writeText(code).then(() => showToast(t.settings.agent.copied))
+          }
+        >
+          {t.settings.agent.copy}
+        </Button>
+      </div>
+      <pre className="overflow-x-auto rounded-sm border border-border bg-surface-hover p-4 font-mono text-xs leading-relaxed">
+        {code}
+      </pre>
+    </div>
+  );
+}
+
+type AgentClient = keyof typeof t.settings.agent.clients;
+const agentClients = Object.keys(t.settings.agent.clients) as AgentClient[];
+
+/** Name the app's server goes by in a client's configuration. */
+const SERVER_NAME = 'databoard';
+
+/** The configuration that registers the server at `command`, in the form each client reads. */
+const agentConfig: Record<AgentClient, (command: string) => string> = {
+  json: (command) => JSON.stringify({ mcpServers: { [SERVER_NAME]: { command } } }, null, 2),
+  vscode: (command) =>
+    JSON.stringify({ servers: { [SERVER_NAME]: { type: 'stdio', command } } }, null, 2),
+  // A TOML literal string (single quotes) keeps the backslashes of a Windows path as they are.
+  codex: (command) => `[mcp_servers.${SERVER_NAME}]\ncommand = '${command}'`,
+  claudeCode: (command) => `claude mcp add ${SERVER_NAME} -- "${command}"`,
+};
+
+/** Ready-to-paste configuration that connects an AI agent to the app's data. */
+function AgentPanel() {
+  const path = useMcpServerPath();
+  const [client, setClient] = useState<AgentClient>('json');
+  const text = t.settings.agent;
+
+  return (
+    <QueryBoundary query={path}>
+      {(serverPath) => {
+        const command = serverPath ?? text.examplePath;
+        return (
+          <>
+            <p className="mb-6 text-sm text-muted">
+              {text.intro}
+              {serverPath === null && ` ${text.browserNote}`}
+            </p>
+            <div className="mb-6">
+              <Segmented<AgentClient>
+                label={text.client}
+                value={client}
+                onChange={setClient}
+                options={agentClients.map((name) => ({
+                  value: name,
+                  label: text.clients[name].label,
+                }))}
+              />
+            </div>
+            <Snippet
+              label={text.clients[client].label}
+              hint={text.clients[client].hint}
+              code={agentConfig[client](command)}
+            />
+            <Snippet label={text.program} hint={text.programHint} code={command} />
+          </>
+        );
+      }}
+    </QueryBoundary>
+  );
+}
+
 function SettingsTabs({ settings }: { settings: Settings }) {
   const update = useUpdateSettings();
   const save = (changes: Partial<Settings>) => update.mutate({ ...settings, ...changes });
@@ -209,6 +463,8 @@ function SettingsTabs({ settings }: { settings: Settings }) {
           )}
           {tab === 'appearance' && <AppearancePanel settings={settings} save={save} />}
           {tab === 'app' && <AppPanel settings={settings} save={save} />}
+          {tab === 'data' && <DataPanel settings={settings} save={save} />}
+          {tab === 'agent' && <AgentPanel />}
         </div>
 
         {update.isError && (

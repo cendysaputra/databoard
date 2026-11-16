@@ -1,15 +1,6 @@
 import { del, get, set } from 'idb-keyval';
-import type {
-  CollectionInput,
-  Entry,
-  EntryInput,
-  FieldDef,
-  Settings,
-  Tag,
-  TagInput,
-} from '@/shared/types';
+import type { Settings, Tag, TagInput } from '@/shared/types';
 import { showToast } from '@/shared/ui/toast';
-import { slugify } from '@/shared/utils/slug';
 import { createSeed, defaultSettings, seedTags, type SeedData } from './seed';
 import type { DataError, DataSource } from './source';
 
@@ -56,6 +47,9 @@ async function load<K extends Collection>(name: K): Promise<SeedData[K]> {
   await ready;
   return (await get<SeedData[K]>(key(name))) ?? [];
 }
+
+/** Whatever separates words: anything that is not a letter or a digit. */
+const NOT_WORD = /[^\p{L}\p{N}]+/u;
 
 function fail(code: string, message: string): never {
   throw { code, message } satisfies DataError;
@@ -135,47 +129,6 @@ async function saveTag(input: TagInput, id?: string): Promise<Tag> {
   return tag;
 }
 
-/** Name, slug and field keys checked the way the Rust side does, in short form. */
-async function cleanCollection(input: CollectionInput, ownId?: string) {
-  requireText('name', input.name);
-  const slug = slugify(input.slug?.trim() || input.name);
-  if (!slug) fail('validation', 'slug needs at least one letter or digit');
-  if ((await load('collections')).some((c) => c.slug === slug && c.id !== ownId)) {
-    fail('validation', `slug "${slug}" is already used`);
-  }
-  const keys = new Set<string>();
-  for (const field of input.fields) {
-    requireText('field label', field.label);
-    if (!/^[a-z][a-z0-9_]*$/.test(field.key) || keys.has(field.key)) {
-      fail('validation', `field key "${field.key}" is invalid or already used`);
-    }
-    keys.add(field.key);
-    if (field.field_type === 'select' && field.options.length === 0) {
-      fail('validation', `${field.label} needs at least one option`);
-    }
-  }
-  return {
-    ...input,
-    name: input.name.trim(),
-    slug,
-    description: input.description?.trim() || null,
-  };
-}
-
-/** Keeps the blueprint's fields only and enforces the required ones. */
-function cleanEntry(fields: FieldDef[], input: EntryInput) {
-  requireText('title', input.title);
-  const data: Entry['data'] = {};
-  for (const field of fields) {
-    const value = input.data[field.key];
-    const empty = value === undefined || value === null || value === '';
-    if (field.field_type === 'toggle') data[field.key] = value === true;
-    else if (!empty) data[field.key] = value;
-    else if (field.required) fail('validation', `${field.label} is required`);
-  }
-  return { title: input.title.trim(), status: input.status, data };
-}
-
 export const browserSource: DataSource = {
   kind: 'browser',
   events: {
@@ -200,6 +153,12 @@ export const browserSource: DataSource = {
       await set(
         key('reminders'),
         reminders.filter((r) => r.event_id !== id),
+      );
+      // Notes written for the event stay, without their link to it.
+      const notes = await load('notes');
+      await set(
+        key('notes'),
+        notes.map((note) => (note.event_id === id ? { ...note, event_id: null } : note)),
       );
     },
   },
@@ -230,6 +189,22 @@ export const browserSource: DataSource = {
         )
         .slice(offset, offset + limit)
         .map(({ body_md, ...note }) => ({ ...note, excerpt: excerpt(body_md) }));
+    },
+    async search(query, page) {
+      const words = query.toLowerCase().split(NOT_WORD).filter(Boolean);
+      if (words.length === 0) return [];
+      const notes = await load('notes');
+      // Every word must start a word of the title or body, as the desktop full-text search does.
+      const hits = new Set(
+        notes
+          .filter((note) => {
+            const text = `${note.title} ${note.body_md}`.toLowerCase().split(NOT_WORD);
+            return words.every((word) => text.some((token) => token.startsWith(word)));
+          })
+          .map((note) => note.id),
+      );
+      const all = await browserSource.notes.list({ limit: notes.length || 1, offset: 0 });
+      return all.filter((note) => hits.has(note.id)).slice(page.offset, page.offset + page.limit);
     },
     get: (id) => find('notes', id),
     async create(input) {
@@ -273,57 +248,6 @@ export const browserSource: DataSource = {
       return patch('projects', id, input);
     },
     remove: (id) => remove('projects', id),
-  },
-  collections: {
-    async list() {
-      const entries = await load('entries');
-      return (await load('collections'))
-        .map((c) => ({
-          ...c,
-          entry_count: entries.filter((e) => e.collection_id === c.id).length,
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-    },
-    async get(id) {
-      const found = (await browserSource.collections.list()).find((c) => c.id === id);
-      return found ?? fail('not_found', 'collection not found');
-    },
-    async create(input) {
-      return insert('collections', await cleanCollection(input), { entry_count: 0 });
-    },
-    async update(id, input) {
-      await patch('collections', id, await cleanCollection(input, id));
-      return browserSource.collections.get(id);
-    },
-    async remove(id) {
-      await remove('collections', id);
-      const entries = await load('entries');
-      await set(
-        key('entries'),
-        entries.filter((e) => e.collection_id !== id),
-      );
-    },
-  },
-  entries: {
-    async list(collectionId, { limit, offset }) {
-      return (await load('entries'))
-        .filter((e) => e.collection_id === collectionId)
-        .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
-        .slice(offset, offset + limit);
-    },
-    get: (id) => find('entries', id),
-    async create(collectionId, input) {
-      const collection = await find('collections', collectionId);
-      return insert('entries', cleanEntry(collection.fields, input), {
-        collection_id: collectionId,
-      });
-    },
-    async update(id, input) {
-      const current = await find('entries', id);
-      const collection = await find('collections', current.collection_id);
-      return patch('entries', id, cleanEntry(collection.fields, input));
-    },
-    remove: (id) => remove('entries', id),
   },
   recordings: {
     async save(name, extension, blob) {
@@ -397,6 +321,31 @@ export const browserSource: DataSource = {
       return input;
     },
   },
+  media: {
+    // The preview has no files: the image itself is the stored path, as a data URL.
+    save: (image) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(image);
+      }),
+    url: async (path) => path,
+  },
+  // The preview is a web page; reloading it is its update.
+  updates: { check: async () => null, install: async () => {} },
+  backup: {
+    pickDir: async () => null,
+    run: async () => fail('desktop_only', 'backups need the desktop app'),
+    restore: async () => false,
+  },
+  mcp: { serverPath: async () => null },
+  autostart: {
+    get: async () => false,
+    set: async () => fail('desktop_only', 'autostart needs the desktop app'),
+  },
+  // Nothing outside the page asks it to navigate.
+  onNavigate: () => () => {},
   async openUrl(url) {
     window.open(url, '_blank', 'noopener');
   },

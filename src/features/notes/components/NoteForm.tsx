@@ -1,23 +1,61 @@
+import { Link } from '@tanstack/react-router';
 import type { Editor } from '@tiptap/react';
 import { Download } from 'lucide-react';
 import { useCallback, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import type { DataError } from '@/data';
 import { t } from '@/shared/i18n/id';
 import type { Note, NoteInput, NoteStatus, Tag } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
 import { FormError } from '@/shared/ui/FormError';
 import { Input } from '@/shared/ui/Input';
-import { formatLongDate, fromIsoDay } from '@/shared/utils/date';
+import { Select } from '@/shared/ui/Select';
+import { formatDayMonthYear, formatLongDate, fromIsoDay } from '@/shared/utils/date';
 import { toDateInput } from '@/shared/utils/datetime-input';
+import { useLinkableEvents, useLinkedEvent } from '../api';
 import { exportDocx, exportPdf, fileName, type NoteExport } from '../export';
 import { LabelChip } from '@/shared/ui/LabelChip';
+import { ActionItems } from './ActionItems';
 import { LabelManager } from './LabelManager';
 import { RichEditor } from '@/shared/ui/RichEditor';
 
 const text = t.notes.form;
 
+/** What a new note starts with when it is written for an event. */
+export interface NotePrefill {
+  title: string;
+  /** The day of the event, as `YYYY-MM-DD`. */
+  date: string;
+  eventId: string;
+}
+
+/** Puts the meeting sections into the editor: a heading each, then an empty checklist. */
+function insertMeetingTemplate(editor: Editor, focus: boolean) {
+  const { sections, actionItems } = t.notes.template;
+  const heading = (name: string) => ({
+    type: 'heading',
+    attrs: { level: 2 },
+    content: [{ type: 'text', text: name }],
+  });
+  const chain = focus ? editor.chain().focus('end') : editor.chain();
+  chain
+    .insertContent([
+      ...sections.flatMap((name) => [heading(name), { type: 'paragraph' }]),
+      heading(actionItems),
+      {
+        type: 'taskList',
+        content: [
+          { type: 'taskItem', attrs: { checked: false }, content: [{ type: 'paragraph' }] },
+        ],
+      },
+    ])
+    .run();
+}
+
 interface NoteFormProps {
   /** The note being edited; leave out to create a new one. */
   note?: Note;
+  /** For a new note made from an event: its title, day and link, plus the meeting template. */
+  prefill?: NotePrefill;
   labels: Tag[];
   saving: boolean;
   error: unknown;
@@ -36,18 +74,37 @@ function MetaRow({ label, children }: { label: string; children: ReactNode }) {
 }
 
 /** A note page: title, date, labels, a rich text body, plus publish and export actions. */
-export function NoteForm({ note, labels, saving, error, onSubmit, extra }: NoteFormProps) {
-  const [title, setTitle] = useState(note?.title ?? '');
-  const [date, setDate] = useState(() => note?.note_date ?? toDateInput(new Date()));
+export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra }: NoteFormProps) {
+  const [title, setTitle] = useState(note?.title ?? prefill?.title ?? '');
+  const [date, setDate] = useState(
+    () => note?.note_date ?? prefill?.date ?? toDateInput(new Date()),
+  );
+  const [eventId, setEventId] = useState(note?.event_id ?? prefill?.eventId ?? null);
   const [labelIds, setLabelIds] = useState(note?.label_ids ?? []);
   const [pinned, setPinned] = useState(note?.pinned ?? false);
   const [body, setBody] = useState(note?.body_md ?? '');
   const [managing, setManaging] = useState(false);
   const [exportError, setExportError] = useState<unknown>(null);
   const editorRef = useRef<Editor | null>(null);
-  const onReady = useCallback((editor: Editor) => {
-    editorRef.current = editor;
-  }, []);
+  const fromEvent = Boolean(prefill);
+  const onReady = useCallback(
+    (editor: Editor) => {
+      editorRef.current = editor;
+      // A note written for an event starts as meeting notes; only once, while still empty.
+      if (fromEvent && editor.isEmpty) insertMeetingTemplate(editor, false);
+    },
+    [fromEvent],
+  );
+
+  // The select offers recent and coming events; a link to an older one is fetched by itself.
+  const nearby = useLinkableEvents().data ?? [];
+  const isNearby = nearby.some((event) => event.id === eventId);
+  const linkedEvent = useLinkedEvent(isNearby ? null : eventId);
+  const linked = linkedEvent.data;
+  const events = linked && !isNearby ? [linked, ...nearby] : nearby;
+  // A link to an event that no longer exists counts as no link; saving the note drops it.
+  const linkMissing = !isNearby && (linkedEvent.error as DataError | null)?.code === 'not_found';
+  const linkedId = linkMissing ? null : eventId;
 
   const status: NoteStatus = note?.status ?? 'draft';
   const selected = labels.filter((label) => labelIds.includes(label.id));
@@ -60,8 +117,8 @@ export function NoteForm({ note, labels, saving, error, onSubmit, extra }: NoteF
       note_date: date,
       status: nextStatus,
       label_ids: selected.map((label) => label.id),
-      // Links to an event or project are kept as they are; linking comes later.
-      event_id: note?.event_id ?? null,
+      event_id: linkedId,
+      // The link to a project is kept as it is.
       project_id: note?.project_id ?? null,
     });
 
@@ -193,6 +250,41 @@ export function NoteForm({ note, labels, saving, error, onSubmit, extra }: NoteF
             </button>
           </div>
         </MetaRow>
+        <MetaRow label={text.event}>
+          <div className="flex flex-wrap items-center gap-3">
+            <Select
+              aria-label={text.event}
+              style={{ maxWidth: '20rem' }}
+              value={linkedId ?? ''}
+              onChange={(event) => setEventId(event.target.value || null)}
+            >
+              <option value="">{text.eventNone}</option>
+              {events.map((event) => (
+                <option key={event.id} value={event.id}>
+                  {formatDayMonthYear(event.start_at)} · {event.title}
+                </option>
+              ))}
+            </Select>
+            {linkedId && (
+              <Link
+                to="/calendar/$eventId"
+                params={{ eventId: linkedId }}
+                className="text-xs text-muted transition-colors hover:text-text"
+              >
+                {text.eventOpen}
+              </Link>
+            )}
+          </div>
+        </MetaRow>
+        <MetaRow label={text.template}>
+          <LabelChip
+            onClick={() => {
+              if (editorRef.current) insertMeetingTemplate(editorRef.current, true);
+            }}
+          >
+            {t.notes.template.meeting}
+          </LabelChip>
+        </MetaRow>
         <MetaRow label={t.notes.pinned}>
           <label className="flex w-fit items-center gap-2 text-sm">
             <input
@@ -207,6 +299,8 @@ export function NoteForm({ note, labels, saving, error, onSubmit, extra }: NoteF
       </div>
 
       <RichEditor initialMarkdown={note?.body_md ?? ''} onChange={setBody} onReady={onReady} />
+
+      <ActionItems noteId={note?.id} body={body} />
 
       <FormError error={error ?? exportError} />
 

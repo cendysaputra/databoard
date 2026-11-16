@@ -1,21 +1,34 @@
-import { Link, useNavigate, useParams } from '@tanstack/react-router';
+import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { Pin, Plus } from 'lucide-react';
-import { lazy, useState } from 'react';
+import { lazy, useDeferredValue, useState } from 'react';
 import { useSelection } from '@/shared/hooks/use-selection';
 import { t } from '@/shared/i18n/id';
 import type { Note, NoteStatus, Tag } from '@/shared/types';
 import { Button, buttonClass } from '@/shared/ui/Button';
 import { ConfirmButton } from '@/shared/ui/ConfirmButton';
 import { EmptyState } from '@/shared/ui/EmptyState';
+import { FilterSelect } from '@/shared/ui/FilterSelect';
 import { FormError } from '@/shared/ui/FormError';
+import { Input } from '@/shared/ui/Input';
 import { NotesIcon } from '@/shared/ui/icons';
+import { pillClass } from '@/shared/ui/LabelChip';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { Row, Rows } from '@/shared/ui/Rows';
-import { Select } from '@/shared/ui/Select';
 import { SelectionBar } from '@/shared/ui/SelectionBar';
+import { cn } from '@/shared/utils/cn';
 import { formatDayMonth, fromIsoDay } from '@/shared/utils/date';
-import { useLabels, useNote, useNotes, useRemoveNote, useRemoveNotes, useSaveNote } from './api';
+import { toDateInput } from '@/shared/utils/datetime-input';
+import {
+  useLabels,
+  useLinkedEvent,
+  useNote,
+  useNotes,
+  useRemoveNote,
+  useRemoveNotes,
+  useSaveNote,
+} from './api';
+import type { NotePrefill } from './components/NoteForm';
 import { LabelManager } from './components/LabelManager';
 
 const text = t.notes;
@@ -34,53 +47,49 @@ function NoteList({ labels }: { labels: Tag[] }) {
   const [managing, setManaging] = useState(false);
   // A label deleted while selected no longer filters.
   const activeLabel = labels.some((label) => label.id === labelId) ? labelId : null;
-  const notes = useNotes(activeLabel);
+  const [search, setSearch] = useState('');
+  const notes = useNotes(activeLabel, useDeferredValue(search.trim()));
   const nameOf = (id: string) => labels.find((label) => label.id === id)?.name;
   // The label is filtered by the query; the status is filtered here, on what came back.
   const shown = (notes.data ?? []).filter((note) => !status || note.status === status);
   // Picks follow the notes on screen, so changing a filter narrows them too.
   const selection = useSelection(shown.map((note) => note.id));
   const remove = useRemoveNotes();
-  const filtered = Boolean(activeLabel || status);
+  const filtered = Boolean(activeLabel || status || search.trim());
 
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center gap-2">
-        {/* Each select fills its box, so the box sets the width. */}
-        <div className="w-44">
-          <Select
-            aria-label={text.filter.label}
+        {/* Each control fills its box, so the box sets the width. */}
+        <div className="w-56">
+          <Input
+            type="search"
+            aria-label={text.filter.search}
+            placeholder={text.filter.searchPlaceholder}
             className="h-10"
-            value={activeLabel ?? ''}
-            onChange={(event) => setLabelId(event.target.value)}
-          >
-            <option value="">{text.filter.allLabels}</option>
-            {labels.map((label) => (
-              <option key={label.id} value={label.id}>
-                {label.name}
-              </option>
-            ))}
-          </Select>
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
         </div>
-        <div className="w-44">
-          <Select
-            aria-label={text.filter.status}
-            className="h-10"
-            value={status}
-            onChange={(event) => setStatus(event.target.value as NoteStatus | '')}
-          >
-            <option value="">{text.filter.allStatuses}</option>
-            {statuses.map((name) => (
-              <option key={name} value={name}>
-                {text.status[name]}
-              </option>
-            ))}
-          </Select>
-        </div>
+        <FilterSelect
+          label={text.filter.label}
+          all={text.filter.allLabels}
+          value={activeLabel ?? ''}
+          options={labels.map((label) => ({ value: label.id, label: label.name }))}
+          onChange={setLabelId}
+        />
+        <FilterSelect
+          label={text.filter.status}
+          all={text.filter.allStatuses}
+          value={status}
+          options={statuses.map((name) => ({ value: name, label: text.status[name] }))}
+          onChange={(value) => setStatus(value as NoteStatus | '')}
+        />
         {filtered && (
           <Button
             variant="ghost"
             onClick={() => {
+              setSearch('');
               setLabelId('');
               setStatus('');
             }}
@@ -143,10 +152,7 @@ function NoteList({ labels }: { labels: Tag[] }) {
                       {note.title}
                     </Link>
                     {note.label_ids.map((id) => (
-                      <span
-                        key={id}
-                        className="shrink-0 rounded-sm bg-surface-hover px-2 py-0.5 text-xs text-muted"
-                      >
+                      <span key={id} className={cn('shrink-0', pillClass)}>
                         {nameOf(id)}
                       </span>
                     ))}
@@ -164,7 +170,7 @@ function NoteList({ labels }: { labels: Tag[] }) {
   );
 }
 
-/** Notes filtered by label and status. Search and linking to events come later. */
+/** Notes filtered by label and status. */
 export function NotesPage() {
   const labels = useLabels();
 
@@ -184,7 +190,7 @@ export function NotesPage() {
   );
 }
 
-function NoteEditor({ note }: { note?: Note }) {
+function NoteEditor({ note, prefill }: { note?: Note; prefill?: NotePrefill }) {
   const navigate = useNavigate();
   const labels = useLabels();
   const save = useSaveNote(note?.id);
@@ -196,6 +202,7 @@ function NoteEditor({ note }: { note?: Note }) {
         {(allLabels) => (
           <NoteForm
             note={note}
+            prefill={prefill}
             labels={allLabels}
             saving={save.isPending}
             error={save.error ?? remove.error}
@@ -231,8 +238,21 @@ function NoteEditor({ note }: { note?: Note }) {
   );
 }
 
+/** A new note. With `?event=<id>` it starts as meeting notes for that event. */
 export function NoteNewPage() {
-  return <NoteEditor />;
+  const { event: eventId } = useSearch({ strict: false });
+  const event = useLinkedEvent(eventId ?? null);
+
+  if (!eventId) return <NoteEditor />;
+  return (
+    <QueryBoundary query={event}>
+      {(value) => (
+        <NoteEditor
+          prefill={{ title: value.title, date: toDateInput(value.start_at), eventId: value.id }}
+        />
+      )}
+    </QueryBoundary>
+  );
 }
 
 export function NoteEditPage() {

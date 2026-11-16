@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { data } from '@/data';
+import { useRemoveMany } from '@/shared/hooks/use-remove-many';
 import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
-import type { ProjectInput } from '@/shared/types';
+import type { Project, ProjectInput } from '@/shared/types';
+import { resizeImage } from '@/shared/utils/image';
 
 /** All projects in their manual order. */
 export function useProjects() {
@@ -50,15 +52,44 @@ export function useRemoveProject() {
 
 /** Removes several projects at once; one confirmation is shown for the whole batch. */
 export function useRemoveProjects() {
+  return useRemoveMany((id) => data.projects.remove(id), useRefresh());
+}
+
+/** An address to show a stored cover with. Idle without a cover; never refetched. */
+export function useCoverUrl(path: string | null) {
+  return useQuery({
+    queryKey: ['media', path],
+    queryFn: () => data.media.url(path ?? ''),
+    enabled: path !== null,
+    staleTime: Infinity,
+  });
+}
+
+/** Shrinks a picked image and stores it; resolves to the path for `cover_path`. */
+export function useUploadCover() {
+  return useMutation({
+    mutationFn: async (file: File) => data.media.save(await resizeImage(file)),
+  });
+}
+
+/**
+ * Saves a new manual order: `ids` lists every project in the order wanted. Only the
+ * projects whose place changed are written.
+ */
+export function useReorderProjects() {
   const refresh = useRefresh();
   return useMutation({
-    // One after another: the browser store rewrites the whole list on each removal,
-    // so removals running together would undo each other.
-    mutationFn: async (ids: string[]) => {
-      for (const id of ids) await data.projects.remove(id);
+    mutationFn: async ({ projects, ids }: { projects: Project[]; ids: string[] }) => {
+      for (const [index, id] of ids.entries()) {
+        const project = projects.find((p) => p.id === id);
+        if (!project || project.sort_order === index + 1) continue;
+        // One after another: the browser store rewrites the whole list on each update.
+        await data.projects.update(id, { ...project, sort_order: index + 1 });
+      }
     },
-    onSuccess: () => notifyDeleted(),
-    // Also after a failure, so the list shows what was really removed.
     onSettled: () => refresh(),
   });
 }
+
+/** Opens a project's link in the system browser. */
+export const openLink = (url: string) => data.openUrl(url);

@@ -7,7 +7,7 @@ export function Rows({ children, className }: { children: ReactNode; className?:
 }
 
 /** A checkbox at the start of a row, for picking it in selection mode. */
-export interface RowSelect {
+interface RowSelect {
   checked: boolean;
   /** Accessible name, e.g. "Pilih Standup mingguan". */
   label: string;

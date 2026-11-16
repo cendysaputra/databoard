@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type CalendarView = 'list' | 'month';
+type CalendarView = 'list' | 'month';
 export type EventGrouping = 'day' | 'week' | 'month';
 
 interface CalendarViewState {

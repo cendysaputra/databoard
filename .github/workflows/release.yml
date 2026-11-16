@@ -1,0 +1,55 @@
+# Release: push a tag like v0.1.1 and this builds the Windows installer (MSI), signs the
+# update, and publishes both with latest.json to a GitHub Release. Installed apps find the
+# new version through that latest.json.
+#
+# Secrets this needs (Settings → Secrets and variables → Actions):
+#   TAURI_SIGNING_PRIVATE_KEY           content of the updater private key file
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD  its password (empty when the key has none)
+#   DATABOARD_GOOGLE_CLIENT_ID          optional, for Google Drive upload
+#   DATABOARD_GOOGLE_CLIENT_SECRET      optional, for Google Drive upload
+#
+# Code signing of the MSI itself is not set up, so Windows SmartScreen shows "Unknown
+# publisher". To add it, configure `bundle.windows.signCommand` (e.g. Azure Trusted Signing)
+# in src-tauri/tauri.release.conf.json and provide its credentials as secrets here.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - run: npm ci
+
+      # The installer ships the MCP server next to the app.
+      - run: node scripts/build-mcp.mjs
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          DATABOARD_GOOGLE_CLIENT_ID: ${{ secrets.DATABOARD_GOOGLE_CLIENT_ID }}
+          DATABOARD_GOOGLE_CLIENT_SECRET: ${{ secrets.DATABOARD_GOOGLE_CLIENT_SECRET }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: DataBoard ${{ github.ref_name }}
+          releaseDraft: false
+          prerelease: false
+          args: --config src-tauri/tauri.release.conf.json

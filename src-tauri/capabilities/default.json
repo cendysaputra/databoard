@@ -12,7 +12,7 @@
     "notification:allow-notify",
     {
       "identifier": "opener:allow-open-url",
-      "allow": [{ "url": "https://drive.google.com/*" }, { "url": "https://docs.google.com/*" }]
+      "allow": [{ "url": "https://*" }]
     }
   ]
 }

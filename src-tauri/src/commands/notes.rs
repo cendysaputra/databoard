@@ -15,6 +15,15 @@ pub fn notes_list(
 }
 
 #[tauri::command]
+pub fn notes_search(
+    db: State<'_, Db>,
+    query: String,
+    page: Page,
+) -> CommandResult<Vec<NoteSummary>> {
+    db.with(|conn| notes::search(conn, &query, page))
+}
+
+#[tauri::command]
 pub fn notes_get(db: State<'_, Db>, id: String) -> CommandResult<Note> {
     db.with(|conn| notes::get(conn, &id))
 }

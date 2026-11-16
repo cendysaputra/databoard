@@ -1,6 +1,9 @@
 import type { ButtonHTMLAttributes } from 'react';
 import { cn } from '@/shared/utils/cn';
 
+/** The look of a small grey pill that only displays a label or a tool. */
+export const pillClass = 'rounded-sm bg-surface-hover px-2 py-0.5 text-xs text-muted';
+
 interface LabelChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
 }

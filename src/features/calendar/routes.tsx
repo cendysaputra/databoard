@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import { CalendarDays, List, Plus } from 'lucide-react';
+import { CalendarDays, List, NotebookPen, Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useSelection } from '@/shared/hooks/use-selection';
 import { t } from '@/shared/i18n/id';
@@ -128,7 +128,17 @@ function EventEditor({ event }: { event?: CalendarEvent }) {
 
   return (
     <>
-      <PageHeader title={event ? event.title : t.calendar.new} />
+      <PageHeader
+        title={event ? event.title : t.calendar.new}
+        actions={
+          event && (
+            <Link to="/notes/new" search={{ event: event.id }} className={buttonClass()}>
+              <NotebookPen aria-hidden className="size-4" />
+              {text.createNote}
+            </Link>
+          )
+        }
+      />
       <QueryBoundary query={settings}>
         {({ default_reminder_minutes }) => (
           <EventForm

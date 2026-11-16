@@ -445,9 +445,8 @@
 }
 
 /*
- * Responsive overrides, widest first. They sit outside the layers on purpose:
- * unlayered rules win over Tailwind utilities, so they can adjust spacing and
- * columns that components set with utility classes.
+ * Responsive overrides, widest first. Unlayered on purpose: they must win over the
+ * Tailwind utilities that components set.
  */
 @container (max-width: 560px) {
   .category-grid {
@@ -492,15 +491,6 @@
   .project-grid,
   .form-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .form-grid > .col-span-2 {
-    grid-column: auto;
-  }
-  .blueprint-field-grid {
-    grid-template-columns: 24px minmax(0, 1fr);
-  }
-  .blueprint-field-grid > :nth-child(n + 3) {
-    grid-column: 2;
   }
   .page-actions {
     margin-left: 0;
@@ -597,9 +587,8 @@
 }
 
 /*
- * Dropdowns (<select>). Browsers that support customizable selects (Chromium, which is also
- * what the desktop app runs on) draw the arrow and the opened list in the app's own style.
- * Other browsers keep their native list.
+ * Dropdowns (<select>). Chromium, which the desktop app runs on, draws the arrow and list
+ * in the app's style; other browsers keep their native list.
  */
 @supports (appearance: base-select) {
   select,
