@@ -59,9 +59,9 @@ function NoteList({ labels }: { labels: Tag[] }) {
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-center gap-2">
+      <div className="filter-bar mb-6 flex flex-wrap items-center gap-2">
         {/* Each control fills its box, so the box sets the width. */}
-        <div className="w-56">
+        <div className="filter-search w-56">
           <Input
             type="search"
             aria-label={text.filter.search}
