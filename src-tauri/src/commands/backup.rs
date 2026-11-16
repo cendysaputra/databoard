@@ -30,7 +30,7 @@ pub async fn backup_pick_dir(app: AppHandle) -> CommandResult<Option<String>> {
 }
 
 /// Writes a backup now and returns the path of the file.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn backup_run(db: State<'_, Db>) -> CommandResult<String> {
     let file = db.backup_into(&backup_dir(&db)?)?;
     Ok(file.to_string_lossy().into_owned())
