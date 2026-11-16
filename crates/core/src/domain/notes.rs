@@ -9,12 +9,21 @@ use crate::util::{iso_date, new_id, now, optional, required, soft_delete};
 const TABLE: &str = "notes";
 const ENTITY: &str = "note";
 
+/// Subquery for the label ids of the note in the current row, as a JSON array.
+macro_rules! label_ids {
+    () => {
+        "(SELECT json_group_array(t.tag_id) FROM taggables t
+           JOIN tags g ON g.id = t.tag_id AND g.deleted_at IS NULL
+          WHERE t.entity_type = 'note' AND t.entity_id = notes.id AND t.deleted_at IS NULL)"
+    };
+}
+
 /// Columns of a note, plus its label ids as a JSON array.
-const COLUMNS: &str = "id, title, body_md, event_id, project_id, pinned, note_date, status,
-    (SELECT json_group_array(t.tag_id) FROM taggables t
-       JOIN tags g ON g.id = t.tag_id AND g.deleted_at IS NULL
-      WHERE t.entity_type = 'note' AND t.entity_id = notes.id AND t.deleted_at IS NULL),
-    created_at, updated_at";
+const COLUMNS: &str = concat!(
+    "id, title, body_md, event_id, project_id, pinned, note_date, status, ",
+    label_ids!(),
+    ", created_at, updated_at"
+);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "lowercase")]
@@ -155,14 +164,12 @@ fn summaries(
     page: Page,
 ) -> Result<Vec<NoteSummary>> {
     let sql = format!(
-        "SELECT id, title, substr(body_md, 1, ?4), pinned, note_date, status,
-            (SELECT json_group_array(t.tag_id) FROM taggables t
-               JOIN tags g ON g.id = t.tag_id AND g.deleted_at IS NULL
-              WHERE t.entity_type = 'note' AND t.entity_id = notes.id AND t.deleted_at IS NULL),
+        "SELECT id, title, substr(body_md, 1, ?4), pinned, note_date, status, {label_ids},
             created_at, updated_at
          FROM notes
          WHERE deleted_at IS NULL AND {filter}
-         ORDER BY pinned DESC, note_date DESC, updated_at DESC LIMIT ?1 OFFSET ?2"
+         ORDER BY pinned DESC, note_date DESC, updated_at DESC LIMIT ?1 OFFSET ?2",
+        label_ids = label_ids!(),
     );
     let mut stmt = conn.prepare_cached(&sql)?;
     let rows = stmt.query_map(
