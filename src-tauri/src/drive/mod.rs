@@ -5,6 +5,8 @@ mod oauth;
 mod token;
 mod upload;
 
+use std::time::Duration;
+
 use dashboard_core::domain::recordings::{self, DriveStatus};
 use dashboard_core::AppError;
 use tauri::AppHandle;
@@ -14,8 +16,21 @@ use tokio::net::TcpListener;
 use crate::commands::recordings::recordings_dir;
 use crate::error::CommandResult;
 
+/// A stalled connection gives up after this long instead of hanging the request forever.
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
+/// The longest wait for the next bytes of a response while a request is under way.
+const READ_TIMEOUT: Duration = Duration::from_secs(60);
+
 fn not_configured() -> AppError {
     AppError::validation("Google Drive is not set up in this build")
+}
+
+fn http_client() -> CommandResult<reqwest::Client> {
+    reqwest::Client::builder()
+        .connect_timeout(CONNECT_TIMEOUT)
+        .read_timeout(READ_TIMEOUT)
+        .build()
+        .map_err(AppError::external)
 }
 
 /// Whether Drive can be used, and with which account.
@@ -31,7 +46,7 @@ pub async fn drive_status() -> CommandResult<DriveStatus> {
         });
     };
     // The account email is a nicety; being offline must not make the app look disconnected.
-    let http = reqwest::Client::new();
+    let http = http_client()?;
     let account = match oauth::refresh(&http, &client, &refresh_token).await {
         Ok(access) => upload::account_email(&http, &access).await,
         Err(_) => None,
@@ -59,7 +74,7 @@ pub async fn drive_connect(app: AppHandle) -> CommandResult<DriveStatus> {
         .map_err(AppError::external)?;
 
     let code = oauth::wait_for_code(listener, &state).await?;
-    let http = reqwest::Client::new();
+    let http = http_client()?;
     let (access, refresh_token) =
         oauth::exchange_code(&http, &client, &code, &pkce.verifier, &redirect_uri).await?;
     token::save(&refresh_token)?;
@@ -73,7 +88,7 @@ pub async fn drive_connect(app: AppHandle) -> CommandResult<DriveStatus> {
 }
 
 /// Forgets the Google account on this computer.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn drive_disconnect() -> CommandResult<()> {
     token::clear()
 }
@@ -89,7 +104,7 @@ pub async fn drive_upload(app: AppHandle, file_name: String) -> CommandResult<St
         token::load()?.ok_or_else(|| AppError::validation("Google Drive is not connected yet"))?;
     let path = recordings_dir(&app)?.join(&file_name);
 
-    let http = reqwest::Client::new();
+    let http = http_client()?;
     let access = oauth::refresh(&http, &client, &refresh_token).await?;
     upload::upload_file(&http, &access, &path).await
 }

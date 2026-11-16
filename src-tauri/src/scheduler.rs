@@ -25,15 +25,23 @@ pub fn start(app: AppHandle) {
         let mut count: u32 = 0;
         loop {
             ticks.tick().await;
-            if let Err(err) = notify_due(&app) {
+            let with_backup = count.is_multiple_of(BACKUP_EVERY_TICKS);
+            count = count.wrapping_add(1);
+            // Database work and the backup copy block, so they run off the async workers.
+            let app = app.clone();
+            let pass = tauri::async_runtime::spawn_blocking(move || {
+                if let Err(err) = notify_due(&app) {
+                    eprintln!("scheduler: {err}");
+                }
+                if with_backup {
+                    if let Err(err) = backup_if_due(&app) {
+                        eprintln!("scheduler: backup failed: {err}");
+                    }
+                }
+            });
+            if let Err(err) = pass.await {
                 eprintln!("scheduler: {err}");
             }
-            if count.is_multiple_of(BACKUP_EVERY_TICKS) {
-                if let Err(err) = backup_if_due(&app) {
-                    eprintln!("scheduler: backup failed: {err}");
-                }
-            }
-            count = count.wrapping_add(1);
         }
     });
 }

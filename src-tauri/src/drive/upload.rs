@@ -4,12 +4,12 @@
 use std::path::Path;
 
 use dashboard_core::AppError;
-use reqwest::header::{CONTENT_LENGTH, CONTENT_RANGE, LOCATION};
+use reqwest::header::{CONTENT_LENGTH, CONTENT_RANGE, LOCATION, RANGE};
 use reqwest::{Client, StatusCode};
 use serde::Deserialize;
 use serde_json::json;
 use tokio::fs::File;
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt, AsyncSeekExt};
 
 use crate::error::CommandResult;
 
@@ -178,10 +178,24 @@ pub async fn upload_file(http: &Client, access: &str, path: &Path) -> CommandRes
             .send()
             .await
             .map_err(AppError::external)?;
-        sent += filled as u64;
 
-        // 308 means "piece received, send the next one".
-        if response.status() == StatusCode::PERMANENT_REDIRECT && sent < total {
+        // 308 means "send more". Google may keep only part of a piece, so carry on from
+        // the end of what its `Range` header says it holds.
+        if response.status() == StatusCode::PERMANENT_REDIRECT {
+            let received = response
+                .headers()
+                .get(RANGE)
+                .and_then(|value| value.to_str().ok())
+                .map_or(0, received_bytes);
+            if received >= total || received > sent + filled as u64 {
+                return Err(AppError::external(
+                    "Google Drive reported an unexpected upload size",
+                ));
+            }
+            if received != sent + filled as u64 {
+                file.seek(std::io::SeekFrom::Start(received)).await?;
+            }
+            sent = received;
             continue;
         }
         let uploaded: DriveFile = checked(response)
@@ -195,6 +209,15 @@ pub async fn upload_file(http: &Client, access: &str, path: &Path) -> CommandRes
     }
 }
 
+/// Bytes Google holds, from a `Range: bytes=0-<last>` header.
+fn received_bytes(range: &str) -> u64 {
+    range
+        .rsplit('-')
+        .next()
+        .and_then(|last| last.parse::<u64>().ok())
+        .map_or(0, |last| last + 1)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -203,6 +226,12 @@ mod tests {
     fn content_range_is_inclusive() {
         assert_eq!(content_range(0, 8, 20), "bytes 0-7/20");
         assert_eq!(content_range(16, 4, 20), "bytes 16-19/20");
+    }
+
+    #[test]
+    fn received_bytes_reads_the_range_header() {
+        assert_eq!(received_bytes("bytes=0-262143"), 262_144);
+        assert_eq!(received_bytes("garbage"), 0);
     }
 
     #[test]

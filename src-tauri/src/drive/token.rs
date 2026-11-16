@@ -1,12 +1,12 @@
 //! Where the Google refresh token lives: the operating system's credential store
 //! (Windows Credential Manager), never the database or a plain file.
 
-use dashboard_core::AppError;
+use dashboard_core::{AppError, APP_IDENTIFIER};
 use keyring::{Entry, Error};
 
 use crate::error::CommandResult;
 
-const SERVICE: &str = "com.cendi.databoard";
+const SERVICE: &str = APP_IDENTIFIER;
 const ACCOUNT: &str = "google-drive-refresh-token";
 
 fn entry() -> CommandResult<Entry> {

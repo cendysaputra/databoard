@@ -106,8 +106,17 @@ pub fn get(conn: &Connection) -> Result<Settings> {
     };
     for row in rows {
         let (key, raw) = row?;
-        if let (true, Ok(value)) = (merged.contains_key(&key), serde_json::from_str(&raw)) {
-            merged.insert(key, value);
+        let Some(default) = merged.get(&key).cloned() else {
+            continue;
+        };
+        let Ok(value) = serde_json::from_str(&raw) else {
+            continue;
+        };
+        // A row of the wrong type (say, a theme from a newer version) falls back to its own
+        // default instead of resetting every other setting.
+        merged.insert(key.clone(), value);
+        if serde_json::from_value::<Settings>(Value::Object(merged.clone())).is_err() {
+            merged.insert(key, default);
         }
     }
     Ok(serde_json::from_value(Value::Object(merged)).unwrap_or_default())
@@ -167,8 +176,8 @@ mod tests {
                 theme: Theme::Dark,
                 default_reminder_minutes: 60,
                 backup_dir: Some("D:\\Backup".into()),
-                profile_name: "  Cendi Saputra ".into(),
-                profile_nickname: "Cendi".into(),
+                profile_name: "  Cendy Saputra ".into(),
+                profile_nickname: "Cendy".into(),
                 profile_role: String::new(),
                 project_kinds: vec![" Website ".into(), "Website".into(), String::new()],
                 project_tools: vec!["Figma".into()],
@@ -176,7 +185,7 @@ mod tests {
             let saved = update(c, &wanted)?;
             assert_eq!(saved.project_kinds, ["Website"]);
             assert_eq!(saved.app_name, "Meja Kerja");
-            assert_eq!(saved.profile_name, "Cendi Saputra");
+            assert_eq!(saved.profile_name, "Cendy Saputra");
             let long = Settings {
                 profile_name: "x".repeat(81),
                 ..Settings::default()
@@ -208,6 +217,23 @@ mod tests {
             c.execute("INSERT INTO settings VALUES ('theme', 'not json', 'x')", [])?;
             c.execute("INSERT INTO settings VALUES ('gone', '1', 'x')", [])?;
             assert_eq!(get(c)?, Settings::default());
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn a_malformed_row_only_resets_its_own_setting() {
+        let db = Db::open_in_memory().unwrap();
+        db.with(|c| {
+            c.execute_batch(
+                r#"INSERT INTO settings (key, value, updated_at) VALUES
+                     ('backup_dir', '"D:/Backup"', ''),
+                     ('theme', '"sepia"', '');"#,
+            )?;
+            let settings = get(c)?;
+            assert_eq!(settings.backup_dir.as_deref(), Some("D:/Backup"));
+            assert_eq!(settings.theme, Settings::default().theme);
             Ok(())
         })
         .unwrap();

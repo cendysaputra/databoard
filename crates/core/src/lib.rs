@@ -11,3 +11,7 @@ pub use error::{AppError, Result};
 
 /// File name of the database inside the app data directory.
 pub const DB_FILE: &str = "dashboard.db";
+
+/// The app's identifier; must match `identifier` in `src-tauri/tauri.conf.json`. The app data
+/// folder and the stored Google token are named after it, so it never changes after release.
+pub const APP_IDENTIFIER: &str = "com.cendi.databoard";

@@ -4,22 +4,22 @@ use tauri::State;
 
 use crate::error::CommandResult;
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn events_list(db: State<'_, Db>, range: EventRange) -> CommandResult<Vec<CalendarEvent>> {
     db.with(|conn| events::list(conn, &range))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn events_get(db: State<'_, Db>, id: String) -> CommandResult<CalendarEvent> {
     db.with(|conn| events::get(conn, &id))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn events_create(db: State<'_, Db>, input: EventInput) -> CommandResult<CalendarEvent> {
     db.with(|conn| events::create(conn, &input))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn events_update(
     db: State<'_, Db>,
     id: String,
@@ -28,7 +28,7 @@ pub fn events_update(
     db.with(|conn| events::update(conn, &id, &input))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn events_remove(db: State<'_, Db>, id: String) -> CommandResult<()> {
     db.with_tx(|conn| events::remove(conn, &id))
 }

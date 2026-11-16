@@ -4,7 +4,7 @@ use tauri::State;
 
 use crate::error::CommandResult;
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn overview_get(db: State<'_, Db>, query: OverviewQuery) -> CommandResult<Overview> {
     db.with(|conn| overview::get(conn, &query))
 }

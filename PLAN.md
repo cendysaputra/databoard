@@ -29,7 +29,7 @@ Di luar scope sekarang: mobile app, sync cloud, multi-user, login. Tapi schema h
 - Profil release di `Cargo.toml`:
   ```toml
   [profile.release]
-  opt-level = "s"
+  opt-level = "z"
   lto = true
   codegen-units = 1
   strip = true
