@@ -482,12 +482,26 @@
  * Responsive overrides, widest first. Unlayered on purpose: they must win over the
  * Tailwind utilities that components set.
  */
+/* One card per line, each a compact row: the module at the left, its count at the right. */
 @container (max-width: 560px) {
   .category-grid {
     grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
   }
   .category-card {
-    height: 120px;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    height: auto;
+    padding: 14px 16px;
+  }
+  .category-count {
+    justify-content: flex-end;
+    padding-top: 0;
+    text-align: right;
+  }
+  .category-count > :first-child {
+    font-size: var(--font-size-2xl);
   }
 }
 
@@ -576,6 +590,14 @@
       calc(var(--bottom-nav-height) + 32px + env(safe-area-inset-bottom))
       max(16px, env(safe-area-inset-left));
   }
+  /* Filter rows: search on its own line, the dropdowns share the next one. */
+  .filter-bar .filter-search {
+    width: 100%;
+  }
+  .filter-bar .filter-select {
+    flex: 1 1 9rem;
+    width: auto;
+  }
   /* 16px text keeps iOS from zooming in when a field gets focus; large titles keep their size. */
   :is(input:not([type='checkbox'], [type='radio'], [type='color']), select, textarea):not(
     .text-xl,
@@ -635,6 +657,10 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
+    /* A long choice stays on one line and is cut off, instead of spilling out of the box. */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* The arrow: a chevron in the muted text color that turns over while the list is open. */
