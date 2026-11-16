@@ -50,6 +50,7 @@
   /* Layout */
   --sidebar-width: 13.5rem;
   --sidebar-width-collapsed: 4rem;
+  --bottom-nav-height: 4rem; /* phone tab bar, without the device's home indicator */
   --content-max-width: 88rem; /* every page shares the width of Beranda */
 
   /* Motion: hover, focus, panels and the route fade only */

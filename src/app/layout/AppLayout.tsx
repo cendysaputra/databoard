@@ -4,6 +4,7 @@ import { data } from '@/data';
 import { useSettings } from '@/shared/hooks/use-settings';
 import { t } from '@/shared/i18n/id';
 import { Toaster } from '@/shared/ui/Toaster';
+import { BottomNav } from './BottomNav';
 import { CommandPalette } from './CommandPalette';
 import { Onboarding } from './Onboarding';
 import { Sidebar } from './Sidebar';
@@ -42,6 +43,7 @@ export function AppLayout() {
           </div>
         </main>
       </div>
+      <BottomNav />
       <CommandPalette />
       <Toaster />
     </div>

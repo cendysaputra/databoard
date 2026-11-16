@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "DataBoard",
+  "short_name": "DataBoard",
+  "description": "Kalender, catatan meeting, dan portfolio pribadi.",
+  "lang": "id",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fafafa",
+  "theme_color": "#fafafa",
+  "categories": ["productivity"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Event baru", "url": "/calendar/new" },
+    { "name": "Catatan baru", "url": "/notes/new" }
+  ]
+}
