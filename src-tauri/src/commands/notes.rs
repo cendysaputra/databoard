@@ -5,7 +5,7 @@ use tauri::State;
 
 use crate::error::CommandResult;
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn notes_list(
     db: State<'_, Db>,
     page: Page,
@@ -14,7 +14,7 @@ pub fn notes_list(
     db.with(|conn| notes::list(conn, page, label_id.as_deref()))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn notes_search(
     db: State<'_, Db>,
     query: String,
@@ -23,22 +23,22 @@ pub fn notes_search(
     db.with(|conn| notes::search(conn, &query, page))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn notes_get(db: State<'_, Db>, id: String) -> CommandResult<Note> {
     db.with(|conn| notes::get(conn, &id))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn notes_create(db: State<'_, Db>, input: NoteInput) -> CommandResult<Note> {
     db.with_tx(|conn| notes::create(conn, &input))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn notes_update(db: State<'_, Db>, id: String, input: NoteInput) -> CommandResult<Note> {
     db.with_tx(|conn| notes::update(conn, &id, &input))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn notes_remove(db: State<'_, Db>, id: String) -> CommandResult<()> {
     db.with(|conn| notes::remove(conn, &id))
 }
