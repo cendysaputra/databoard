@@ -199,7 +199,9 @@ impl Dashboard {
         reply(self.db.with(|conn| events::create(conn, &input)))
     }
 
-    #[tool(description = "Change a calendar event; only the given fields change")]
+    #[tool(
+        description = "Change a calendar event; only the given fields change, and an empty string clears an optional text field"
+    )]
     fn update_event(&self, Parameters(args): Parameters<UpdateEventArgs>) -> CallToolResult {
         reply(self.db.with_tx(|conn| {
             let event = events::get(conn, &args.id)?;
@@ -281,7 +283,9 @@ impl Dashboard {
         }))
     }
 
-    #[tool(description = "Change a note; only the given fields change")]
+    #[tool(
+        description = "Change a note; only the given fields change, and an empty string clears an optional text field"
+    )]
     fn update_note(&self, Parameters(args): Parameters<UpdateNoteArgs>) -> CallToolResult {
         reply(self.db.with_tx(|conn| {
             let note = notes::get(conn, &args.id)?;
@@ -344,7 +348,9 @@ impl Dashboard {
         }))
     }
 
-    #[tool(description = "Change a portfolio project; only the given fields change")]
+    #[tool(
+        description = "Change a portfolio project; only the given fields change, and an empty string clears an optional text field"
+    )]
     fn update_project(&self, Parameters(args): Parameters<UpdateProjectArgs>) -> CallToolResult {
         reply(self.db.with_tx(|conn| {
             let project = projects::get(conn, &args.id)?;
