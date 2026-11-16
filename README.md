@@ -60,6 +60,20 @@ Build installer di komputer sendiri: set `TAURI_SIGNING_PRIVATE_KEY` (dan passwo
 `npm run build:app`. MSI belum ditandatangani dengan sertifikat code signing, sehingga Windows
 SmartScreen menampilkan "Unknown publisher"; lihat catatan di awal file workflow.
 
+## App mobile (PWA)
+
+Build web (`npm run build`, dideploy ke Vercel lewat `vercel.json`) bisa dipasang di ponsel
+sebagai app:
+
+- **Android (Chrome):** buka URL-nya, lalu menu ⋮ → **Instal aplikasi**.
+- **iPhone (Safari):** buka URL-nya, lalu **Bagikan** → **Tambah ke Layar Utama**.
+
+Di layar selebar ponsel, sidebar diganti tab bar di bawah. Service worker (`public/sw.js`)
+menyimpan semua file build, jadi app tetap terbuka tanpa koneksi; daftar file diisi saat build
+oleh plugin `precache` di `vite.config.ts`. Data tersimpan di IndexedDB ponsel itu sendiri dan
+tidak tersinkron dengan app desktop. Rekam layar tidak tampil di browser yang tidak mendukungnya
+(semua browser ponsel).
+
 ## Google Drive (unggah rekaman)
 
 Unggah rekaman ke Google Drive hanya ada di app desktop dan butuh OAuth client milik
