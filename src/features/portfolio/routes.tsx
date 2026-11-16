@@ -195,7 +195,7 @@ function ProjectGrid({ projects, settings }: { projects: Project[]; settings: Se
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-center gap-2">
+      <div className="filter-bar mb-6 flex flex-wrap items-center gap-2">
         <FilterSelect
           label={text.filter.kind}
           all={text.filter.allKinds}
