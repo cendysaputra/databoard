@@ -6,12 +6,9 @@ mod tools;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-use dashboard_core::{Db, DB_FILE};
+use dashboard_core::{Db, APP_IDENTIFIER, DB_FILE};
 use rmcp::transport::stdio;
 use rmcp::ServiceExt;
-
-/// Must match `identifier` in `src-tauri/tauri.conf.json`.
-const APP_IDENTIFIER: &str = "com.cendi.databoard";
 
 /// Database file: `--db <path>`, then `DASHBOARD_DB`, then the app's own data directory.
 fn db_path() -> Option<PathBuf> {
