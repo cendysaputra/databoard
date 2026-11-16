@@ -11,7 +11,7 @@ use rusqlite::Connection;
 use crate::error::Result;
 use crate::DB_FILE;
 
-pub use backup::{backup_to, is_due as backup_is_due};
+pub use backup::is_due as backup_is_due;
 
 const WAL_SIZE_LIMIT_BYTES: i64 = 4 * 1024 * 1024;
 
@@ -44,6 +44,7 @@ impl Db {
     }
 
     /// In-memory database with the full schema, for tests.
+    #[cfg(test)]
     pub fn open_in_memory() -> Result<Self> {
         let mut conn = Connection::open_in_memory()?;
         configure(&conn)?;
@@ -52,10 +53,6 @@ impl Db {
             conn: Mutex::new(conn),
             path: None,
         })
-    }
-
-    pub fn path(&self) -> Option<&Path> {
-        self.path.as_deref()
     }
 
     /// The folder backups go to when the user has not chosen one; `None` for an in-memory database.
@@ -68,7 +65,10 @@ impl Db {
     pub fn backup_into(&self, dir: &Path) -> Result<PathBuf> {
         let target = dir.join(backup::backup_name("backup"));
         backup::backup_to(&self.lock(), &target)?;
-        backup::prune(dir, BACKUPS_KEPT)?;
+        // The backup itself succeeded; a leftover old file is not worth reporting as a failure.
+        if let Err(err) = backup::prune(dir, BACKUPS_KEPT) {
+            eprintln!("backup: could not prune old backups: {err}");
+        }
         Ok(target)
     }
 
