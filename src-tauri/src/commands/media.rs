@@ -20,7 +20,7 @@ fn media_dir(app: &AppHandle) -> CommandResult<PathBuf> {
     let dir = app
         .path()
         .app_data_dir()
-        .map_err(|err| AppError::validation(err.to_string()))?
+        .map_err(AppError::external)?
         .join(FOLDER);
     fs::create_dir_all(&dir)?;
     Ok(dir)
