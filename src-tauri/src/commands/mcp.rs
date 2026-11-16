@@ -6,7 +6,7 @@ use crate::error::CommandResult;
 const MCP_SERVER: &str = "mcp-server.exe";
 
 /// Full path of the MCP server, for the configuration snippets shown in Settings.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn mcp_server_path() -> CommandResult<String> {
     let app = std::env::current_exe()?;
     let folder = app
