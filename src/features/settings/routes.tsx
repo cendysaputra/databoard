@@ -424,7 +424,8 @@ function SettingsTabs({ settings }: { settings: Settings }) {
 
   return (
     // Sections are listed at the left on wide screens and in a row above on narrow ones.
-    <div className="grid items-start gap-5 lg:grid-cols-[13rem_minmax(0,1fr)]">
+    // The column may not grow past the screen, so wide code blocks scroll inside their box.
+    <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[13rem_minmax(0,1fr)]">
       <div
         role="tablist"
         aria-orientation="vertical"
@@ -438,7 +439,7 @@ function SettingsTabs({ settings }: { settings: Settings }) {
             aria-selected={tab === name}
             onClick={() => setTab(name)}
             className={cn(
-              'h-10 shrink-0 rounded-sm px-3.5 text-left text-sm font-medium transition-colors',
+              'h-10 shrink-0 rounded-sm px-3 text-left text-sm font-medium transition-colors sm:px-3.5',
               tab === name ? 'bg-surface text-text' : 'text-muted hover:text-text',
             )}
           >
