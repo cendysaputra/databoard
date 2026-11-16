@@ -28,7 +28,7 @@ fn media_dir(app: &AppHandle) -> CommandResult<PathBuf> {
 
 /// Stores an image and returns its file name. The image is the raw request body;
 /// its format comes in a header.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn media_save(app: AppHandle, request: Request<'_>) -> CommandResult<String> {
     let extension = request
         .headers()
@@ -47,7 +47,7 @@ pub fn media_save(app: AppHandle, request: Request<'_>) -> CommandResult<String>
 }
 
 /// The bytes of a stored image.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn media_read(app: AppHandle, name: String) -> CommandResult<Response> {
     if !media::is_safe_file_name(&name) {
         return Err(AppError::validation("invalid image name"));
