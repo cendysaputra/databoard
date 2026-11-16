@@ -26,7 +26,8 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="inline-flex gap-1 rounded-sm border border-border bg-surface p-1"
+      // On a narrow screen a long row scrolls sideways instead of running off the page.
+      className="inline-flex max-w-full gap-1 overflow-x-auto rounded-sm border border-border bg-surface p-1 [scrollbar-width:none]"
     >
       {options.map(({ value: option, label: name, icon: Icon }) => {
         const active = option === value;
@@ -38,7 +39,7 @@ export function Segmented<T extends string>({
             aria-checked={active}
             onClick={() => onChange(option)}
             className={cn(
-              'flex h-8 items-center gap-1.5 rounded-[8px] px-3 text-xs font-medium transition-colors',
+              'flex h-8 shrink-0 items-center gap-1.5 rounded-[8px] px-3 text-xs font-medium whitespace-nowrap transition-colors',
               active ? 'bg-accent text-accent-contrast' : 'text-muted hover:text-text',
             )}
           >
