@@ -6,7 +6,8 @@ use ts_rs::TS;
 
 use crate::error::{AppError, Result};
 
-const MAX_STEM_LEN: usize = 80;
+/// The longest name part of a recording file, in characters.
+pub const MAX_STEM_LEN: usize = 80;
 const EXTENSIONS: [&str; 2] = ["webm", "mp4"];
 
 /// A recording file in the recordings folder.
