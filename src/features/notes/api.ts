@@ -6,6 +6,8 @@ import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
 import type { NoteInput, ReminderInput, TagInput } from '@/shared/types';
 
 const PAGE_SIZE = 100;
+/** The most search hits the data layer hands back at once. */
+const SEARCH_BATCH = 200;
 
 /** Events offered when linking a note: this far back and ahead of the current month. */
 const EVENT_MONTHS_BACK = 3;
@@ -21,8 +23,16 @@ export function useNotes(labelId: string | null, search = '') {
     queryKey: ['notes', 'list', labelId, search],
     queryFn: async () => {
       if (!search) return data.notes.list(page, labelId);
-      const found = await data.notes.search(search, page);
-      return labelId ? found.filter((note) => note.label_ids.includes(labelId)) : found;
+      if (!labelId) return data.notes.search(search, page);
+      // Search has no label filter of its own: read further pages until the list is full,
+      // so labelled matches beyond the first page of hits are not missed.
+      const matches = [];
+      for (let offset = 0; matches.length < PAGE_SIZE; offset += SEARCH_BATCH) {
+        const batch = await data.notes.search(search, { limit: SEARCH_BATCH, offset });
+        matches.push(...batch.filter((note) => note.label_ids.includes(labelId)));
+        if (batch.length < SEARCH_BATCH) break;
+      }
+      return matches.slice(0, PAGE_SIZE);
     },
     // The list stays on screen while the next result loads, so typing does not flicker.
     placeholderData: keepPreviousData,
