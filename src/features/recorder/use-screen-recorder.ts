@@ -56,7 +56,13 @@ async function captureStream(options: RecorderOptions) {
   const sources = [screen];
   if (options.microphone) {
     try {
-      sources.push(await navigator.mediaDevices.getUserMedia({ audio: true }));
+      sources.push(
+        await navigator.mediaDevices.getUserMedia({
+          // Echo removal puts Windows into "call" mode, which turns every other sound down,
+          // so the computer's sound reached the recording almost silent.
+          audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: false },
+        }),
+      );
     } catch {
       // No microphone or permission denied: record without it.
     }
@@ -64,18 +70,29 @@ async function captureStream(options: RecorderOptions) {
 
   const audioSources = sources.filter((source) => source.getAudioTracks().length > 0);
   let mixer: AudioContext | undefined;
+  let mixerInputs: MediaStreamAudioSourceNode[] = [];
   const tracks = [...screen.getVideoTracks()];
   if (audioSources.length === 1 && audioSources[0]) {
     tracks.push(...audioSources[0].getAudioTracks());
   } else if (audioSources.length > 1) {
-    mixer = new AudioContext();
-    const output = mixer.createMediaStreamDestination();
-    for (const source of audioSources) mixer.createMediaStreamSource(source).connect(output);
+    const context = new AudioContext();
+    mixer = context;
+    const output = context.createMediaStreamDestination();
+    // Each input gets a stream of its own audio track only, and the nodes are kept for the
+    // whole recording: an input the engine tidies away goes silent mid-recording.
+    mixerInputs = audioSources.map((source) => {
+      const node = context.createMediaStreamSource(new MediaStream(source.getAudioTracks()));
+      node.connect(output);
+      return node;
+    });
+    // The mixer is made after the pickers, outside the click, so it can start paused.
+    if (context.state === 'suspended') await context.resume().catch(() => {});
     tracks.push(...output.stream.getAudioTracks());
   }
 
   const release = () => {
     for (const source of sources) for (const track of source.getTracks()) track.stop();
+    for (const node of mixerInputs) node.disconnect();
     void mixer?.close();
   };
   return {
