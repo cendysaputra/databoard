@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { Editor } from '@tiptap/react';
 import { Download } from 'lucide-react';
-import { useCallback, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import type { DataError } from '@/data';
 import { t } from '@/shared/i18n/id';
 import type { Note, NoteInput, NoteStatus, Tag } from '@/shared/types';
@@ -132,6 +132,13 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
       body !== openedBody;
   const leaveDialog = useLeaveGuard(dirty);
 
+  // A new note opens on its own page once saved, from the saved copy; anything typed in
+  // between would be lost, so the note is read-only until then.
+  const locked = saving && !note;
+  useEffect(() => {
+    editorRef.current?.setEditable(!locked);
+  }, [locked]);
+
   const save = (nextStatus: NoteStatus) => {
     // Ctrl+S skips the disabled button; one save at a time, or a new note is made twice.
     if (saving) return;
@@ -235,6 +242,7 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
         placeholder={text.titlePlaceholder}
         required
         autoFocus={!note}
+        readOnly={locked}
         value={title}
         onChange={(event) => setTitle(event.target.value)}
         className="w-full bg-transparent text-3xl leading-tight font-semibold tracking-tight outline-none placeholder:text-muted"
