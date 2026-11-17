@@ -48,9 +48,17 @@ export const tauriSource: DataSource = {
   recordings: {
     async save(name, extension, blob) {
       const file = await invoke<RecordingFile>('recordings_begin', { name, extension });
-      for (let start = 0; start < blob.size; start += CHUNK_BYTES) {
-        const chunk = await blob.slice(start, start + CHUNK_BYTES).arrayBuffer();
-        await invoke('recordings_append', chunk, { headers: { 'x-file-name': file.file_name } });
+      try {
+        for (let start = 0; start < blob.size; start += CHUNK_BYTES) {
+          const chunk = await blob.slice(start, start + CHUNK_BYTES).arrayBuffer();
+          await invoke('recordings_append', chunk, {
+            headers: { 'x-file-name': file.file_name },
+          });
+        }
+      } catch (error) {
+        // A half-written file would show up as a saved recording that does not play.
+        await invoke('recordings_discard', { fileName: file.file_name }).catch(() => {});
+        throw error;
       }
       return { fileName: file.file_name, location: file.path };
     },
