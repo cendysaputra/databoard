@@ -7,12 +7,15 @@ import { FormError } from '@/shared/ui/FormError';
 import { FormField } from '@/shared/ui/FormField';
 import { Input } from '@/shared/ui/Input';
 import { Textarea } from '@/shared/ui/Textarea';
-import { fromInput, toDateTimeInput } from '@/shared/utils/datetime-input';
+import { toDateTimeInput } from '@/shared/utils/datetime-input';
 import type { EventSave } from '../api';
 import { EventReminders } from './EventReminders';
 import { ReminderPicker } from './ReminderPicker';
 
 const text = t.calendar.form;
+
+/** A field value as local time; a bare date is read as local midnight, not UTC. */
+const localDate = (value: string) => new Date(value.length === 10 ? `${value}T00:00` : value);
 
 interface EventFormProps {
   /** The event being edited; leave out to create a new one. */
@@ -57,9 +60,15 @@ export function EventForm({
   const submit = (formEvent: FormEvent) => {
     formEvent.preventDefault();
     // All-day events run from local midnight to the midnight after the last day.
-    const startAt = allDay ? startOfDay(new Date(start)) : new Date(start);
-    const endAt = allDay ? addDays(startOfDay(new Date(end)), 1) : new Date(end);
-    if (endAt < startAt) {
+    const startAt = allDay ? startOfDay(localDate(start)) : localDate(start);
+    const endAt = allDay ? addDays(startOfDay(localDate(end)), 1) : localDate(end);
+    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
+      setRangeError(true);
+      return;
+    }
+    // An all-day end is the midnight after its last day, so equal to the start means it ends
+    // a day before it begins.
+    if (allDay ? endAt <= startAt : endAt < startAt) {
       setRangeError(true);
       return;
     }
@@ -80,6 +89,13 @@ export function EventForm({
   };
 
   const whenInput = allDay ? { type: 'date' } : { type: 'datetime-local' };
+  /**
+   * Keeps the field's own text while it is typed: a year half-typed or a cleared field is not a
+   * date yet, and turning it into one blanked the field. A date picked in all-day mode keeps the
+   * time it had, for when all-day is turned off again.
+   */
+  const fieldValue = (value: string, current: string) =>
+    allDay && value ? `${value}${current.slice(10)}` : value;
 
   return (
     <form onSubmit={submit} className="editor-panel flex flex-col gap-7">
@@ -114,7 +130,7 @@ export function EventForm({
               {...whenInput}
               className="sm:max-w-64"
               value={allDay ? start.slice(0, 10) : start}
-              onChange={(e) => setStart(toDateTimeInput(fromInput(e.target.value)))}
+              onChange={(e) => setStart(fieldValue(e.target.value, start))}
             />
           )}
         </FormField>
@@ -126,7 +142,7 @@ export function EventForm({
               {...whenInput}
               className="sm:max-w-64"
               value={allDay ? end.slice(0, 10) : end}
-              onChange={(e) => setEnd(toDateTimeInput(fromInput(e.target.value)))}
+              onChange={(e) => setEnd(fieldValue(e.target.value, end))}
             />
           )}
         </FormField>
