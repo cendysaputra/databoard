@@ -43,8 +43,28 @@ fn run_all(
         }
     }
     let steps = migrations.iter().map(|sql| M::up(sql)).collect();
-    Migrations::new(steps).to_latest(conn)?;
-    Ok(())
+    let migrations_to_run = Migrations::new(steps);
+    // The app and the MCP server can open the database at the same moment after an update.
+    // The one that loses the race fails on steps the other has just applied; once the other
+    // is done the schema is current, so look again before giving up.
+    let mut attempts = 0;
+    loop {
+        match migrations_to_run.to_latest(conn) {
+            Ok(()) => return Ok(()),
+            Err(err) => {
+                attempts += 1;
+                std::thread::sleep(std::time::Duration::from_millis(250));
+                let now: u32 = conn.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+                // Exactly current only: a database from a newer version must still be refused.
+                if now as usize == migrations.len() {
+                    return Ok(());
+                }
+                if attempts >= 3 || now as usize > migrations.len() {
+                    return Err(err.into());
+                }
+            }
+        }
+    }
 }
 
 /// The newest schema version this build knows.
