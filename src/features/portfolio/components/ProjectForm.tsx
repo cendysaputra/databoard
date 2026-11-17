@@ -85,7 +85,8 @@ export function ProjectForm({
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (saving) return;
+    // Wait for the cover upload too.
+    if (saving || upload.isPending) return;
     onSubmit({
       title: form.title,
       client: form.client,
@@ -268,7 +269,7 @@ export function ProjectForm({
       <FormError error={error} />
 
       <div className="flex items-center gap-2">
-        <Button type="submit" variant="primary" disabled={saving}>
+        <Button type="submit" variant="primary" disabled={saving || upload.isPending}>
           {t.common.save}
         </Button>
         <Button onClick={onCancel}>{t.common.cancel}</Button>

@@ -84,8 +84,9 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
   const [labelIds, setLabelIds] = useState(note?.label_ids ?? []);
   const [pinned, setPinned] = useState(note?.pinned ?? false);
   const [body, setBody] = useState(note?.body_md ?? '');
-  /** The body as it was opened, after any template, to tell whether it was changed. */
-  const [openedBody, setOpenedBody] = useState(note?.body_md ?? '');
+  /** Stored body at open, and the editor's markdown for it (template included). */
+  const [openedStored] = useState(note?.body_md ?? '');
+  const [openedBody, setOpenedBody] = useState(openedStored);
   const [managing, setManaging] = useState(false);
   const [exportError, setExportError] = useState<unknown>(null);
   const editorRef = useRef<Editor | null>(null);
@@ -93,12 +94,10 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
   const onReady = useCallback(
     (editor: Editor) => {
       editorRef.current = editor;
-      // A note written for an event starts as meeting notes; only once, while still empty.
-      if (fromEvent && editor.isEmpty) {
-        insertMeetingTemplate(editor, false);
-        // The template is where the note starts, not a change to warn about on leaving.
-        setOpenedBody(editor.getMarkdown());
-      }
+      // Event note: meeting template, once.
+      if (fromEvent && editor.isEmpty) insertMeetingTemplate(editor, false);
+      // Baseline: the editor's own markdown, so opening is not an edit.
+      setOpenedBody(editor.getMarkdown());
     },
     [fromEvent],
   );
@@ -118,37 +117,44 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
 
   const [openedDate] = useState(date);
   const sameLabels = (a: string[], b: string[]) => [...a].sort().join() === [...b].sort().join();
+  const selectedIds = selected.map((label) => label.id);
+  const storedBody = note?.body_md ?? '';
+  // Unchanged: as stored, or as first opened while the stored body is still that one.
+  const bodyChanged = body !== storedBody && !(storedBody === openedStored && body === openedBody);
+  // Compared as saved: trimmed title, live labels only.
   const dirty = note
-    ? title !== note.title ||
+    ? title.trim() !== note.title ||
       date !== note.note_date ||
       eventId !== note.event_id ||
       pinned !== note.pinned ||
-      !sameLabels(labelIds, note.label_ids) ||
-      body !== note.body_md
-    : title !== (prefill?.title ?? '') ||
+      !sameLabels(selectedIds, note.label_ids) ||
+      bodyChanged
+    : title.trim() !== (prefill?.title ?? '').trim() ||
       date !== openedDate ||
       pinned ||
-      labelIds.length > 0 ||
-      body !== openedBody;
+      selectedIds.length > 0 ||
+      bodyChanged;
   const leaveDialog = useLeaveGuard(dirty);
 
   // A new note opens on its own page once saved, from the saved copy; anything typed in
   // between would be lost, so the note is read-only until then.
   const locked = saving && !note;
   useEffect(() => {
-    editorRef.current?.setEditable(!locked);
+    // false: no update event, so no fake edit.
+    editorRef.current?.setEditable(!locked, false);
   }, [locked]);
 
   const save = (nextStatus: NoteStatus) => {
     // Ctrl+S skips the disabled button; one save at a time, or a new note is made twice.
     if (saving) return;
     onSubmit({
-      title,
-      body_md: body,
+      title: title.trim(),
+      // Untouched body is saved as stored.
+      body_md: note && !bodyChanged ? note.body_md : body,
       pinned,
       note_date: date,
       status: nextStatus,
-      label_ids: selected.map((label) => label.id),
+      label_ids: selectedIds,
       event_id: linkedId,
       // The link to a project is kept as it is.
       project_id: note?.project_id ?? null,

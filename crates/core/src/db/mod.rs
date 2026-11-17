@@ -17,6 +17,8 @@ const WAL_SIZE_LIMIT_BYTES: i64 = 4 * 1024 * 1024;
 
 /// How many backups made on request or on schedule are kept in one folder.
 const BACKUPS_KEPT: usize = 8;
+/// Before-restore copies kept.
+const RESTORE_COPIES_KEPT: usize = 3;
 
 /// Folder inside the app data directory for backups the app makes for its own safety.
 const BACKUP_FOLDER: &str = "backups";
@@ -63,10 +65,10 @@ impl Db {
 
     /// Writes a backup into `dir` and returns its path. Older backups there are pruned.
     pub fn backup_into(&self, dir: &Path) -> Result<PathBuf> {
-        let target = dir.join(backup::backup_name("backup"));
+        let target = dir.join(backup::backup_name(backup::MANUAL));
         backup::backup_to(&self.lock(), &target)?;
         // The backup itself succeeded; a leftover old file is not worth reporting as a failure.
-        if let Err(err) = backup::prune(dir, BACKUPS_KEPT) {
+        if let Err(err) = backup::prune(dir, backup::Kind::Manual, BACKUPS_KEPT) {
             eprintln!("backup: could not prune old backups: {err}");
         }
         Ok(target)
@@ -78,7 +80,14 @@ impl Db {
         backup::check(source, migrations::latest())?;
         let mut conn = self.lock();
         if let Some(dir) = self.default_backup_dir() {
-            backup::backup_to(&conn, &dir.join(backup::backup_name("before-restore")))?;
+            backup::backup_to(
+                &conn,
+                &dir.join(backup::backup_name(backup::BEFORE_RESTORE)),
+            )?;
+            if let Err(err) = backup::prune(&dir, backup::Kind::BeforeRestore, RESTORE_COPIES_KEPT)
+            {
+                eprintln!("backup: could not prune old restore copies: {err}");
+            }
         }
         backup::restore_into(&mut conn, source)?;
         configure(&conn)?;

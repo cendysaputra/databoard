@@ -63,6 +63,21 @@ pub fn get(conn: &Connection, id: &str) -> Result<Reminder> {
 }
 
 pub fn create(conn: &Connection, input: &ReminderInput) -> Result<Reminder> {
+    // No reminders on deleted events or notes.
+    for (table, parent, what) in [
+        ("events", optional(input.event_id.as_deref()), "event"),
+        ("notes", optional(input.note_id.as_deref()), "note"),
+    ] {
+        let Some(parent) = parent else { continue };
+        let live: bool = conn.query_row(
+            &format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE id = ?1 AND deleted_at IS NULL)"),
+            [parent],
+            |row| row.get(0),
+        )?;
+        if !live {
+            return Err(AppError::NotFound(what));
+        }
+    }
     let (id, now) = (new_id(), now());
     conn.execute(
         "INSERT INTO reminders (id, event_id, note_id, remind_at, message, created_at, updated_at)

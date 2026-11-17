@@ -21,15 +21,17 @@ const escapeHtml = (value: string) =>
 /** A safe file name from the note title. */
 export const fileName = (title: string, fallback: string) =>
   title
-    .trim()
     .replace(/[\\/:*?"<>|]+/g, ' ')
     .replace(/\s+/g, ' ')
-    .slice(0, 80) || fallback;
+    .trim()
+    .slice(0, 80)
+    .trim() || fallback;
 
 const PRINT_CSS = `
   @page { margin: 22mm 20mm; }
   body { font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif; color: #17152b; line-height: 1.6; font-size: 11pt; }
-  h1 { font-size: 22pt; margin: 0 0 4pt; }
+  h1.doc-title { font-size: 22pt; margin: 0 0 4pt; }
+  h1 { font-size: 18pt; margin: 20pt 0 6pt; }
   .meta { color: #6b6980; margin: 0 0 18pt; font-size: 10pt; }
   h2 { font-size: 15pt; margin: 18pt 0 6pt; }
   h3 { font-size: 12.5pt; margin: 14pt 0 4pt; }
@@ -55,7 +57,7 @@ export function exportPdf({ title, meta, html }: NoteExport): void {
   frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
   frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
     <style>${PRINT_CSS}</style></head>
-    <body><h1>${escapeHtml(title)}</h1><p class="meta">${escapeHtml(meta)}</p>${html}</body></html>`;
+    <body><h1 class="doc-title">${escapeHtml(title)}</h1><p class="meta">${escapeHtml(meta)}</p>${html}</body></html>`;
   frame.onload = () => {
     const view = frame.contentWindow;
     if (!view) return;
@@ -118,7 +120,14 @@ export async function exportDocx({ title, meta, doc }: NoteExport, name: string)
           return [
             new Paragraph({
               ...options,
-              heading: node.attrs?.level === 3 ? HeadingLevel.HEADING_3 : HeadingLevel.HEADING_2,
+              heading: [
+                HeadingLevel.HEADING_1,
+                HeadingLevel.HEADING_2,
+                HeadingLevel.HEADING_3,
+                HeadingLevel.HEADING_4,
+                HeadingLevel.HEADING_5,
+                HeadingLevel.HEADING_6,
+              ][Math.min(Math.max(Number(node.attrs?.level) || 2, 1), 6) - 1],
               children: inline(node.content),
             }),
           ];

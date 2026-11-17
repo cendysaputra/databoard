@@ -13,7 +13,7 @@ export interface Recording {
   seconds: number;
 }
 
-type Status = 'idle' | 'recording' | 'done';
+type Status = 'idle' | 'starting' | 'recording' | 'done';
 
 /** Formats tried in order; the first one this engine can record wins. */
 const FORMATS: Array<{ mimeType: string; extension: 'webm' | 'mp4' }> = [
@@ -51,6 +51,16 @@ async function captureStream(options: RecorderOptions) {
     request.windowAudio = 'system';
   }
   const screen = await navigator.mediaDevices.getDisplayMedia(request);
+  try {
+    return await mixStream(screen, options);
+  } catch (err) {
+    // Mixing failed: end the share.
+    for (const track of screen.getTracks()) track.stop();
+    throw err;
+  }
+}
+
+async function mixStream(screen: MediaStream, options: RecorderOptions) {
   // The picker can still hand back a share without sound, e.g. when its audio switch is off.
   const systemAudioMissing = options.systemAudio && screen.getAudioTracks().length === 0;
   const sources = [screen];
@@ -71,40 +81,50 @@ async function captureStream(options: RecorderOptions) {
   const audioSources = sources.filter((source) => source.getAudioTracks().length > 0);
   let mixer: AudioContext | undefined;
   let mixerInputs: MediaStreamAudioSourceNode[] = [];
-  const tracks = [...screen.getVideoTracks()];
-  if (audioSources.length === 1 && audioSources[0]) {
-    tracks.push(...audioSources[0].getAudioTracks());
-  } else if (audioSources.length > 1) {
-    const context = new AudioContext();
-    mixer = context;
-    const output = context.createMediaStreamDestination();
-    // Each input gets a stream of its own audio track only, and the nodes are kept for the
-    // whole recording: an input the engine tidies away goes silent mid-recording.
-    mixerInputs = audioSources.map((source) => {
-      const node = context.createMediaStreamSource(new MediaStream(source.getAudioTracks()));
-      node.connect(output);
-      return node;
-    });
-    // The mixer is made after the pickers, outside the click, so it can start paused. An engine
-    // that will not start it must not leave Start hanging with the share already live.
-    if (context.state === 'suspended') {
-      await Promise.race([
-        context.resume().catch(() => {}),
-        new Promise((resolve) => window.setTimeout(resolve, 1000)),
-      ]);
-    }
-    tracks.push(...output.stream.getAudioTracks());
-  }
-
   let released = false;
   const release = () => {
-    // Called when the recording stops and again when the page is left; free things once.
+    // Frees everything, once.
     if (released) return;
     released = true;
     for (const source of sources) for (const track of source.getTracks()) track.stop();
     for (const node of mixerInputs) node.disconnect();
     void mixer?.close().catch(() => {});
   };
+  const tracks = [...screen.getVideoTracks()];
+  try {
+    await mixAudio();
+  } catch (err) {
+    // Mixing failed: mic and mixer too.
+    release();
+    throw err;
+  }
+
+  async function mixAudio() {
+    if (audioSources.length === 1 && audioSources[0]) {
+      tracks.push(...audioSources[0].getAudioTracks());
+    } else if (audioSources.length > 1) {
+      const context = new AudioContext();
+      mixer = context;
+      const output = context.createMediaStreamDestination();
+      // Each input gets a stream of its own audio track only, and the nodes are kept for the
+      // whole recording: an input the engine tidies away goes silent mid-recording.
+      mixerInputs = audioSources.map((source) => {
+        const node = context.createMediaStreamSource(new MediaStream(source.getAudioTracks()));
+        node.connect(output);
+        return node;
+      });
+      // The mixer is made after the pickers, outside the click, so it can start paused. An engine
+      // that will not start it must not leave Start hanging with the share already live.
+      if (context.state === 'suspended') {
+        await Promise.race([
+          context.resume().catch(() => {}),
+          new Promise((resolve) => window.setTimeout(resolve, 1000)),
+        ]);
+      }
+      tracks.push(...output.stream.getAudioTracks());
+    }
+  }
+
   return {
     stream: new MediaStream(tracks),
     screenTrack: screen.getVideoTracks()[0],
@@ -118,11 +138,14 @@ export function useScreenRecorder() {
   const [status, setStatus] = useState<Status>('idle');
   const [seconds, setSeconds] = useState(0);
   const [recording, setRecording] = useState<Recording | null>(null);
-  const [error, setError] = useState(false);
+  /** Why the last start or recording failed. */
+  const [error, setError] = useState<false | 'denied' | 'failed'>(false);
   /** True when the computer's sound was asked for but the share came without it. */
   const [systemAudioMissing, setSystemAudioMissing] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const releaseRef = useRef<() => void>(() => {});
+  const busyRef = useRef(false);
+  const mountedRef = useRef(true);
 
   // The clock that runs while recording.
   useEffect(() => {
@@ -137,8 +160,10 @@ export function useScreenRecorder() {
 
   // Leaving the page stops the capture and frees the preview. A recording still running is
   // dropped without building a file nobody can reach any more.
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
       const recorder = recorderRef.current;
       if (recorder && recorder.state !== 'inactive') {
         recorder.ondataavailable = null;
@@ -150,38 +175,62 @@ export function useScreenRecorder() {
         if (current) URL.revokeObjectURL(current.url);
         return null;
       });
-    },
-    [],
-  );
+    };
+  }, []);
 
   const start = useCallback(async (options: RecorderOptions) => {
+    // One start at a time.
+    if (busyRef.current) return;
+    busyRef.current = true;
     setError(false);
+    setStatus('starting');
+    const fail = () => {
+      busyRef.current = false;
+      setError('denied');
+      setStatus('idle');
+    };
     const format = FORMATS.find(({ mimeType }) => MediaRecorder.isTypeSupported(mimeType));
     let capture: Awaited<ReturnType<typeof captureStream>>;
     try {
       capture = await captureStream(options);
     } catch {
-      // The picker was cancelled or the permission was denied.
-      setError(true);
+      // Picker cancelled or permission denied.
+      fail();
+      return;
+    }
+    // Page left while picking.
+    if (!mountedRef.current) {
+      capture.release();
       return;
     }
 
     const chunks: Blob[] = [];
     const startedAt = Date.now();
+    let failed = false;
     let recorder: MediaRecorder;
     try {
       recorder = new MediaRecorder(capture.stream, format && { mimeType: format.mimeType });
     } catch {
-      // The engine refused the stream or the format: give the share and microphone back.
+      // Stream or format refused.
       capture.release();
-      setError(true);
+      fail();
       return;
     }
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) chunks.push(event.data);
     };
+    recorder.onerror = () => {
+      failed = true;
+    };
     recorder.onstop = () => {
       capture.release();
+      busyRef.current = false;
+      // A broken recording is not offered as finished.
+      if (failed) {
+        setError('failed');
+        setStatus('idle');
+        return;
+      }
       const blob = new Blob(chunks, { type: recorder.mimeType });
       setRecording({
         blob,
@@ -203,7 +252,7 @@ export function useScreenRecorder() {
     } catch {
       recorder.onstop = null;
       capture.release();
-      setError(true);
+      fail();
       return;
     }
     setSystemAudioMissing(capture.systemAudioMissing);

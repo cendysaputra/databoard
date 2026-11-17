@@ -12,6 +12,35 @@ use crate::error::{AppError, Result};
 const PREFIX: &str = "dashboard-";
 const EXTENSION: &str = "db";
 
+/// Label of a backup the user asked for.
+pub(super) const MANUAL: &str = "backup";
+/// Label of the copy made before a restore.
+pub(super) const BEFORE_RESTORE: &str = "before-restore";
+
+/// Backup kinds, pruned separately.
+#[derive(Clone, Copy)]
+pub enum Kind {
+    Manual,
+    BeforeRestore,
+    /// Labelled with an app version.
+    Migration,
+}
+
+impl Kind {
+    fn matches(self, name: &str) -> bool {
+        let has = |label: &str| {
+            name.strip_prefix(PREFIX)
+                .and_then(|rest| rest.strip_prefix(label))
+                .is_some_and(|rest| rest.starts_with('-'))
+        };
+        match self {
+            Kind::Manual => has(MANUAL),
+            Kind::BeforeRestore => has(BEFORE_RESTORE),
+            Kind::Migration => !has(MANUAL) && !has(BEFORE_RESTORE),
+        }
+    }
+}
+
 /// `dashboard-<label>-<date>-<time>.db`; the label says what made the backup, e.g. a version.
 pub(super) fn backup_name(label: &str) -> String {
     let format = format_description!("[year][month][day]-[hour][minute][second]");
@@ -55,8 +84,15 @@ fn backups_in(dir: &Path) -> Vec<(PathBuf, SystemTime)> {
 
 /// Deletes the oldest backup files in `dir` so that at most `keep` remain.
 /// Only files this app names are counted or deleted.
-pub fn prune(dir: &Path, keep: usize) -> Result<()> {
-    let backups = backups_in(dir);
+pub fn prune(dir: &Path, kind: Kind, keep: usize) -> Result<()> {
+    let backups: Vec<_> = backups_in(dir)
+        .into_iter()
+        .filter(|(path, _)| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| kind.matches(name))
+        })
+        .collect();
     let excess = backups.len().saturating_sub(keep);
     for (path, _) in backups.into_iter().take(excess) {
         std::fs::remove_file(path)?;

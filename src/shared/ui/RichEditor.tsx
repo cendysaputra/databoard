@@ -201,7 +201,10 @@ export function RichEditor({
 }: RichEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ heading: { levels: [2, 3] }, link: { openOnClick: false } }),
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3, 4, 5, 6] },
+        link: { openOnClick: false },
+      }),
       TaskList,
       TaskItem.configure({ nested: true }),
       // Notes written elsewhere (an agent, a pasted file) can hold tables and images. Without

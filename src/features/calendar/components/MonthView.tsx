@@ -26,8 +26,11 @@ const MAX_CHIPS = 3;
 
 /** A month as a grid of days with their events; the picked day is listed below it. */
 export function MonthView({ today }: { today: Date }) {
-  const [month, setMonth] = useState(today);
-  const [selected, setSelected] = useState(today);
+  // Null follows today.
+  const [pickedMonth, setMonth] = useState<Date | null>(null);
+  const [picked, setSelected] = useState<Date | null>(null);
+  const month = pickedMonth ?? today;
+  const selected = picked ?? today;
 
   // Whole weeks, from the Monday on or before the 1st to the Sunday on or after the last day.
   const gridStart = startOfWeek(startOfMonth(month), MONDAY);
@@ -53,8 +56,8 @@ export function MonthView({ today }: { today: Date }) {
           <Button
             className="px-3"
             onClick={() => {
-              setMonth(today);
-              setSelected(today);
+              setMonth(null);
+              setSelected(null);
             }}
           >
             {text.backToToday}

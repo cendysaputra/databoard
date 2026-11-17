@@ -4,7 +4,11 @@ import { data } from '@/data';
 const CHECK_MS = 30_000;
 const STORE_KEY = 'databoard.notifiedReminders';
 
-/** Ids already shown, kept per browser so a reload does not repeat them. */
+// Id plus time: a moved reminder fires again.
+const shownKey = (reminder: { id: string; remind_at: string }) =>
+  `${reminder.id}@${reminder.remind_at}`;
+
+/** Shown reminders, per browser. */
 function readShown(): Set<string> {
   try {
     return new Set(JSON.parse(localStorage.getItem(STORE_KEY) ?? '[]') as string[]);
@@ -37,13 +41,14 @@ export function useBrowserReminders(enabled: boolean): void {
         const shown = readShown();
         const now = Date.now();
         for (const reminder of open) {
-          if (shown.has(reminder.id) || new Date(reminder.remind_at).getTime() > now) continue;
-          shown.add(reminder.id);
+          const key = shownKey(reminder);
+          if (shown.has(key) || new Date(reminder.remind_at).getTime() > now) continue;
+          shown.add(key);
           await data.notify('DataBoard', reminder.message);
         }
-        // Forget reminders that are done or gone, so the list does not grow forever.
-        const openIds = new Set(open.map((reminder) => reminder.id));
-        writeShown(new Set([...shown].filter((id) => openIds.has(id))));
+        // Drop done, gone or moved reminders.
+        const openKeys = new Set(open.map(shownKey));
+        writeShown(new Set([...shown].filter((key) => openKeys.has(key))));
       } catch {
         // Try again on the next round.
       } finally {

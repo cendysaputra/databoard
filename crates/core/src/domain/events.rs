@@ -176,17 +176,20 @@ fn shift_reminders(conn: &Connection, event_id: &str, shift: time::Duration) -> 
         .collect::<rusqlite::Result<_>>()?;
     let now = now();
     for (id, remind_at) in open {
-        let moved = format_ts(parse_ts("remind_at", &remind_at)? + shift);
-        if moved < now {
+        // Out of range counts as gone.
+        let moved = parse_ts("remind_at", &remind_at)?
+            .checked_add(shift)
+            .map(format_ts);
+        let Some(moved) = moved.filter(|moved| *moved >= now) else {
             soft_delete(conn, "reminders", &id)?;
-        } else {
-            // A moved reminder is shown again at its new time.
-            conn.execute(
-                "UPDATE reminders SET remind_at = ?2, notified_at = NULL, updated_at = ?3
-                 WHERE id = ?1",
-                params![id, moved, now],
-            )?;
-        }
+            continue;
+        };
+        // Shown again at the new time.
+        conn.execute(
+            "UPDATE reminders SET remind_at = ?2, notified_at = NULL, updated_at = ?3
+             WHERE id = ?1",
+            params![id, moved, now],
+        )?;
     }
     Ok(())
 }
