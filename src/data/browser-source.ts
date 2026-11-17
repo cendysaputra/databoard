@@ -1,6 +1,7 @@
 import { del, get, set } from 'idb-keyval';
 import type { Settings, Tag, TagInput } from '@/shared/types';
 import { showToast } from '@/shared/ui/toast';
+import { toDateInput } from '@/shared/utils/datetime-input';
 import { createSeed, defaultSettings, seedTags, type SeedData } from './seed';
 import type { DataError, DataSource } from './source';
 
@@ -27,7 +28,7 @@ const ready: Promise<void> = (async () => {
       key('notes'),
       notes.map((note) => ({
         ...note,
-        note_date: note.note_date ?? note.created_at.slice(0, 10),
+        note_date: note.note_date ?? toDateInput(note.created_at),
         status: note.status ?? 'draft',
         label_ids: note.label_ids ?? [],
       })),
@@ -57,6 +58,13 @@ function fail(code: string, message: string): never {
 
 function requireText(field: string, value: string): void {
   if (!value.trim()) fail('validation', `${field} is required`);
+}
+
+/** The same range check as the desktop app: an event must not end before it starts. */
+function requireRange(input: { start_at: string; end_at: string }): void {
+  if (new Date(input.end_at) < new Date(input.start_at)) {
+    fail('validation', 'end_at must not be before start_at');
+  }
 }
 
 async function find<K extends Collection>(name: K, id: string): Promise<SeedData[K][number]> {
@@ -141,10 +149,12 @@ export const browserSource: DataSource = {
     get: (id) => find('events', id),
     async create(input) {
       requireText('title', input.title);
+      requireRange(input);
       return insert('events', input);
     },
     async update(id, input) {
       requireText('title', input.title);
+      requireRange(input);
       return patch('events', id, input);
     },
     async remove(id) {
@@ -229,6 +239,16 @@ export const browserSource: DataSource = {
       await set(
         key('tags'),
         tags.filter((tag) => tag.id !== id),
+      );
+      // Notes lose the label too, so a later save does not write the dead id back.
+      const notes = await load('notes');
+      await set(
+        key('notes'),
+        notes.map((note) =>
+          note.label_ids.includes(id)
+            ? { ...note, label_ids: note.label_ids.filter((label) => label !== id) }
+            : note,
+        ),
       );
     },
   },
@@ -356,8 +376,12 @@ export const browserSource: DataSource = {
           ? await Notification.requestPermission()
           : Notification.permission;
       if (permission === 'granted') {
-        new Notification(title, { body });
-        return;
+        try {
+          new Notification(title, { body });
+          return;
+        } catch {
+          // Android Chrome allows notifications only through a service worker; fall back below.
+        }
       }
     }
     showToast(title, body);
