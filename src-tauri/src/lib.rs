@@ -8,6 +8,7 @@ mod tray;
 
 use dashboard_core::Db;
 use tauri::{Manager, RunEvent};
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
 pub fn run() {
     tauri::Builder::default()
@@ -28,7 +29,26 @@ pub fn run() {
         .setup(|app| {
             // %APPDATA%\<identifier>\ on Windows: survives updates and reinstalls.
             let data_dir = app.path().app_data_dir()?;
-            let db = Db::open(&data_dir, &app.package_info().version.to_string())?;
+            let db = match Db::open(&data_dir, &app.package_info().version.to_string()) {
+                Ok(db) => db,
+                Err(err) => {
+                    // A release build has no console, so a failed start would end in silence.
+                    // Say what went wrong, then quit once the message is closed.
+                    let handle = app.handle().clone();
+                    app.dialog()
+                        .message(format!(
+                            "DataBoard tidak bisa membuka datanya.
+
+{err}
+
+                             Jika DataBoard baru saja diturunkan ke versi lama, pasang lagi                              versi terbaru."
+                        ))
+                        .title("DataBoard")
+                        .kind(MessageDialogKind::Error)
+                        .show(move |_| handle.exit(1));
+                    return Ok(());
+                }
+            };
             app.manage(db);
 
             tray::init(app.handle())?;
