@@ -297,6 +297,8 @@ export const t = {
     recording: 'Sedang merekam',
     pickHint: 'Setelah menekan Mulai rekam, pilih monitor, jendela, atau tab yang mau direkam.',
     denied: 'Perekaman dibatalkan atau izin ditolak.',
+    noSystemAudio:
+      'Suara komputer tidak ikut terekam. Hentikan, lalu saat memilih layar aktifkan opsi bagikan audio sistem.',
     result: {
       title: 'Hasil rekaman',
       name: 'Nama file',

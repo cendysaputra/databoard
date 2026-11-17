@@ -32,10 +32,27 @@ export const isRecordingSupported =
  * are mixed into a single track, because a recorder keeps only one audio track.
  */
 async function captureStream(options: RecorderOptions) {
-  const screen = await navigator.mediaDevices.getDisplayMedia({
+  // Without these two hints the picker offers the computer's sound for a whole screen only,
+  // and a shared window comes back silent. They are newer than the TypeScript definitions.
+  const request: DisplayMediaStreamOptions & {
+    systemAudio?: 'include' | 'exclude';
+    windowAudio?: 'exclude' | 'window' | 'system';
+  } = {
     video: true,
-    audio: options.systemAudio,
-  });
+    // Sound is recorded as it is played: no echo removal, no levelling.
+    audio: options.systemAudio && {
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl: false,
+    },
+  };
+  if (options.systemAudio) {
+    request.systemAudio = 'include';
+    request.windowAudio = 'system';
+  }
+  const screen = await navigator.mediaDevices.getDisplayMedia(request);
+  // The picker can still hand back a share without sound, e.g. when its audio switch is off.
+  const systemAudioMissing = options.systemAudio && screen.getAudioTracks().length === 0;
   const sources = [screen];
   if (options.microphone) {
     try {
@@ -61,7 +78,12 @@ async function captureStream(options: RecorderOptions) {
     for (const source of sources) for (const track of source.getTracks()) track.stop();
     void mixer?.close();
   };
-  return { stream: new MediaStream(tracks), screenTrack: screen.getVideoTracks()[0], release };
+  return {
+    stream: new MediaStream(tracks),
+    screenTrack: screen.getVideoTracks()[0],
+    systemAudioMissing,
+    release,
+  };
 }
 
 /** Records the screen with the browser engine's own recorder. */
@@ -70,6 +92,8 @@ export function useScreenRecorder() {
   const [seconds, setSeconds] = useState(0);
   const [recording, setRecording] = useState<Recording | null>(null);
   const [error, setError] = useState(false);
+  /** True when the computer's sound was asked for but the share came without it. */
+  const [systemAudioMissing, setSystemAudioMissing] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const releaseRef = useRef<() => void>(() => {});
 
@@ -133,6 +157,7 @@ export function useScreenRecorder() {
     recorderRef.current = recorder;
     releaseRef.current = capture.release;
     recorder.start(1000);
+    setSystemAudioMissing(capture.systemAudioMissing);
     setSeconds(0);
     setStatus('recording');
   }, []);
@@ -150,5 +175,5 @@ export function useScreenRecorder() {
     setStatus('idle');
   }, []);
 
-  return { status, seconds, recording, error, start, stop, discard };
+  return { status, seconds, recording, error, systemAudioMissing, start, stop, discard };
 }

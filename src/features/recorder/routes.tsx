@@ -229,6 +229,11 @@ export function RecorderPage() {
                     <p className="text-3xl leading-none font-semibold tabular-nums">
                       {clock(recorder.seconds)}
                     </p>
+                    {recorder.systemAudioMissing && (
+                      <p role="alert" className="max-w-sm text-sm text-danger">
+                        {text.noSystemAudio}
+                      </p>
+                    )}
                     <Button onClick={recorder.stop}>
                       <Square aria-hidden className="size-4 fill-current" />
                       {text.stop}
