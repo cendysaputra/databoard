@@ -259,11 +259,12 @@ export function RecorderPage() {
                     )}
                     {recorder.error && (
                       <p role="alert" className="text-sm text-danger">
-                        {text.denied}
+                        {recorder.error === 'failed' ? text.failed : text.denied}
                       </p>
                     )}
                     <Button
                       variant="primary"
+                      disabled={recorder.status === 'starting'}
                       onClick={() => void recorder.start({ systemAudio, microphone })}
                     >
                       <Circle aria-hidden className="size-4 fill-current" />
