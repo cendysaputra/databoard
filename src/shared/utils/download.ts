@@ -5,7 +5,9 @@ export function downloadBlob(blob: Blob, name: string): void {
   link.href = url;
   link.download = name;
   link.click();
-  URL.revokeObjectURL(url);
+  // Firefox and Safari read the file after the click returns; freeing it at once can leave
+  // an empty or failed download.
+  window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
 /** Downloads text as a file of the given media type, e.g. `application/json`. */
