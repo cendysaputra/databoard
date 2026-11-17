@@ -144,12 +144,15 @@ function Toolbar({ editor }: { editor: Editor }) {
   return (
     <div
       role="toolbar"
-      className="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 border-b border-border bg-bg py-2"
+      className="editor-toolbar sticky top-0 z-10 flex flex-wrap items-center gap-0.5 border-b border-border bg-bg py-2"
     >
       {toolGroups.map((group, index) => (
         <div
           key={index}
-          className={cn('flex gap-0.5', index > 0 && 'ml-1.5 border-l border-border pl-1.5')}
+          className={cn(
+            'editor-tool-group flex gap-0.5',
+            index > 0 && 'ml-1.5 border-l border-border pl-1.5',
+          )}
         >
           {group.map((tool) => (
             <button
