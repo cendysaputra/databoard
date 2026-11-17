@@ -94,10 +94,17 @@ pub fn create(conn: &Connection, input: &TagInput) -> Result<Tag> {
 
 pub fn update(conn: &Connection, id: &str, input: &TagInput) -> Result<Tag> {
     let name = required("name", &input.name)?;
-    if find_by_name(conn, &name)?.is_some_and(|(other, _)| other != id) {
-        return Err(AppError::validation(format!(
-            "label \"{name}\" already exists"
-        )));
+    match find_by_name(conn, &name)? {
+        Some((other, false)) if other != id => {
+            return Err(AppError::validation(format!(
+                "label \"{name}\" already exists"
+            )));
+        }
+        // A deleted label still holds the name; give it its id instead, so the name is free.
+        Some((other, true)) if other != id => {
+            conn.execute("UPDATE tags SET name = id WHERE id = ?1", [&other])?;
+        }
+        _ => {}
     }
     let changed = conn.execute(
         "UPDATE tags SET name = ?2, color = ?3, updated_at = ?4
