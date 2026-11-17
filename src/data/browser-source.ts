@@ -225,7 +225,15 @@ export const browserSource: DataSource = {
       requireText('title', input.title);
       return patch('notes', id, input);
     },
-    remove: (id) => remove('notes', id),
+    async remove(id) {
+      await remove('notes', id);
+      // Reminders made from the note's action items stop with it, as on the desktop.
+      const reminders = await load('reminders');
+      await set(
+        key('reminders'),
+        reminders.filter((r) => r.note_id !== id),
+      );
+    },
   },
   tags: {
     async list() {
