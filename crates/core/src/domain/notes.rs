@@ -313,17 +313,20 @@ mod tests {
         let db = Db::open_in_memory().unwrap();
         db.with_tx(|c| {
             let note = create(c, &input("Rapat", "- [ ] Kirim notulen", false))?;
-            reminders::create(
-                c,
-                &ReminderInput {
-                    event_id: None,
-                    note_id: Some(note.id.clone()),
-                    remind_at: "2026-11-20T09:00:00Z".into(),
-                    message: "Kirim notulen".into(),
-                },
-            )?;
+            let reminder = ReminderInput {
+                event_id: None,
+                note_id: Some(note.id.clone()),
+                remind_at: "2026-11-20T09:00:00Z".into(),
+                message: "Kirim notulen".into(),
+            };
+            reminders::create(c, &reminder)?;
             remove(c, &note.id)?;
             assert!(reminders::list(c, false)?.is_empty());
+            // Deleted note: no new reminders.
+            assert!(matches!(
+                reminders::create(c, &reminder),
+                Err(AppError::NotFound("note"))
+            ));
             Ok(())
         })
         .unwrap();
