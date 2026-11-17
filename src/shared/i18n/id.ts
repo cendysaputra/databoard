@@ -304,6 +304,7 @@ export const t = {
     recording: 'Sedang merekam',
     pickHint: 'Setelah menekan Mulai rekam, pilih monitor, jendela, atau tab yang mau direkam.',
     denied: 'Perekaman dibatalkan atau izin ditolak.',
+    headsetHint: 'Pakai headset agar suara komputer tidak ikut tertangkap mic dan terdengar dobel.',
     noSystemAudio:
       'Suara komputer tidak ikut terekam. Hentikan, lalu saat memilih layar aktifkan opsi bagikan audio sistem.',
     result: {
