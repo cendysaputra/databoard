@@ -37,11 +37,9 @@ pub fn run() {
                     let handle = app.handle().clone();
                     app.dialog()
                         .message(format!(
-                            "DataBoard tidak bisa membuka datanya.
-
-{err}
-
-                             Jika DataBoard baru saja diturunkan ke versi lama, pasang lagi                              versi terbaru."
+                            "DataBoard tidak bisa membuka datanya.\n\n{err}\n\n{}",
+                            "Jika DataBoard baru saja diturunkan ke versi lama, pasang lagi \
+                             versi terbaru."
                         ))
                         .title("DataBoard")
                         .kind(MessageDialogKind::Error)
