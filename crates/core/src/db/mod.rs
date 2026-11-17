@@ -6,7 +6,7 @@ mod migrations;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
 
-use rusqlite::Connection;
+use rusqlite::{Connection, TransactionBehavior};
 
 use crate::error::Result;
 use crate::DB_FILE;
@@ -91,9 +91,13 @@ impl Db {
     }
 
     /// Runs `f` inside a transaction; it commits only when `f` returns `Ok`.
+    ///
+    /// The write lock is taken at the start. A transaction that reads first and writes later
+    /// would otherwise fail at once with "database is locked" when the app and the MCP server
+    /// write at the same moment, instead of waiting out the busy timeout.
     pub fn with_tx<T>(&self, f: impl FnOnce(&Connection) -> Result<T>) -> Result<T> {
         let mut conn = self.lock();
-        let tx = conn.transaction()?;
+        let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
         let value = f(&tx)?;
         tx.commit()?;
         Ok(value)
