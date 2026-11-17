@@ -29,6 +29,8 @@ export function useOverview(now: Date) {
   return useQuery({
     queryKey: ['overview', query.day_starts[0]],
     queryFn: () => data.overview.get(query),
+    // The next event and the counts move with the clock, not only when data changes.
+    refetchInterval: 60_000,
   });
 }
 
