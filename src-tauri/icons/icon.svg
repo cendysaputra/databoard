@@ -9,10 +9,8 @@
       <stop offset="1" stop-color="#CF2222"/>
     </linearGradient>
   </defs>
-  <!-- Shadow -->
-  <ellipse cx="512" cy="928" rx="320" ry="30" fill="#000" opacity="0.12"/>
   <!-- Folder, tilted -->
-  <g transform="rotate(-8 512 540)">
+  <g transform="translate(0 -24) rotate(-8 512 540)">
     <!-- Back with tab -->
     <path d="M130 236a56 56 0 0 1 56-56h120c18 0 34 8 45 22l40 50h447a56 56 0 0 1 56 56v520a56 56 0 0 1-56 56H186a56 56 0 0 1-56-56Z" fill="url(#back)"/>
     <!-- Document peeking out -->
