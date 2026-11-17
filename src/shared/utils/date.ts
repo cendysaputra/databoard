@@ -35,3 +35,16 @@ export const formatWeekday = formatter({ weekday: 'short' });
 
 /** "09.00" */
 export const formatTime = formatter({ hour: '2-digit', minute: '2-digit' });
+
+/**
+ * Whether an event takes up part of `day` (local time). Ends are exclusive, so an all-day event
+ * ending at midnight stays off the next day; an event with no length counts on its start day.
+ */
+export function occursOn(event: { start_at: string; end_at: string }, day: Date): boolean {
+  const dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+  const dayEnd = new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1);
+  const start = new Date(event.start_at);
+  const end = new Date(event.end_at);
+  if (start >= dayEnd) return false;
+  return end > dayStart || (+end === +start && start >= dayStart);
+}

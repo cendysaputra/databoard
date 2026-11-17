@@ -7,6 +7,7 @@ import { FormError } from '@/shared/ui/FormError';
 import { FormField } from '@/shared/ui/FormField';
 import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
+import { useLeaveGuard } from '@/shared/hooks/use-leave-guard';
 import { useUploadCover } from '../api';
 import { Cover } from './Cover';
 
@@ -66,6 +67,9 @@ export function ProjectForm({
     description_md: project?.description_md ?? '',
     cover_path: project?.cover_path ?? null,
   });
+  // Unsaved changes ask before the page is left; the first values are what "unchanged" means.
+  const [opened] = useState(form);
+  const leaveDialog = useLeaveGuard(JSON.stringify(form) !== JSON.stringify(opened));
   const upload = useUploadCover();
   const filePicker = useRef<HTMLInputElement>(null);
   const set = (changes: Partial<typeof form>) => setForm((current) => ({ ...current, ...changes }));
@@ -81,6 +85,7 @@ export function ProjectForm({
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (saving) return;
     onSubmit({
       title: form.title,
       client: form.client,
@@ -167,6 +172,9 @@ export function ProjectForm({
             <Input
               id={id}
               type="url"
+              // Only web addresses: the desktop app opens nothing else.
+              pattern="https?://.+"
+              title={t.portfolio.form.urlHint}
               placeholder="https://"
               value={form.url}
               onChange={(e) => set({ url: e.target.value })}
@@ -178,6 +186,9 @@ export function ProjectForm({
             <Input
               id={id}
               type="url"
+              // Only web addresses: the desktop app opens nothing else.
+              pattern="https?://.+"
+              title={t.portfolio.form.urlHint}
               placeholder="https://"
               value={form.repo_url}
               onChange={(e) => set({ repo_url: e.target.value })}
@@ -264,6 +275,7 @@ export function ProjectForm({
         <div className="flex-1" />
         {extra}
       </div>
+      {leaveDialog}
     </form>
   );
 }

@@ -78,7 +78,9 @@ export async function exportDocx({ title, meta, doc }: NoteExport, name: string)
       if (node.type === 'hardBreak') return [new TextRun({ break: 1 })];
       if (node.type !== 'text' || !node.text) return [];
       const has = (mark: string) => node.marks?.some((m) => m.type === mark) ?? false;
-      const link = node.marks?.find((m) => m.type === 'link')?.attrs?.href as string | undefined;
+      const href = node.marks?.find((m) => m.type === 'link')?.attrs?.href as string | undefined;
+      // Only web and mail links go into the file; anything else stays plain text.
+      const link = href && /^(https?:|mailto:)/i.test(href) ? href : undefined;
       const run = new TextRun({
         text: node.text,
         bold: has('bold'),
@@ -90,6 +92,9 @@ export async function exportDocx({ title, meta, doc }: NoteExport, name: string)
       });
       return link ? [new ExternalHyperlink({ link, children: [run] })] : [run];
     });
+
+  /** Each numbered list gets its own count, so a second list starts again at 1. */
+  let numberedLists = 0;
 
   /** Paragraphs for a list of block nodes; `options` carries list or quote formatting. */
   const blocks = (
@@ -109,14 +114,15 @@ export async function exportDocx({ title, meta, doc }: NoteExport, name: string)
           ];
         case 'bulletList':
         case 'orderedList':
-        case 'taskList':
+        case 'taskList': {
+          const instance = node.type === 'orderedList' ? ++numberedLists : 0;
           return (node.content ?? []).flatMap((item) => {
             const [first, ...rest] = item.content ?? [];
             const marker: IParagraphOptions =
               node.type === 'bulletList'
                 ? { bullet: { level: depth } }
                 : node.type === 'orderedList'
-                  ? { numbering: { reference: 'numbered', level: depth } }
+                  ? { numbering: { reference: 'numbered', level: depth, instance } }
                   : { indent: { left: 360 * (depth + 1), hanging: 360 } };
             const box = node.type === 'taskList' ? (item.attrs?.checked ? '☑ ' : '☐ ') : '';
             return [
@@ -128,13 +134,19 @@ export async function exportDocx({ title, meta, doc }: NoteExport, name: string)
               ...blocks(rest, { indent: { left: 360 * (depth + 1) } }, depth + 1),
             ];
           });
+        }
         case 'blockquote':
-          return (node.content ?? []).map(
-            (child) =>
-              new Paragraph({
-                indent: { left: 480 },
-                children: inline(child.content, { italics: true }),
-              }),
+          // Paragraphs of a quote are set in italics; lists and other blocks inside it keep
+          // their own form instead of coming out empty.
+          return (node.content ?? []).flatMap((child) =>
+            child.type === 'paragraph'
+              ? [
+                  new Paragraph({
+                    indent: { left: 480 },
+                    children: inline(child.content, { italics: true }),
+                  }),
+                ]
+              : blocks([child], { indent: { left: 480 } }, depth),
           );
         case 'codeBlock':
           return [

@@ -1,5 +1,6 @@
 import { addDays, addHours, startOfDay } from 'date-fns';
 import type { CalendarEvent, Note, Project, Reminder, Settings, Tag } from '@/shared/types';
+import { toDateInput } from '@/shared/utils/datetime-input';
 
 export const defaultSettings: Settings = {
   app_name: 'DataBoard',
@@ -133,7 +134,7 @@ export function createSeed(now = new Date()): SeedData {
       event_id: i === 0 ? 'seed-event-2' : null,
       project_id: null,
       pinned,
-      note_date: created.slice(0, 10),
+      note_date: toDateInput(created),
       status: i < 3 ? 'published' : 'draft',
       label_ids: label ? [label] : [],
       created_at: created,

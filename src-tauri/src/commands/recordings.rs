@@ -59,7 +59,16 @@ pub fn recordings_begin(
     let mut path = dir.join(&wanted);
     let mut counter = 2;
     while path.exists() {
-        path = dir.join(format!("{stem}-{counter}.{extension}"));
+        // Shorten the name to make room for the number, so a long name stays a valid one.
+        let suffix = format!("-{counter}");
+        let base: String = stem
+            .chars()
+            .take(recordings::MAX_STEM_LEN.saturating_sub(suffix.len()))
+            .collect();
+        path = dir.join(recordings::file_name(
+            &format!("{base}{suffix}"),
+            &extension,
+        )?);
         counter += 1;
     }
     OpenOptions::new()

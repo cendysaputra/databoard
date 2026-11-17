@@ -31,6 +31,9 @@ export function useSettings() {
 export function useUpdateSettings() {
   const client = useQueryClient();
   return useMutation({
+    // Saves run one after another, so quick changes (dragging a colour picker) end on the
+    // last value instead of whichever save happened to finish last.
+    scope: { id: 'settings' },
     mutationFn: (input: Settings) => data.settings.update(input),
     onMutate: async (input) => {
       await client.cancelQueries({ queryKey: settingsKey });

@@ -1,6 +1,8 @@
 import { del, get, set } from 'idb-keyval';
 import type { Settings, Tag, TagInput } from '@/shared/types';
 import { showToast } from '@/shared/ui/toast';
+import { toDateInput } from '@/shared/utils/datetime-input';
+import { unescapeMarkdown } from '@/shared/utils/markdown-text';
 import { createSeed, defaultSettings, seedTags, type SeedData } from './seed';
 import type { DataError, DataSource } from './source';
 
@@ -27,7 +29,7 @@ const ready: Promise<void> = (async () => {
       key('notes'),
       notes.map((note) => ({
         ...note,
-        note_date: note.note_date ?? note.created_at.slice(0, 10),
+        note_date: note.note_date ?? toDateInput(note.created_at),
         status: note.status ?? 'draft',
         label_ids: note.label_ids ?? [],
       })),
@@ -57,6 +59,13 @@ function fail(code: string, message: string): never {
 
 function requireText(field: string, value: string): void {
   if (!value.trim()) fail('validation', `${field} is required`);
+}
+
+/** The same range check as the desktop app: an event must not end before it starts. */
+function requireRange(input: { start_at: string; end_at: string }): void {
+  if (new Date(input.end_at) < new Date(input.start_at)) {
+    fail('validation', 'end_at must not be before start_at');
+  }
 }
 
 async function find<K extends Collection>(name: K, id: string): Promise<SeedData[K][number]> {
@@ -108,11 +117,14 @@ const pickAccents = ({ accent_color, accent_color_secondary }: Settings) => ({
 /** First line of a note without headings or markdown markers, like the Rust side builds it. */
 function excerpt(body: string): string {
   const line = body.split('\n').find((text) => text.trim() && !text.trim().startsWith('#')) ?? '';
-  return line
-    .trim()
-    .replace(/^[-*\s[\]x>]+/i, '')
-    .replace(/[*_`~]/g, '')
-    .slice(0, 160);
+  // Only a checklist box is stripped as such, so a line starting with "X" keeps its letter.
+  return unescapeMarkdown(
+    line
+      .trim()
+      .replace(/^(?:[-*>]\s*)*(?:\[[ xX]\]\s*)?/, '')
+      // Emphasis markers go; an escaped character is text and stays.
+      .replace(/(?<!\\)[*_`~]/g, ''),
+  ).slice(0, 160);
 }
 
 /** Creates a label or renames the one with `id`; names are unique without case. */
@@ -141,10 +153,12 @@ export const browserSource: DataSource = {
     get: (id) => find('events', id),
     async create(input) {
       requireText('title', input.title);
+      requireRange(input);
       return insert('events', input);
     },
     async update(id, input) {
       requireText('title', input.title);
+      requireRange(input);
       return patch('events', id, input);
     },
     async remove(id) {
@@ -215,7 +229,15 @@ export const browserSource: DataSource = {
       requireText('title', input.title);
       return patch('notes', id, input);
     },
-    remove: (id) => remove('notes', id),
+    async remove(id) {
+      await remove('notes', id);
+      // Reminders made from the note's action items stop with it, as on the desktop.
+      const reminders = await load('reminders');
+      await set(
+        key('reminders'),
+        reminders.filter((r) => r.note_id !== id),
+      );
+    },
   },
   tags: {
     async list() {
@@ -229,6 +251,16 @@ export const browserSource: DataSource = {
       await set(
         key('tags'),
         tags.filter((tag) => tag.id !== id),
+      );
+      // Notes lose the label too, so a later save does not write the dead id back.
+      const notes = await load('notes');
+      await set(
+        key('notes'),
+        notes.map((note) =>
+          note.label_ids.includes(id)
+            ? { ...note, label_ids: note.label_ids.filter((label) => label !== id) }
+            : note,
+        ),
       );
     },
   },
@@ -347,6 +379,8 @@ export const browserSource: DataSource = {
   // Nothing outside the page asks it to navigate.
   onNavigate: () => () => {},
   async openUrl(url) {
+    // Web addresses only, as on the desktop: a saved `javascript:` link must not run.
+    if (!/^https?:\/\//i.test(url)) return;
     window.open(url, '_blank', 'noopener');
   },
   async notify(title, body) {
@@ -356,8 +390,12 @@ export const browserSource: DataSource = {
           ? await Notification.requestPermission()
           : Notification.permission;
       if (permission === 'granted') {
-        new Notification(title, { body });
-        return;
+        try {
+          new Notification(title, { body });
+          return;
+        } catch {
+          // Android Chrome allows notifications only through a service worker; fall back below.
+        }
       }
     }
     showToast(title, body);

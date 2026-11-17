@@ -94,13 +94,28 @@ fn excerpt(body_start: &str) -> String {
         .map(str::trim)
         .find(|line| !line.is_empty() && !line.starts_with('#'))
         .unwrap_or_default();
-    let line = line.trim_start_matches(|c: char| {
-        matches!(c, '-' | '*' | '>' | '[' | ']' | ' ') || c.eq_ignore_ascii_case(&'x')
-    });
-    line.chars()
-        .filter(|c| !matches!(c, '*' | '_' | '`' | '~'))
-        .take(EXCERPT_CHARS)
-        .collect()
+    let line = line.trim_start_matches(['-', '*', '>', ' ']);
+    // Only a checklist box is stripped as such, so a line starting with "X" keeps its letter.
+    let line = ["[ ]", "[x]", "[X]"]
+        .iter()
+        .find_map(|box_| line.strip_prefix(box_))
+        .map_or(line, str::trim_start);
+    // The editor writes `&` as `&amp;` and escapes markdown characters with a backslash: an
+    // escaped character is text and stays, a bare one is a marker and goes.
+    let line = line
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&amp;", "&");
+    let mut text = String::new();
+    let mut chars = line.chars();
+    while let Some(c) = chars.next() {
+        match c {
+            '\\' => text.extend(chars.next()),
+            '*' | '_' | '`' | '~' => {}
+            _ => text.push(c),
+        }
+    }
+    text.chars().take(EXCERPT_CHARS).collect()
 }
 
 fn summary_from_row(row: &Row<'_>) -> rusqlite::Result<NoteSummary> {
@@ -265,15 +280,54 @@ pub fn update(conn: &Connection, id: &str, input: &NoteInput) -> Result<Note> {
     get(conn, id)
 }
 
+/// Removes a note and the reminders made from its action items, so they stop firing.
 pub fn remove(conn: &Connection, id: &str) -> Result<()> {
-    soft_delete(conn, TABLE, id)
+    soft_delete(conn, TABLE, id)?;
+    conn.execute(
+        "UPDATE reminders SET deleted_at = ?1, updated_at = ?1
+         WHERE note_id = ?2 AND deleted_at IS NULL",
+        params![now(), id],
+    )?;
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::reminders::{self, ReminderInput};
     use crate::domain::tags::TagInput;
     use crate::Db;
+
+    #[test]
+    fn excerpt_reads_as_plain_text() {
+        assert_eq!(
+            excerpt("## Judul\n- [x] Kirim **notulen**"),
+            "Kirim notulen"
+        );
+        assert_eq!(excerpt("Xenia datang"), "Xenia datang");
+        assert_eq!(excerpt(r"file\_final R&amp;D"), "file_final R&D");
+    }
+
+    #[test]
+    fn removing_a_note_removes_its_reminders() {
+        let db = Db::open_in_memory().unwrap();
+        db.with_tx(|c| {
+            let note = create(c, &input("Rapat", "- [ ] Kirim notulen", false))?;
+            reminders::create(
+                c,
+                &ReminderInput {
+                    event_id: None,
+                    note_id: Some(note.id.clone()),
+                    remind_at: "2026-11-20T09:00:00Z".into(),
+                    message: "Kirim notulen".into(),
+                },
+            )?;
+            remove(c, &note.id)?;
+            assert!(reminders::list(c, false)?.is_empty());
+            Ok(())
+        })
+        .unwrap();
+    }
 
     const ALL: Page = Page {
         limit: 10,

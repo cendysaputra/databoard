@@ -59,11 +59,18 @@ export interface EventSave {
 async function shiftReminders(eventId: string, shiftMs: number) {
   if (shiftMs === 0) return;
   const reminders = await data.reminders.list(true);
+  const now = Date.now();
   for (const reminder of reminders.filter((r) => r.event_id === eventId)) {
+    const moved = new Date(reminder.remind_at).getTime() + shiftMs;
+    // A reminder pushed into the past would fire straight away; drop it instead.
+    if (moved < now) {
+      await data.reminders.remove(reminder.id);
+      continue;
+    }
     await data.reminders.create({
       event_id: eventId,
       note_id: reminder.note_id,
-      remind_at: new Date(new Date(reminder.remind_at).getTime() + shiftMs).toISOString(),
+      remind_at: new Date(moved).toISOString(),
       message: reminder.message,
     });
     await data.reminders.remove(reminder.id);
@@ -85,14 +92,22 @@ export function useSaveEvent(id?: string) {
         return event;
       }
       const event = await data.events.create(input);
-      if (remindMinutes !== null) {
+      // No reminder for an event that has already begun: it would only fire at once. One that
+      // starts sooner than the reminder lead still gets it, as a heads-up right away.
+      if (remindMinutes !== null && new Date(event.start_at).getTime() > Date.now()) {
         const remindAt = new Date(new Date(event.start_at).getTime() - remindMinutes * 60_000);
-        await data.reminders.create({
-          event_id: event.id,
-          note_id: null,
-          remind_at: remindAt.toISOString(),
-          message: reminderMessage,
-        });
+        try {
+          await data.reminders.create({
+            event_id: event.id,
+            note_id: null,
+            remind_at: remindAt.toISOString(),
+            message: reminderMessage,
+          });
+        } catch (error) {
+          // Take the event back, so saving again does not make a second copy of it.
+          await data.events.remove(event.id).catch(() => {});
+          throw error;
+        }
       }
       return event;
     },

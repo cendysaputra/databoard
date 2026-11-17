@@ -5,7 +5,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 /** ISO timestamp → "YYYY-MM-DD" in local time, for `<input type="date">`. */
 export function toDateInput(iso: string | Date): string {
   const d = new Date(iso);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return `${String(d.getFullYear()).padStart(4, '0')}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 /** ISO timestamp → "YYYY-MM-DDTHH:mm" in local time, for `<input type="datetime-local">`. */

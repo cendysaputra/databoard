@@ -9,6 +9,10 @@ const newPages = [
   ['/notes', '/notes/new'],
 ] as const;
 
+const isTyping = (target: EventTarget | null) =>
+  target instanceof HTMLElement &&
+  (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+
 /** The digit that opens a module with Ctrl, following the sidebar order. */
 export const shortcutDigit = (index: number) => String(index + 1);
 
@@ -23,6 +27,8 @@ export function useShortcuts(enabled: boolean) {
     if (!enabled) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
+      // While typing, these keys would leave the page and lose what was written.
+      if (isTyping(event.target)) return;
 
       if (event.key.toLowerCase() === 'n') {
         const { pathname } = router.state.location;

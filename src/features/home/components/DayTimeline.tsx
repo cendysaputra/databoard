@@ -19,11 +19,14 @@ const hourOf = (value: string | Date) => {
   const date = new Date(value);
   return date.getHours() + date.getMinutes() / 60;
 };
+/** Where an event starts on `day`: one that began the day before starts at midnight. */
+const startHourOn = (event: CalendarEvent, day: Date) =>
+  isSameDay(new Date(event.start_at), day) ? hourOf(event.start_at) : 0;
 const hourLabel = (hour: number) => `${String(hour).padStart(2, '0')}.00`;
 
 interface DayTimelineProps {
   day: Date;
-  /** Events that start on `day`. */
+  /** Events that take up part of `day`, including ones carried over from the day before. */
   events: CalendarEvent[];
   now: Date;
 }
@@ -36,7 +39,7 @@ export function DayTimeline({ day, events, now }: DayTimelineProps) {
     .sort((a, b) => a.start_at.localeCompare(b.start_at));
 
   // The axis covers working hours and stretches to fit earlier or later events.
-  const axisStart = Math.min(DEFAULT_START, ...timed.map((e) => Math.floor(hourOf(e.start_at))));
+  const axisStart = Math.min(DEFAULT_START, ...timed.map((e) => Math.floor(startHourOn(e, day))));
   const axisEnd = Math.max(
     DEFAULT_END,
     ...timed.map((e) => (isSameDay(new Date(e.end_at), day) ? Math.ceil(hourOf(e.end_at)) : 24)),
@@ -48,7 +51,7 @@ export function DayTimeline({ day, events, now }: DayTimelineProps) {
   // Put each chip in the first row where it does not overlap the previous chip.
   const rowEnds: number[] = [];
   const placed = timed.map((event) => {
-    const start = hourOf(event.start_at);
+    const start = startHourOn(event, day);
     const end = Math.max(isSameDay(new Date(event.end_at), day) ? hourOf(event.end_at) : 24, start);
     const reach = start + Math.max(end - start, span * MIN_CHIP_SHARE);
     let row = rowEnds.findIndex((rowEnd) => rowEnd <= start);
