@@ -116,7 +116,17 @@ export function EventForm({
           type="checkbox"
           className="size-4 accent-(--accent)"
           checked={allDay}
-          onChange={(e) => setAllDay(e.target.checked)}
+          onChange={(e) => {
+            // Midnight end = the day after the last day; keep the range across toggles.
+            if (end.endsWith('T00:00')) {
+              if (!e.target.checked) {
+                setEnd(toDateTimeInput(addDays(localDate(end.slice(0, 10)), 1)));
+              } else if (end > start) {
+                setEnd(toDateTimeInput(addDays(localDate(end.slice(0, 10)), -1)));
+              }
+            }
+            setAllDay(e.target.checked);
+          }}
         />
         {t.calendar.allDay}
       </label>
