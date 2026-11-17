@@ -265,15 +265,44 @@ pub fn update(conn: &Connection, id: &str, input: &NoteInput) -> Result<Note> {
     get(conn, id)
 }
 
+/// Removes a note and the reminders made from its action items, so they stop firing.
 pub fn remove(conn: &Connection, id: &str) -> Result<()> {
-    soft_delete(conn, TABLE, id)
+    soft_delete(conn, TABLE, id)?;
+    conn.execute(
+        "UPDATE reminders SET deleted_at = ?1, updated_at = ?1
+         WHERE note_id = ?2 AND deleted_at IS NULL",
+        params![now(), id],
+    )?;
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::reminders::{self, ReminderInput};
     use crate::domain::tags::TagInput;
     use crate::Db;
+
+    #[test]
+    fn removing_a_note_removes_its_reminders() {
+        let db = Db::open_in_memory().unwrap();
+        db.with_tx(|c| {
+            let note = create(c, &input("Rapat", "- [ ] Kirim notulen", false))?;
+            reminders::create(
+                c,
+                &ReminderInput {
+                    event_id: None,
+                    note_id: Some(note.id.clone()),
+                    remind_at: "2026-11-20T09:00:00Z".into(),
+                    message: "Kirim notulen".into(),
+                },
+            )?;
+            remove(c, &note.id)?;
+            assert!(reminders::list(c, false)?.is_empty());
+            Ok(())
+        })
+        .unwrap();
+    }
 
     const ALL: Page = Page {
         limit: 10,
