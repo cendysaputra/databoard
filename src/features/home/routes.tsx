@@ -180,7 +180,9 @@ interface CalendarColumnProps {
 }
 
 function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnProps) {
-  const [month, setMonth] = useState(now);
+  // Null follows today.
+  const [pickedMonth, setMonth] = useState<Date | null>(null);
+  const month = pickedMonth ?? now;
 
   // The grid starts on the Monday on or before the 1st and covers whole weeks.
   const gridStart = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
@@ -221,8 +223,9 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
   const name = useGreetingName();
   const { days } = overviewBuckets(now);
   const [greeting] = useState(randomGreeting);
-  // The day shown on the timeline; picked in the calendar, today by default.
-  const [selected, setSelected] = useState(now);
+  // Timeline day; null follows today.
+  const [picked, setPicked] = useState<Date | null>(null);
+  const selected = picked ?? now;
   const dayStart = startOfDay(selected);
   const dayEvents = (useEventsBetween(dayStart, addDays(dayStart, 1)).data ?? []).filter((e) =>
     occursOn(e, selected),
@@ -279,7 +282,7 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
         now={now}
         selected={selected}
         // Picking the selected day again goes back to today.
-        onSelect={(day) => setSelected(isSameDay(day, selected) ? now : day)}
+        onSelect={(day) => setPicked(isSameDay(day, selected) ? null : day)}
       />
     </div>
   );
