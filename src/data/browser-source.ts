@@ -159,7 +159,23 @@ export const browserSource: DataSource = {
     async update(id, input) {
       requireText('title', input.title);
       requireRange(input);
-      return patch('events', id, input);
+      const before = await find('events', id);
+      const event = await patch('events', id, input);
+      // Open reminders move with the start, as on the desktop; one landing in the past goes.
+      const shift = new Date(event.start_at).getTime() - new Date(before.start_at).getTime();
+      if (shift !== 0) {
+        const now = Date.now();
+        const reminders = await load('reminders');
+        await set(
+          key('reminders'),
+          reminders.flatMap((r) => {
+            if (r.event_id !== id || r.done_at !== null) return [r];
+            const moved = new Date(r.remind_at).getTime() + shift;
+            return moved < now ? [] : [{ ...r, remind_at: new Date(moved).toISOString() }];
+          }),
+        );
+      }
+      return event;
     },
     async remove(id) {
       await remove('events', id);
