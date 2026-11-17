@@ -375,6 +375,8 @@ export const browserSource: DataSource = {
   // Nothing outside the page asks it to navigate.
   onNavigate: () => () => {},
   async openUrl(url) {
+    // Web addresses only, as on the desktop: a saved `javascript:` link must not run.
+    if (!/^https?:\/\//i.test(url)) return;
     window.open(url, '_blank', 'noopener');
   },
   async notify(title, body) {
