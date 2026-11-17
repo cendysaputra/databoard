@@ -40,5 +40,5 @@ pub fn notes_update(db: State<'_, Db>, id: String, input: NoteInput) -> CommandR
 
 #[tauri::command(async)]
 pub fn notes_remove(db: State<'_, Db>, id: String) -> CommandResult<()> {
-    db.with(|conn| notes::remove(conn, &id))
+    db.with_tx(|conn| notes::remove(conn, &id))
 }
