@@ -2,6 +2,7 @@ import { del, get, set } from 'idb-keyval';
 import type { Settings, Tag, TagInput } from '@/shared/types';
 import { showToast } from '@/shared/ui/toast';
 import { toDateInput } from '@/shared/utils/datetime-input';
+import { unescapeMarkdown } from '@/shared/utils/markdown-text';
 import { createSeed, defaultSettings, seedTags, type SeedData } from './seed';
 import type { DataError, DataSource } from './source';
 
@@ -116,11 +117,14 @@ const pickAccents = ({ accent_color, accent_color_secondary }: Settings) => ({
 /** First line of a note without headings or markdown markers, like the Rust side builds it. */
 function excerpt(body: string): string {
   const line = body.split('\n').find((text) => text.trim() && !text.trim().startsWith('#')) ?? '';
-  return line
-    .trim()
-    .replace(/^[-*\s[\]x>]+/i, '')
-    .replace(/[*_`~]/g, '')
-    .slice(0, 160);
+  // Only a checklist box is stripped as such, so a line starting with "X" keeps its letter.
+  return unescapeMarkdown(
+    line
+      .trim()
+      .replace(/^(?:[-*>]\s*)*(?:\[[ xX]\]\s*)?/, '')
+      // Emphasis markers go; an escaped character is text and stays.
+      .replace(/(?<!\\)[*_`~]/g, ''),
+  ).slice(0, 160);
 }
 
 /** Creates a label or renames the one with `id`; names are unique without case. */
