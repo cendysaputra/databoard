@@ -3,7 +3,7 @@ use std::path::Path;
 use rusqlite::Connection;
 use rusqlite_migration::{Migrations, M};
 
-use super::backup::{backup_name, backup_to, prune};
+use super::backup::{backup_name, backup_to, prune, Kind};
 use crate::error::Result;
 
 /// How many pre-migration backups are kept; older ones are deleted.
@@ -37,7 +37,7 @@ fn run_all(
             backup_to(conn, &dir.join(backup_name(app_version)))?;
             // Old backups would otherwise pile up with every update. A file that cannot be
             // deleted must not keep the app from opening its data.
-            if let Err(err) = prune(dir, BACKUPS_KEPT) {
+            if let Err(err) = prune(dir, Kind::Migration, BACKUPS_KEPT) {
                 eprintln!("migrations: could not prune old backups: {err}");
             }
         }
@@ -121,7 +121,15 @@ mod tests {
         for i in 0..7 {
             std::fs::write(backups.join(format!("dashboard-old-{i}.db")), b"x").unwrap();
         }
-        prune(&backups, BACKUPS_KEPT).unwrap();
-        assert_eq!(std::fs::read_dir(&backups).unwrap().count(), BACKUPS_KEPT);
+        // Manual and before-restore backups are not counted.
+        std::fs::write(backups.join("dashboard-backup-1.db"), b"x").unwrap();
+        std::fs::write(backups.join("dashboard-before-restore-1.db"), b"x").unwrap();
+        prune(&backups, Kind::Migration, BACKUPS_KEPT).unwrap();
+        assert_eq!(
+            std::fs::read_dir(&backups).unwrap().count(),
+            BACKUPS_KEPT + 2
+        );
+        assert!(backups.join("dashboard-backup-1.db").exists());
+        assert!(backups.join("dashboard-before-restore-1.db").exists());
     }
 }
