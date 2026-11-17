@@ -101,7 +101,7 @@ export function DayTimeline({ day, events, now }: DayTimelineProps) {
                 // With many hours on the axis, show every other label.
                 span > 14 && (hour - axisStart) % 2 === 1 && 'hidden',
                 // Make room for the "now" pill.
-                showNow && Math.abs(hour - nowHour) < span * 0.06 && 'invisible',
+                showNow && Math.abs(hour - nowHour) < span * 0.09 && 'invisible',
               )}
             >
               {hourLabel(hour)}

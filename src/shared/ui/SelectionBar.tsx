@@ -25,7 +25,7 @@ export function SelectionBar({ selection, deleting, onDelete }: SelectionBarProp
 
   const count = selection.selected.length;
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="selection-bar flex flex-wrap items-center gap-2">
       <span aria-live="polite" className="mr-1 text-xs text-muted tabular-nums">
         {t.common.selectedCount(count)}
       </span>

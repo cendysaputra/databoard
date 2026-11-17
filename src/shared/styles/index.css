@@ -293,8 +293,8 @@
     justify-content: center;
     gap: 3px;
     min-width: 0;
-    padding-inline: 2px;
-    font-size: 11px;
+    font-size: 10px;
+    line-height: 1.2;
     color: var(--text-muted);
     transition: color var(--duration);
     -webkit-tap-highlight-color: transparent;
@@ -302,6 +302,10 @@
   .bottom-nav-item[aria-current='page'] {
     font-weight: 500;
     color: var(--text);
+  }
+  /* A label never spills into the next tab; one that cannot fit is cut off. */
+  .bottom-nav-item > :last-child {
+    max-width: 100%;
   }
 }
 
@@ -594,8 +598,21 @@
   }
 }
 
-/* Phones: the tab bar at the bottom replaces the sidebar, and content uses the full width. */
+/*
+ * Phones: the tab bar at the bottom replaces the sidebar, and content uses the full width.
+ * Text is one step larger than on the desktop, so it sits level with the 16px form fields,
+ * while the page titles are one step smaller.
+ */
 @media (max-width: 600px) {
+  :root {
+    --font-size-xs: 0.8125rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 0.9375rem;
+    --font-size-lg: 1rem;
+    --font-size-xl: 1.125rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.75rem;
+  }
   .app-sidebar {
     display: none;
   }
@@ -603,17 +620,9 @@
     display: grid;
   }
   .app-content {
-    padding: max(22px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
       calc(var(--bottom-nav-height) + 28px + max(12px, env(safe-area-inset-bottom)))
       max(16px, env(safe-area-inset-left));
-  }
-  /* Filter rows: search on its own line, the dropdowns share the next one. */
-  .filter-bar .filter-search {
-    width: 100%;
-  }
-  .filter-bar .filter-select {
-    flex: 1 1 9rem;
-    width: auto;
   }
   /* 16px text keeps iOS from zooming in when a field gets focus; large titles keep their size. */
   :is(input:not([type='checkbox'], [type='radio'], [type='color']), select, textarea):not(
@@ -623,39 +632,171 @@
   ) {
     font-size: 16px;
   }
-}
+  /* Tick boxes are large enough for a thumb. */
+  input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+  }
 
-@media (max-width: 520px) {
-  .calendar-column,
-  .recent-notes {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .calendar-widget,
-  .calendar-events {
-    padding: 16px;
-  }
-  .dashboard-greeting h1 {
-    font-size: 28px;
-  }
-  .dashboard-section h2 {
-    font-size: 18px;
-  }
-}
-
-@media (max-width: 420px) {
-  .app-content {
-    padding-inline: 12px;
-  }
-  .page-header h1 {
-    font-size: 26px;
+  .page-header {
+    gap: 12px;
+    margin-bottom: 20px;
   }
   .settings-panel,
   .editor-panel,
   .note-editor-panel {
+    border-radius: var(--radius-card);
     padding: 16px;
   }
-  .note-editor-panel > div:first-child {
+  .note-editor-panel {
+    min-height: 0;
+  }
+
+  /*
+   * Filter rows: search on its own line, the dropdowns two to a line (a third one takes a
+   * whole line), then the actions as one row of equal buttons.
+   */
+  .filter-bar {
+    margin-bottom: 16px;
+  }
+  .filter-bar .filter-search {
+    width: 100%;
+  }
+  .filter-bar .filter-select {
+    flex: 1 1 9rem;
+    width: auto;
+  }
+  /* The spacer becomes a line break between the filters and the actions. */
+  .filter-bar > .flex-1 {
+    flex: 0 0 100%;
+    margin-block: -4px;
+  }
+  .filter-bar > button {
+    flex: 1 1 30%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding-inline: 8px;
+  }
+  .selection-bar {
+    flex-basis: 100%;
+  }
+
+  /* A switch of views fills its line, with segments of equal width and thumb height. */
+  .segmented {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 12rem;
+  }
+  .segmented > button {
+    flex: 1 1 0;
+    justify-content: center;
+    height: 36px;
+  }
+  /* Calendar: the view switch, then the grouping with "Pilih" beside it. */
+  .calendar-toolbar {
     gap: 8px;
+    margin-bottom: 20px;
+  }
+  .calendar-tools {
+    width: 100%;
+    gap: 8px;
+  }
+  .calendar-tools > .segmented {
+    order: -1;
+  }
+
+  /* List rows: the date sits above the title instead of in a column of its own. */
+  .data-row {
+    gap: 4px 12px;
+    padding: 14px 16px;
+  }
+  /* In selection mode the tick box shares the date's line. */
+  .data-row:has(> input[type='checkbox']) .row-lead {
+    width: calc(100% - 32px);
+  }
+  /* An event's place goes under its title instead of breaking in the middle. */
+  .event-place {
+    display: block;
+    font-size: var(--font-size-sm);
+  }
+  .event-place > span {
+    display: none;
+  }
+  .project-card {
+    min-height: 0;
+    padding: 16px;
+  }
+
+  /* Pills that are buttons get a thumb-sized height. */
+  button.chip {
+    padding: 7px 14px;
+  }
+
+  /* Editor tools: an even grid of two rows instead of groups that break mid-way. */
+  .editor-toolbar {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 2px;
+  }
+  .editor-tool-group {
+    display: contents;
+  }
+  .editor-toolbar button {
+    width: 100%;
+    height: 38px;
+  }
+
+  /* Note page: status, export and delete on one line; publish and save share the next. */
+  .note-actions > .note-action-main {
+    order: 1;
+    flex: 1 1 40%;
+  }
+  .note-meta-label {
+    width: 5rem;
+  }
+
+  /* Dialogs keep a gutter at both sides and start nearer the top. */
+  dialog {
+    max-width: calc(100vw - 24px);
+    margin-top: 8vh;
+  }
+
+  /* Home */
+  .dashboard-primary {
+    gap: 28px;
+  }
+  .dashboard-section > :first-child {
+    margin-bottom: 14px;
+  }
+  .day-timeline {
+    padding: 18px 4px 8px;
+  }
+  .dashboard-panel,
+  .calendar-widget,
+  .calendar-events {
+    padding: 16px;
+  }
+  .calendar-column,
+  .recent-notes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .calendar-column {
+    gap: 12px;
+  }
+  .recent-notes {
+    row-gap: 16px;
+  }
+  .event-countdown {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  :root {
+    --font-size-3xl: 1.5rem;
+  }
+  .app-content {
+    padding-inline: 12px;
   }
 }
 
@@ -672,28 +813,26 @@
   select {
     display: flex;
     align-items: center;
-    gap: 8px;
     cursor: pointer;
-    /* A long choice stays on one line and is cut off, instead of spilling out of the box. */
+    /*
+     * The arrow is a background at the right edge, and a long choice is cut off where the
+     * padding starts, so the text never runs under the arrow or pushes it out of the box.
+     */
+    padding-right: 36px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 12px center;
+    background-size: 16px;
+    background-repeat: no-repeat;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: clip;
+    overflow-clip-margin: content-box;
   }
-
-  /* The arrow: a chevron in the muted text color that turns over while the list is open. */
+  /* The arrow turns over while the list is open. */
+  select:open {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m18 15-6-6-6 6'/%3E%3C/svg%3E");
+  }
   select::picker-icon {
-    content: '';
-    flex-shrink: 0;
-    width: 16px;
-    height: 16px;
-    margin-left: auto;
-    background: var(--text-muted);
-    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
-      center / contain no-repeat;
-    transition: rotate var(--duration);
-  }
-  select:open::picker-icon {
-    rotate: 180deg;
+    display: none;
   }
 
   /* The opened list: a floating card like the other menus, fading in. */

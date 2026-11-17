@@ -52,7 +52,12 @@ export function EventRows({ events, selection }: EventRowsProps) {
           >
             {event.title}
           </Link>
-          {event.location && <span className="text-muted"> · {event.location}</span>}
+          {event.location && (
+            <span className="event-place text-muted">
+              <span> · </span>
+              {event.location}
+            </span>
+          )}
         </Row>
       ))}
     </Rows>

@@ -45,7 +45,7 @@ export function ReminderPicker({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {/* Each control fills its box, so the box sets the width. */}
-      <div className="w-56">
+      <div className="w-full sm:w-56">
         <Select
           id={id}
           aria-label={text.reminder}

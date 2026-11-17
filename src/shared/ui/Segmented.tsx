@@ -27,7 +27,7 @@ export function Segmented<T extends string>({
       role="radiogroup"
       aria-label={label}
       // On a narrow screen a long row scrolls sideways instead of running off the page.
-      className="inline-flex max-w-full gap-1 overflow-x-auto rounded-sm border border-border bg-surface p-1 [scrollbar-width:none]"
+      className="segmented inline-flex max-w-full gap-1 overflow-x-auto rounded-sm border border-border bg-surface p-1 [scrollbar-width:none]"
     >
       {options.map(({ value: option, label: name, icon: Icon }) => {
         const active = option === value;

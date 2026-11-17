@@ -13,7 +13,6 @@ import { EventReminders } from './EventReminders';
 import { ReminderPicker } from './ReminderPicker';
 
 const text = t.calendar.form;
-const narrow = { maxWidth: '16rem' };
 
 interface EventFormProps {
   /** The event being edited; leave out to create a new one. */
@@ -113,7 +112,7 @@ export function EventForm({
               id={id}
               required
               {...whenInput}
-              style={narrow}
+              className="sm:max-w-64"
               value={allDay ? start.slice(0, 10) : start}
               onChange={(e) => setStart(toDateTimeInput(fromInput(e.target.value)))}
             />
@@ -125,7 +124,7 @@ export function EventForm({
               id={id}
               required
               {...whenInput}
-              style={narrow}
+              className="sm:max-w-64"
               value={allDay ? end.slice(0, 10) : end}
               onChange={(e) => setEnd(toDateTimeInput(fromInput(e.target.value)))}
             />
