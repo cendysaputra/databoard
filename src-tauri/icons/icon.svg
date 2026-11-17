@@ -1,7 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <rect width="24" height="24" rx="5" fill="#111111"/>
-  <g fill="#ffffff">
-    <rect x="6.5" y="6" width="2.8" height="12" rx="0.8"/>
-    <path d="M11 6h1a6 6 0 0 1 0 12h-1v-2.8h1a3.2 3.2 0 0 0 0-6.4h-1Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C81E1E"/>
+      <stop offset="1" stop-color="#8F1616"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F25555"/>
+      <stop offset="1" stop-color="#CF2222"/>
+    </linearGradient>
+  </defs>
+  <!-- Folder, tilted -->
+  <g transform="translate(0 -24) rotate(-8 512 540)">
+    <!-- Back with tab -->
+    <path d="M130 236a56 56 0 0 1 56-56h120c18 0 34 8 45 22l40 50h447a56 56 0 0 1 56 56v520a56 56 0 0 1-56 56H186a56 56 0 0 1-56-56Z" fill="url(#back)"/>
+    <!-- Back sheets -->
+    <rect x="330" y="170" width="420" height="560" rx="32" fill="#E4E4E7" stroke="#D4D4D8" stroke-width="4" transform="rotate(-5 540 450)"/>
+    <rect x="350" y="146" width="430" height="560" rx="32" fill="#F4F4F5" stroke="#D4D4D8" stroke-width="4" transform="rotate(1 560 430)"/>
+    <!-- Front sheet -->
+    <g transform="rotate(7 512 400)">
+      <rect x="370" y="120" width="440" height="560" rx="32" fill="#FFFFFF" stroke="#E4E4E7" stroke-width="4"/>
+      <rect x="430" y="200" width="200" height="28" rx="14" fill="#D4D4D8"/>
+      <rect x="430" y="262" width="320" height="24" rx="12" fill="#E4E4E7"/>
+      <rect x="430" y="316" width="270" height="24" rx="12" fill="#E4E4E7"/>
+    </g>
+    <!-- Front panel -->
+    <path d="M130 444a56 56 0 0 1 56-56h652a56 56 0 0 1 56 56v384a56 56 0 0 1-56 56H186a56 56 0 0 1-56-56Z" fill="url(#front)"/>
+    <rect x="186" y="388" width="652" height="12" rx="6" fill="#FFFFFF" opacity="0.22"/>
   </g>
 </svg>
