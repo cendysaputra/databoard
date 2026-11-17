@@ -33,7 +33,7 @@ function Toolbar({ children }: { children?: ReactNode }) {
   const { view, setView } = useCalendarView();
 
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div className="calendar-toolbar mb-6 flex flex-wrap items-center justify-between gap-3">
       <Segmented
         label={text.view.label}
         value={view}
@@ -43,7 +43,9 @@ function Toolbar({ children }: { children?: ReactNode }) {
           { value: 'month', label: text.view.month, icon: CalendarDays },
         ]}
       />
-      {children && <div className="flex flex-wrap items-center gap-3">{children}</div>}
+      {children && (
+        <div className="calendar-tools flex flex-wrap items-center gap-3">{children}</div>
+      )}
     </div>
   );
 }
