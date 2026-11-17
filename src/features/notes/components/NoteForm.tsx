@@ -11,6 +11,7 @@ import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
 import { formatDayMonthYear, formatLongDate, fromIsoDay } from '@/shared/utils/date';
 import { toDateInput } from '@/shared/utils/datetime-input';
+import { useLeaveGuard } from '@/shared/hooks/use-leave-guard';
 import { useLinkableEvents, useLinkedEvent } from '../api';
 import { exportDocx, exportPdf, fileName, type NoteExport } from '../export';
 import { LabelChip } from '@/shared/ui/LabelChip';
@@ -83,6 +84,8 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
   const [labelIds, setLabelIds] = useState(note?.label_ids ?? []);
   const [pinned, setPinned] = useState(note?.pinned ?? false);
   const [body, setBody] = useState(note?.body_md ?? '');
+  /** The body as it was opened, after any template, to tell whether it was changed. */
+  const [openedBody, setOpenedBody] = useState(note?.body_md ?? '');
   const [managing, setManaging] = useState(false);
   const [exportError, setExportError] = useState<unknown>(null);
   const editorRef = useRef<Editor | null>(null);
@@ -91,7 +94,11 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
     (editor: Editor) => {
       editorRef.current = editor;
       // A note written for an event starts as meeting notes; only once, while still empty.
-      if (fromEvent && editor.isEmpty) insertMeetingTemplate(editor, false);
+      if (fromEvent && editor.isEmpty) {
+        insertMeetingTemplate(editor, false);
+        // The template is where the note starts, not a change to warn about on leaving.
+        setOpenedBody(editor.getMarkdown());
+      }
     },
     [fromEvent],
   );
@@ -109,7 +116,25 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
   const status: NoteStatus = note?.status ?? 'draft';
   const selected = labels.filter((label) => labelIds.includes(label.id));
 
-  const save = (nextStatus: NoteStatus) =>
+  const [openedDate] = useState(date);
+  const sameLabels = (a: string[], b: string[]) => [...a].sort().join() === [...b].sort().join();
+  const dirty = note
+    ? title !== note.title ||
+      date !== note.note_date ||
+      eventId !== note.event_id ||
+      pinned !== note.pinned ||
+      !sameLabels(labelIds, note.label_ids) ||
+      body !== note.body_md
+    : title !== (prefill?.title ?? '') ||
+      date !== openedDate ||
+      pinned ||
+      labelIds.length > 0 ||
+      body !== openedBody;
+  const leaveDialog = useLeaveGuard(dirty);
+
+  const save = (nextStatus: NoteStatus) => {
+    // Ctrl+S skips the disabled button; one save at a time, or a new note is made twice.
+    if (saving) return;
     onSubmit({
       title,
       body_md: body,
@@ -121,6 +146,7 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
       // The link to a project is kept as it is.
       project_id: note?.project_id ?? null,
     });
+  };
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -306,6 +332,7 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
       <FormError error={error ?? exportError} />
 
       <LabelManager open={managing} onClose={() => setManaging(false)} labels={labels} />
+      {leaveDialog}
     </form>
   );
 }
