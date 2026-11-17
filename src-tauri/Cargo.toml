@@ -16,7 +16,15 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 dashboard-core.workspace = true
 serde.workspace = true
-tauri = { version = "2", features = ["tray-icon"] }
+# No dynamic-acl: lets the build strip unused plugin commands.
+tauri = { version = "2", default-features = false, features = [
+    "wry",
+    "compression",
+    "common-controls-v6",
+    "x11",
+    "dbus",
+    "tray-icon",
+] }
 tauri-plugin-autostart = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-notification = "2"
