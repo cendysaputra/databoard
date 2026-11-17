@@ -5,9 +5,21 @@ import { useRemoveMany } from '@/shared/hooks/use-remove-many';
 import { notifyDeleted, notifySaved } from '@/shared/ui/toast';
 import type { NoteInput, ReminderInput, TagInput } from '@/shared/types';
 
-const PAGE_SIZE = 100;
-/** The most search hits the data layer hands back at once. */
-const SEARCH_BATCH = 200;
+/** Largest page the data layer hands back. */
+const BATCH = 200;
+
+/** Every page, filtered by `keep`. */
+async function readAll<T>(
+  read: (page: { limit: number; offset: number }) => Promise<T[]>,
+  keep: (item: T) => boolean = () => true,
+): Promise<T[]> {
+  const all: T[] = [];
+  for (let offset = 0; ; offset += BATCH) {
+    const batch = await read({ limit: BATCH, offset });
+    all.push(...batch.filter(keep));
+    if (batch.length < BATCH) return all;
+  }
+}
 
 /** Events offered when linking a note: this far back and ahead of the current month. */
 const EVENT_MONTHS_BACK = 3;
@@ -18,21 +30,16 @@ const EVENT_MONTHS_AHEAD = 6;
  * with search text, only notes that contain its words.
  */
 export function useNotes(labelId: string | null, search = '') {
-  const page = { limit: PAGE_SIZE, offset: 0 };
   return useQuery({
     queryKey: ['notes', 'list', labelId, search],
-    queryFn: async () => {
-      if (!search) return data.notes.list(page, labelId);
-      if (!labelId) return data.notes.search(search, page);
-      // Search has no label filter of its own: read further pages until the list is full,
-      // so labelled matches beyond the first page of hits are not missed.
-      const matches = [];
-      for (let offset = 0; matches.length < PAGE_SIZE; offset += SEARCH_BATCH) {
-        const batch = await data.notes.search(search, { limit: SEARCH_BATCH, offset });
-        matches.push(...batch.filter((note) => note.label_ids.includes(labelId)));
-        if (batch.length < SEARCH_BATCH) break;
-      }
-      return matches.slice(0, PAGE_SIZE);
+    // All notes, so status filtering sees past the first page.
+    queryFn: () => {
+      if (!search) return readAll((page) => data.notes.list(page, labelId));
+      // Search has no label filter: filter here.
+      return readAll(
+        (page) => data.notes.search(search, page),
+        (note) => !labelId || note.label_ids.includes(labelId),
+      );
     },
     // The list stays on screen while the next result loads, so typing does not flicker.
     placeholderData: keepPreviousData,
