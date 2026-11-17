@@ -1,7 +1,16 @@
 import { Link } from '@tanstack/react-router';
-import { addDays, endOfMonth, isSameDay, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import {
+  addDays,
+  differenceInCalendarDays,
+  endOfMonth,
+  isSameDay,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from 'date-fns';
 import { Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
+import { useNow } from '@/shared/hooks/use-now';
 import { t } from '@/shared/i18n/id';
 import type { Overview } from '@/shared/types';
 import { buttonClass } from '@/shared/ui/Button';
@@ -13,6 +22,7 @@ import {
   formatDayMonthYear,
   formatLongDate,
   formatWeekdayLong,
+  occursOn,
 } from '@/shared/utils/date';
 import { overviewBuckets, useEventsBetween, useOverview, useRecentNotes, useSettings } from './api';
 import { CategoryCard } from './components/CategoryCard';
@@ -175,7 +185,7 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
   // The grid starts on the Monday on or before the 1st and covers whole weeks.
   const gridStart = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
   const lastDay = endOfMonth(month);
-  const weeks = Math.ceil((Math.round((+lastDay - +gridStart) / 86_400_000) + 1) / 7);
+  const weeks = Math.ceil((differenceInCalendarDays(lastDay, gridStart) + 1) / 7);
   const monthEvents = useEventsBetween(gridStart, addDays(gridStart, weeks * 7)).data ?? [];
 
   return (
@@ -187,7 +197,7 @@ function CalendarColumn({ overview, now, selected, onSelect }: CalendarColumnPro
           weeks={weeks}
           today={now}
           selected={selected}
-          hasEvents={(day) => monthEvents.some((e) => isSameDay(new Date(e.start_at), day))}
+          hasEvents={(day) => monthEvents.some((e) => occursOn(e, day))}
           onMonthChange={setMonth}
           onSelect={onSelect}
         />
@@ -215,7 +225,7 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
   const [selected, setSelected] = useState(now);
   const dayStart = startOfDay(selected);
   const dayEvents = (useEventsBetween(dayStart, addDays(dayStart, 1)).data ?? []).filter((e) =>
-    isSameDay(new Date(e.start_at), selected),
+    occursOn(e, selected),
   );
   const isToday = isSameDay(selected, now);
 
@@ -276,7 +286,7 @@ function HomeView({ overview, now }: { overview: Overview; now: Date }) {
 }
 
 export function HomePage() {
-  const [now] = useState(() => new Date());
+  const now = useNow();
   const overview = useOverview(now);
 
   return (
