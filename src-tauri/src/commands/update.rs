@@ -28,9 +28,41 @@ pub async fn update_install(app: AppHandle) -> CommandResult<()> {
     let Some(update) = newer_version(&app).await? else {
         return Ok(());
     };
-    update
-        .download_and_install(|_received, _total| {}, || {})
+    let bytes = update
+        .download(|_received, _total| {}, || {})
         .await
         .map_err(AppError::external)?;
+    // An AI client may be running the bundled MCP server; Windows keeps a running program's
+    // file locked, and the installer could then not replace it.
+    stop_bundled_mcp_server();
+    update.install(bytes).map_err(AppError::external)?;
     app.restart()
 }
+
+/// Ends the MCP server that ships next to this app, and only that one: other programs can use
+/// the same file name. The AI client reconnects to the new server once it is restarted.
+#[cfg(windows)]
+fn stop_bundled_mcp_server() {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+    let Ok(path) = super::mcp::mcp_server_path() else {
+        return;
+    };
+    let script = format!(
+        "Get-Process -Name mcp-server -ErrorAction SilentlyContinue | \
+         Where-Object {{ $_.Path -eq '{}' }} | Stop-Process -Force",
+        // A quote inside a PowerShell single-quoted string is written twice.
+        path.replace('\'', "''")
+    );
+    let stopped = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+        .creation_flags(CREATE_NO_WINDOW)
+        .status();
+    if let Err(err) = stopped {
+        eprintln!("update: could not stop the MCP server: {err}");
+    }
+}
+
+#[cfg(not(windows))]
+fn stop_bundled_mcp_server() {}
