@@ -28,6 +28,7 @@ import {
 import { Cover } from './components/Cover';
 import { OptionManager } from './components/OptionManager';
 import { ProjectForm } from './components/ProjectForm';
+import { allowNextLeave } from '@/shared/hooks/use-leave-guard';
 
 const text = t.portfolio;
 
@@ -438,13 +439,27 @@ function ProjectEditor({ project }: { project?: Project }) {
             saving={save.isPending}
             error={save.error ?? remove.error}
             onCancel={back}
-            onSubmit={(input) => save.mutate(input, { onSuccess: back })}
+            onSubmit={(input) =>
+              save.mutate(input, {
+                onSuccess: () => {
+                  allowNextLeave();
+                  back();
+                },
+              })
+            }
             extra={
               project && (
                 <ConfirmButton
                   label={t.common.delete}
                   disabled={remove.isPending}
-                  onConfirm={() => remove.mutate(project.id, { onSuccess: toList })}
+                  onConfirm={() =>
+                    remove.mutate(project.id, {
+                      onSuccess: () => {
+                        allowNextLeave();
+                        toList();
+                      },
+                    })
+                  }
                 />
               )
             }
