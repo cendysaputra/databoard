@@ -85,15 +85,25 @@ async function captureStream(options: RecorderOptions) {
       node.connect(output);
       return node;
     });
-    // The mixer is made after the pickers, outside the click, so it can start paused.
-    if (context.state === 'suspended') await context.resume().catch(() => {});
+    // The mixer is made after the pickers, outside the click, so it can start paused. An engine
+    // that will not start it must not leave Start hanging with the share already live.
+    if (context.state === 'suspended') {
+      await Promise.race([
+        context.resume().catch(() => {}),
+        new Promise((resolve) => window.setTimeout(resolve, 1000)),
+      ]);
+    }
     tracks.push(...output.stream.getAudioTracks());
   }
 
+  let released = false;
   const release = () => {
+    // Called when the recording stops and again when the page is left; free things once.
+    if (released) return;
+    released = true;
     for (const source of sources) for (const track of source.getTracks()) track.stop();
     for (const node of mixerInputs) node.disconnect();
-    void mixer?.close();
+    void mixer?.close().catch(() => {});
   };
   return {
     stream: new MediaStream(tracks),
@@ -125,9 +135,16 @@ export function useScreenRecorder() {
     return () => window.clearInterval(timer);
   }, [status]);
 
-  // Leaving the page stops the capture and frees the preview.
+  // Leaving the page stops the capture and frees the preview. A recording still running is
+  // dropped without building a file nobody can reach any more.
   useEffect(
     () => () => {
+      const recorder = recorderRef.current;
+      if (recorder && recorder.state !== 'inactive') {
+        recorder.ondataavailable = null;
+        recorder.onstop = null;
+        recorder.stop();
+      }
       releaseRef.current();
       setRecording((current) => {
         if (current) URL.revokeObjectURL(current.url);
@@ -151,7 +168,15 @@ export function useScreenRecorder() {
 
     const chunks: Blob[] = [];
     const startedAt = Date.now();
-    const recorder = new MediaRecorder(capture.stream, format && { mimeType: format.mimeType });
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(capture.stream, format && { mimeType: format.mimeType });
+    } catch {
+      // The engine refused the stream or the format: give the share and microphone back.
+      capture.release();
+      setError(true);
+      return;
+    }
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) chunks.push(event.data);
     };
@@ -173,7 +198,14 @@ export function useScreenRecorder() {
 
     recorderRef.current = recorder;
     releaseRef.current = capture.release;
-    recorder.start(1000);
+    try {
+      recorder.start(1000);
+    } catch {
+      recorder.onstop = null;
+      capture.release();
+      setError(true);
+      return;
+    }
     setSystemAudioMissing(capture.systemAudioMissing);
     setSeconds(0);
     setStatus('recording');
