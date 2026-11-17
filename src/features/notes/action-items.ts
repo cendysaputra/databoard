@@ -1,3 +1,5 @@
+import { unescapeMarkdown } from '@/shared/utils/markdown-text';
+
 /** An unchecked checklist line that ends in a date, e.g. `- [ ] Kirim notulen @2026-11-20 09:00`. */
 export interface ActionItem {
   message: string;
@@ -22,6 +24,8 @@ export function parseActionItems(markdown: string): ActionItem[] {
     const [, message = '', day, hour, minute] = match;
     const time = hour && minute ? `${hour.padStart(2, '0')}:${minute}` : DEFAULT_TIME;
     const when = new Date(`${day}T${time}`);
-    return Number.isNaN(when.getTime()) ? [] : [{ message, remindAt: when.toISOString() }];
+    return Number.isNaN(when.getTime())
+      ? []
+      : [{ message: unescapeMarkdown(message), remindAt: when.toISOString() }];
   });
 }
