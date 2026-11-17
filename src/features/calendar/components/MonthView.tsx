@@ -6,7 +6,6 @@ import {
   endOfMonth,
   isSameDay,
   isSameMonth,
-  startOfDay,
   startOfMonth,
   startOfWeek,
 } from 'date-fns';
@@ -16,7 +15,7 @@ import { t } from '@/shared/i18n/id';
 import type { CalendarEvent } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/utils/cn';
-import { formatLongDate, formatMonthYear, formatTime } from '@/shared/utils/date';
+import { formatLongDate, formatMonthYear, formatTime, occursOn } from '@/shared/utils/date';
 import { useEventsBetween } from '../api';
 import { EventRows } from './EventList';
 
@@ -38,13 +37,9 @@ export function MonthView({ today }: { today: Date }) {
   );
 
   const events = useEventsBetween(gridStart, gridEnd).data ?? [];
-  // Events by the day they start on, in time order.
-  const byDay = new Map<number, CalendarEvent[]>();
-  for (const event of [...events].sort((a, b) => a.start_at.localeCompare(b.start_at))) {
-    const key = startOfDay(new Date(event.start_at)).getTime();
-    byDay.set(key, [...(byDay.get(key) ?? []), event]);
-  }
-  const eventsOn = (day: Date) => byDay.get(startOfDay(day).getTime()) ?? [];
+  // Events on every day they cover, so a multi-day event shows on each of its days.
+  const sorted = [...events].sort((a, b) => a.start_at.localeCompare(b.start_at));
+  const eventsOn = (day: Date): CalendarEvent[] => sorted.filter((event) => occursOn(event, day));
   const selectedEvents = eventsOn(selected);
 
   return (
