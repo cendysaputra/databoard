@@ -52,45 +52,13 @@ export interface EventSave {
   reminderMessage: string;
 }
 
-/**
- * Moves the open reminders of an event along with its start, so "10 minutes before" stays
- * 10 minutes before. A moved reminder is a new one, so it is shown again at its new time.
- */
-async function shiftReminders(eventId: string, shiftMs: number) {
-  if (shiftMs === 0) return;
-  const reminders = await data.reminders.list(true);
-  const now = Date.now();
-  for (const reminder of reminders.filter((r) => r.event_id === eventId)) {
-    const moved = new Date(reminder.remind_at).getTime() + shiftMs;
-    // A reminder pushed into the past would fire straight away; drop it instead.
-    if (moved < now) {
-      await data.reminders.remove(reminder.id);
-      continue;
-    }
-    await data.reminders.create({
-      event_id: eventId,
-      note_id: reminder.note_id,
-      remind_at: new Date(moved).toISOString(),
-      message: reminder.message,
-    });
-    await data.reminders.remove(reminder.id);
-  }
-}
-
 /** Creates an event (optionally with one reminder), or updates the one with `id`. */
 export function useSaveEvent(id?: string) {
   const refresh = useRefresh();
   return useMutation({
     mutationFn: async ({ input, remindMinutes, reminderMessage }: EventSave) => {
-      if (id) {
-        const before = await data.events.get(id);
-        const event = await data.events.update(id, input);
-        await shiftReminders(
-          id,
-          new Date(event.start_at).getTime() - new Date(before.start_at).getTime(),
-        );
-        return event;
-      }
+      // Moving an event moves its open reminders too; the data layer does that.
+      if (id) return data.events.update(id, input);
       const event = await data.events.create(input);
       // No reminder for an event that has already begun: it would only fire at once. One that
       // starts sooner than the reminder lead still gets it, as a heads-up right away.

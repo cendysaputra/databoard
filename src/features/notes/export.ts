@@ -70,7 +70,21 @@ export function exportPdf({ title, meta, html }: NoteExport): void {
 export async function exportDocx({ title, meta, doc }: NoteExport, name: string): Promise<void> {
   // The library is large, so it is only loaded when an export is asked for.
   const docx = await import('docx');
-  const { Paragraph, TextRun, ExternalHyperlink, HeadingLevel, LevelFormat, AlignmentType } = docx;
+  const {
+    Paragraph,
+    TextRun,
+    ExternalHyperlink,
+    HeadingLevel,
+    LevelFormat,
+    AlignmentType,
+    Table,
+    TableRow,
+    TableCell,
+    WidthType,
+  } = docx;
+  type Block = InstanceType<typeof Paragraph> | InstanceType<typeof Table>;
+  const isWebLink = (href: string | undefined): href is string =>
+    !!href && /^(https?:|mailto:)/i.test(href);
 
   /** Inline content (text with marks, links, line breaks) of one block. */
   const inline = (nodes: JSONContent[] = [], base: { italics?: boolean } = {}): ParagraphChild[] =>
@@ -80,7 +94,7 @@ export async function exportDocx({ title, meta, doc }: NoteExport, name: string)
       const has = (mark: string) => node.marks?.some((m) => m.type === mark) ?? false;
       const href = node.marks?.find((m) => m.type === 'link')?.attrs?.href as string | undefined;
       // Only web and mail links go into the file; anything else stays plain text.
-      const link = href && /^(https?:|mailto:)/i.test(href) ? href : undefined;
+      const link = isWebLink(href) ? href : undefined;
       const run = new TextRun({
         text: node.text,
         bold: has('bold'),
@@ -97,11 +111,7 @@ export async function exportDocx({ title, meta, doc }: NoteExport, name: string)
   let numberedLists = 0;
 
   /** Paragraphs for a list of block nodes; `options` carries list or quote formatting. */
-  const blocks = (
-    nodes: JSONContent[] = [],
-    options: IParagraphOptions = {},
-    depth = 0,
-  ): InstanceType<typeof Paragraph>[] =>
+  const blocks = (nodes: JSONContent[] = [], options: IParagraphOptions = {}, depth = 0): Block[] =>
     nodes.flatMap((node) => {
       switch (node.type) {
         case 'heading':
@@ -157,6 +167,42 @@ export async function exportDocx({ title, meta, doc }: NoteExport, name: string)
                 .map((line, i) => new TextRun({ text: line, font: 'Consolas', break: i ? 1 : 0 })),
             }),
           ];
+        case 'table':
+          return [
+            new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              rows: (node.content ?? []).map(
+                (row) =>
+                  new TableRow({
+                    children: (row.content ?? []).map((cell) => {
+                      const content = blocks(cell.content);
+                      return new TableCell({
+                        // Header cells are shaded, as in the editor.
+                        shading: cell.type === 'tableHeader' ? { fill: 'EFEFF3' } : undefined,
+                        children: content.length ? content : [new Paragraph({})],
+                      });
+                    }),
+                  }),
+              ),
+            }),
+          ];
+        case 'image': {
+          // The picture itself is not embedded; its description and address are kept.
+          const src = node.attrs?.src as string | undefined;
+          const alt = (node.attrs?.alt as string | undefined) || src || '';
+          const label = new TextRun({
+            text: `[${alt}]`,
+            style: isWebLink(src) ? 'Hyperlink' : undefined,
+          });
+          return [
+            new Paragraph({
+              ...options,
+              children: isWebLink(src)
+                ? [new ExternalHyperlink({ link: src, children: [label] })]
+                : [label],
+            }),
+          ];
+        }
         case 'horizontalRule':
           return [new Paragraph({ thematicBreak: true })];
         default:

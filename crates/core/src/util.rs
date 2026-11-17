@@ -33,6 +33,17 @@ pub fn normalize_ts(field: &str, value: &str) -> Result<String> {
         .map_err(|_| AppError::validation(format!("{field} must be an RFC 3339 timestamp")))
 }
 
+/// Parses a stored timestamp. Stored values were normalised on the way in.
+pub fn parse_ts(field: &str, value: &str) -> Result<OffsetDateTime> {
+    OffsetDateTime::parse(value.trim(), &Rfc3339)
+        .map_err(|_| AppError::validation(format!("{field} must be an RFC 3339 timestamp")))
+}
+
+/// Formats a moment in the stored UTC format.
+pub fn format_ts(at: OffsetDateTime) -> String {
+    format_utc(at)
+}
+
 /// Checks a calendar date written as `YYYY-MM-DD` and returns it trimmed.
 pub fn iso_date(field: &str, value: &str) -> Result<String> {
     let value = value.trim();

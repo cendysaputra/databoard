@@ -9,6 +9,7 @@ import { CommandPalette } from './CommandPalette';
 import { Onboarding } from './Onboarding';
 import { Sidebar } from './Sidebar';
 import { UpdateBanner } from './UpdateBanner';
+import { useBrowserReminders } from './use-browser-reminders';
 import { useShortcuts } from './use-shortcuts';
 
 /** App frame: the sidebar card stays at the left while the window scrolls the content. */
@@ -18,6 +19,7 @@ export function AppLayout() {
   const onboarded = Boolean(settings?.profile_name.trim());
   // No shortcuts while the first-start profile form is the only thing on screen.
   useShortcuts(onboarded);
+  useBrowserReminders(onboarded);
 
   // The desktop shell can ask the open window for a page, e.g. "Event baru" in the tray menu.
   const router = useRouter();

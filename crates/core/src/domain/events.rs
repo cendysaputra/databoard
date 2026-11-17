@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use crate::error::{AppError, Result};
-use crate::util::{new_id, normalize_ts, now, optional, required, soft_delete};
+use crate::util::{
+    format_ts, new_id, normalize_ts, now, optional, parse_ts, required, soft_delete,
+};
 
 const TABLE: &str = "events";
 const COLUMNS: &str =
@@ -131,8 +133,12 @@ pub fn create(conn: &Connection, input: &EventInput) -> Result<CalendarEvent> {
     get(conn, &id)
 }
 
+/// Saves the event. When its start moves, its open reminders move by the same amount, so
+/// "10 minutes before" stays 10 minutes before; one that would land in the past is dropped.
+/// Run it in a transaction, so the event and its reminders change together.
 pub fn update(conn: &Connection, id: &str, input: &EventInput) -> Result<CalendarEvent> {
     let c = clean(input)?;
+    let before = get(conn, id)?;
     let changed = conn.execute(
         "UPDATE events
          SET title = ?2, description = ?3, location = ?4, start_at = ?5, end_at = ?6,
@@ -153,7 +159,36 @@ pub fn update(conn: &Connection, id: &str, input: &EventInput) -> Result<Calenda
     if changed == 0 {
         return Err(AppError::NotFound("event"));
     }
+    let shift = parse_ts("start_at", &c.start_at)? - parse_ts("start_at", &before.start_at)?;
+    if !shift.is_zero() {
+        shift_reminders(conn, id, shift)?;
+    }
     get(conn, id)
+}
+
+fn shift_reminders(conn: &Connection, event_id: &str, shift: time::Duration) -> Result<()> {
+    let open: Vec<(String, String)> = conn
+        .prepare_cached(
+            "SELECT id, remind_at FROM reminders
+             WHERE event_id = ?1 AND done_at IS NULL AND deleted_at IS NULL",
+        )?
+        .query_map([event_id], |row| Ok((row.get(0)?, row.get(1)?)))?
+        .collect::<rusqlite::Result<_>>()?;
+    let now = now();
+    for (id, remind_at) in open {
+        let moved = format_ts(parse_ts("remind_at", &remind_at)? + shift);
+        if moved < now {
+            soft_delete(conn, "reminders", &id)?;
+        } else {
+            // A moved reminder is shown again at its new time.
+            conn.execute(
+                "UPDATE reminders SET remind_at = ?2, notified_at = NULL, updated_at = ?3
+                 WHERE id = ?1",
+                params![id, moved, now],
+            )?;
+        }
+    }
+    Ok(())
 }
 
 /// Soft-deletes the event together with its reminders, and unlinks the notes written for it.
@@ -201,6 +236,45 @@ mod tests {
             remove(c, &event.id)?;
             // The note stays; only its link to the removed event is gone.
             assert_eq!(notes::get(c, &note.id)?.event_id, None);
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn moving_an_event_moves_its_reminders() {
+        use crate::domain::reminders::{self, ReminderInput};
+        let db = Db::open_in_memory().unwrap();
+        db.with_tx(|c| {
+            let event = create(
+                c,
+                &input("Rapat", "2099-11-20T09:00:00Z", "2099-11-20T10:00:00Z"),
+            )?;
+            reminders::create(
+                c,
+                &ReminderInput {
+                    event_id: Some(event.id.clone()),
+                    note_id: None,
+                    remind_at: "2099-11-20T08:50:00Z".into(),
+                    message: "Rapat".into(),
+                },
+            )?;
+            update(
+                c,
+                &event.id,
+                &input("Rapat", "2099-11-21T13:00:00Z", "2099-11-21T14:00:00Z"),
+            )?;
+            let moved = reminders::list(c, true)?;
+            assert_eq!(moved.len(), 1);
+            assert_eq!(moved[0].remind_at, "2099-11-21T12:50:00.000Z");
+
+            // Moved into the past, the reminder is dropped instead of firing at once.
+            update(
+                c,
+                &event.id,
+                &input("Rapat", "2000-01-01T09:00:00Z", "2000-01-01T10:00:00Z"),
+            )?;
+            assert!(reminders::list(c, true)?.is_empty());
             Ok(())
         })
         .unwrap();

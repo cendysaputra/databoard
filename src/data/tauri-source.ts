@@ -6,6 +6,9 @@ import type { DataSource } from './source';
 const CHUNK_BYTES = 4 * 1024 * 1024;
 
 /** Desktop implementation: every call is a thin Tauri command backed by SQLite. */
+/** Addresses already made for stored media files, by file name. */
+const mediaUrls = new Map<string, string>();
+
 export const tauriSource: DataSource = {
   kind: 'tauri',
   events: {
@@ -45,9 +48,17 @@ export const tauriSource: DataSource = {
   recordings: {
     async save(name, extension, blob) {
       const file = await invoke<RecordingFile>('recordings_begin', { name, extension });
-      for (let start = 0; start < blob.size; start += CHUNK_BYTES) {
-        const chunk = await blob.slice(start, start + CHUNK_BYTES).arrayBuffer();
-        await invoke('recordings_append', chunk, { headers: { 'x-file-name': file.file_name } });
+      try {
+        for (let start = 0; start < blob.size; start += CHUNK_BYTES) {
+          const chunk = await blob.slice(start, start + CHUNK_BYTES).arrayBuffer();
+          await invoke('recordings_append', chunk, {
+            headers: { 'x-file-name': file.file_name },
+          });
+        }
+      } catch (error) {
+        // A half-written file would show up as a saved recording that does not play.
+        await invoke('recordings_discard', { fileName: file.file_name }).catch(() => {});
+        throw error;
       }
       return { fileName: file.file_name, location: file.path };
     },
@@ -75,8 +86,14 @@ export const tauriSource: DataSource = {
       });
     },
     async url(path) {
+      // A saved file never changes under its name, so one address per file is enough. Making
+      // a new one on every read left the old images in memory for the whole session.
+      const known = mediaUrls.get(path);
+      if (known) return known;
       const bytes = await invoke<ArrayBuffer>('media_read', { name: path });
-      return URL.createObjectURL(new Blob([bytes]));
+      const url = URL.createObjectURL(new Blob([bytes]));
+      mediaUrls.set(path, url);
+      return url;
     },
   },
   updates: {

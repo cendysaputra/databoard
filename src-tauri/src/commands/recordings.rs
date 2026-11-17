@@ -100,6 +100,19 @@ pub fn recordings_append(app: AppHandle, request: Request<'_>) -> CommandResult<
     Ok(())
 }
 
+/// Deletes a recording whose saving failed part-way, so no broken file is left in the folder.
+#[tauri::command(async)]
+pub fn recordings_discard(app: AppHandle, file_name: String) -> CommandResult<()> {
+    if !recordings::is_safe_file_name(&file_name) {
+        return Err(AppError::validation("invalid recording file name"));
+    }
+    let path = recordings_dir(&app)?.join(file_name);
+    match fs::remove_file(path) {
+        Err(err) if err.kind() != std::io::ErrorKind::NotFound => Err(err.into()),
+        _ => Ok(()),
+    }
+}
+
 /// Saved recordings, newest first.
 #[tauri::command(async)]
 pub fn recordings_list(app: AppHandle) -> CommandResult<Vec<RecordingFile>> {

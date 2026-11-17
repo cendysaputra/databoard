@@ -89,6 +89,7 @@ pub fn run() {
             commands::media::media_read,
             commands::recordings::recordings_begin,
             commands::recordings::recordings_append,
+            commands::recordings::recordings_discard,
             commands::recordings::recordings_list,
             drive::drive_status,
             drive::drive_connect,

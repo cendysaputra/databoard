@@ -1,4 +1,6 @@
+import { Image } from '@tiptap/extension-image';
 import { TaskItem, TaskList } from '@tiptap/extension-list';
+import { TableKit } from '@tiptap/extension-table';
 import { Placeholder } from '@tiptap/extensions';
 import { Markdown } from '@tiptap/markdown';
 import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react';
@@ -202,6 +204,10 @@ export function RichEditor({
       StarterKit.configure({ heading: { levels: [2, 3] }, link: { openOnClick: false } }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      // Notes written elsewhere (an agent, a pasted file) can hold tables and images. Without
+      // these, the editor dropped them and the next save erased them from the note.
+      TableKit.configure({ table: { resizable: false } }),
+      Image,
       Placeholder.configure({ placeholder: t.notes.form.bodyPlaceholder }),
       Markdown,
     ],

@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { CalendarDays, List, NotebookPen, Plus } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { useNow } from '@/shared/hooks/use-now';
 import { useSelection } from '@/shared/hooks/use-selection';
 import { t } from '@/shared/i18n/id';
 import type { CalendarEvent } from '@/shared/types';
@@ -93,7 +94,8 @@ function ListView({ events }: { events: CalendarEvent[] }) {
 
 /** Events as a list grouped by day, week or month, or as a month grid. */
 export function CalendarPage() {
-  const [today] = useState(() => new Date());
+  // Moves on at midnight when the page is left open.
+  const today = useNow();
   const events = useEvents(today);
   const view = useCalendarView((state) => state.view);
 

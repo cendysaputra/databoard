@@ -25,7 +25,7 @@ pub fn events_update(
     id: String,
     input: EventInput,
 ) -> CommandResult<CalendarEvent> {
-    db.with(|conn| events::update(conn, &id, &input))
+    db.with_tx(|conn| events::update(conn, &id, &input))
 }
 
 #[tauri::command(async)]
