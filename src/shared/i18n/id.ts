@@ -28,6 +28,12 @@ export const t = {
     done: 'Selesai',
     back: 'Kembali',
     desktopOnly: 'Khusus desktop',
+    leave: {
+      title: 'Perubahan belum disimpan',
+      body: 'Jika Anda keluar sekarang, perubahan di halaman ini akan hilang.',
+      stay: 'Tetap di sini',
+      leave: 'Keluar tanpa menyimpan',
+    },
   },
   update: {
     available: (version: string) => `Versi ${version} tersedia`,
@@ -265,6 +271,7 @@ export const t = {
       close: 'Tutup',
     },
     form: {
+      urlHint: 'Alamat web yang diawali http:// atau https://',
       title: 'Judul',
       client: 'Klien',
       year: 'Tahun',
