@@ -67,7 +67,7 @@ interface NoteFormProps {
 function MetaRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex min-h-9 items-center gap-4">
-      <span className="w-24 shrink-0 text-sm text-muted">{label}</span>
+      <span className="note-meta-label w-24 shrink-0 text-sm text-muted">{label}</span>
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
@@ -150,7 +150,7 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
       }}
       className="note-editor-panel flex flex-col gap-6"
     >
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="note-actions flex flex-wrap items-center gap-2">
         <span className="rounded-sm bg-surface-hover px-3 py-1 text-xs font-medium text-muted">
           {t.notes.status[status]}
         </span>
@@ -192,12 +192,13 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
         </details>
 
         <Button
+          className="note-action-main"
           disabled={saving}
           onClick={() => save(status === 'published' ? 'draft' : 'published')}
         >
           {status === 'published' ? text.unpublish : text.publish}
         </Button>
-        <Button type="submit" variant="primary" disabled={saving}>
+        <Button type="submit" variant="primary" className="note-action-main" disabled={saving}>
           {t.common.save}
         </Button>
         {extra}
@@ -219,7 +220,7 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
             type="date"
             required
             aria-label={text.date}
-            style={{ maxWidth: '12rem' }}
+            className="sm:max-w-48"
             value={date}
             onChange={(event) => setDate(event.target.value)}
           />
@@ -254,7 +255,7 @@ export function NoteForm({ note, prefill, labels, saving, error, onSubmit, extra
           <div className="flex flex-wrap items-center gap-3">
             <Select
               aria-label={text.event}
-              style={{ maxWidth: '20rem' }}
+              className="sm:max-w-80"
               value={linkedId ?? ''}
               onChange={(event) => setEventId(event.target.value || null)}
             >
