@@ -253,6 +253,10 @@ export function RecorderPage() {
                         {text.options.microphone}
                       </LabelChip>
                     </div>
+                    {/* The microphone runs without echo removal, so speakers would be heard twice. */}
+                    {systemAudio && microphone && (
+                      <p className="max-w-sm text-xs text-muted">{text.headsetHint}</p>
+                    )}
                     {recorder.error && (
                       <p role="alert" className="text-sm text-danger">
                         {text.denied}
