@@ -94,13 +94,28 @@ fn excerpt(body_start: &str) -> String {
         .map(str::trim)
         .find(|line| !line.is_empty() && !line.starts_with('#'))
         .unwrap_or_default();
-    let line = line.trim_start_matches(|c: char| {
-        matches!(c, '-' | '*' | '>' | '[' | ']' | ' ') || c.eq_ignore_ascii_case(&'x')
-    });
-    line.chars()
-        .filter(|c| !matches!(c, '*' | '_' | '`' | '~'))
-        .take(EXCERPT_CHARS)
-        .collect()
+    let line = line.trim_start_matches(['-', '*', '>', ' ']);
+    // Only a checklist box is stripped as such, so a line starting with "X" keeps its letter.
+    let line = ["[ ]", "[x]", "[X]"]
+        .iter()
+        .find_map(|box_| line.strip_prefix(box_))
+        .map_or(line, str::trim_start);
+    // The editor writes `&` as `&amp;` and escapes markdown characters with a backslash: an
+    // escaped character is text and stays, a bare one is a marker and goes.
+    let line = line
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&amp;", "&");
+    let mut text = String::new();
+    let mut chars = line.chars();
+    while let Some(c) = chars.next() {
+        match c {
+            '\\' => text.extend(chars.next()),
+            '*' | '_' | '`' | '~' => {}
+            _ => text.push(c),
+        }
+    }
+    text.chars().take(EXCERPT_CHARS).collect()
 }
 
 fn summary_from_row(row: &Row<'_>) -> rusqlite::Result<NoteSummary> {
@@ -282,6 +297,16 @@ mod tests {
     use crate::domain::reminders::{self, ReminderInput};
     use crate::domain::tags::TagInput;
     use crate::Db;
+
+    #[test]
+    fn excerpt_reads_as_plain_text() {
+        assert_eq!(
+            excerpt("## Judul\n- [x] Kirim **notulen**"),
+            "Kirim notulen"
+        );
+        assert_eq!(excerpt("Xenia datang"), "Xenia datang");
+        assert_eq!(excerpt(r"file\_final R&amp;D"), "file_final R&D");
+    }
 
     #[test]
     fn removing_a_note_removes_its_reminders() {
