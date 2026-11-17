@@ -19,6 +19,7 @@ import { SelectionBar } from '@/shared/ui/SelectionBar';
 import { cn } from '@/shared/utils/cn';
 import { formatDayMonth, fromIsoDay } from '@/shared/utils/date';
 import { toDateInput } from '@/shared/utils/datetime-input';
+import { allowNextLeave } from '@/shared/hooks/use-leave-guard';
 import {
   useLabels,
   useLinkedEvent,
@@ -211,6 +212,7 @@ function NoteEditor({ note, prefill }: { note?: Note; prefill?: NotePrefill }) {
                 onSuccess: (saved) => {
                   // A new note continues on its own page, so further saves update it.
                   if (!note) {
+                    allowNextLeave();
                     void navigate({
                       to: '/notes/$noteId',
                       params: { noteId: saved.id },
@@ -226,7 +228,12 @@ function NoteEditor({ note, prefill }: { note?: Note; prefill?: NotePrefill }) {
                   label={t.common.delete}
                   disabled={remove.isPending}
                   onConfirm={() =>
-                    remove.mutate(note.id, { onSuccess: () => void navigate({ to: '/notes' }) })
+                    remove.mutate(note.id, {
+                      onSuccess: () => {
+                        allowNextLeave();
+                        void navigate({ to: '/notes' });
+                      },
+                    })
                   }
                 />
               )
